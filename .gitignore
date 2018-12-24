@@ -1,0 +1,11 @@
+/InitialSetup.o
+/LoginAsync.o
+/SodiumSocket.o
+/StringRes.o
+/main.o
+/prefs.o
+/sodium_utils.o
+/stringify.o
+/utils.o
+/vars.o
+/gtkclient
