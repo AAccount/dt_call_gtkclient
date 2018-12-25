@@ -50,10 +50,6 @@ StringRes::StringRes()
 	en[StringID::ERR_SODIUM_CONNECT_SYSCALL] = "Sodium socket can't connectFD";
 	en[StringID::ERR_SODIUM_READ] = "sodium socket read using symmetric decryption failed";
 	en[StringID::ERR_SODIUM_WRITE] = "sodium socket write using symmetric encryption failed";
-	en[StringID::ERR_PREF_BADCONFIG] = "preference is misconfigured: ";
-	en[StringID::ERR_PREF_INTMIA] = "Int preference does not exist: ";
-	en[StringID::ERR_PREF_BADINT] = "Int preference can't be converted to a string: ";
-	en[StringID::ERR_PREF_STRINGMIA] = "String preference does not exist: ";
 
 	en[StringID::INITIAL_SETUP_CHOOSE_SERVER_CERT] = "Choose Server Certificate";
 	en[StringID::INITIAL_SETUP_BAD_SERVER_CERT] = "Sodium certificate invalid";
@@ -62,12 +58,19 @@ StringRes::StringRes()
 	en[StringID::INITIAL_SETUP_PRIVATE_KEY_BAD] = "Private key invalid";
 	en[StringID::INITIAL_SETUP_PRIVATE_KEY_OK] = "Private Sodium OK";
 	en[StringID::INITIAL_SETUP_INCOMPLETE] = "All the required information hasn't been filled in yet";
+	en[StringID::INITIAL_SETUP_LOGIN_FAIL] = "Login failed";
 
 	en[StringID::LOGINASYNC_LOGIN1_FORMAT] = "login1 improperly formatted";
 	en[StringID::LOGINASYNC_LOGIN1_TS] = "login1 bad timestamp";
 	en[StringID::LOGINASYNC_CALLENGE_FAILED] = "challenge asymmetric decryption failed";
 	en[StringID::LOGINASYNC_LOGIN2_FORMAT] = "login2 improperly formatted";
 	en[StringID::LOGINASYNC_LOGIN2_TS] = "login2 bad timestamp";
+
+	en[StringID::SETTINGS_AUTOGEN_WARNING] = "####\n#Warning: settings file is automatically generated. Do not edit.\n####\n\n";
+	en[StringID::SETTINGS_BADCONFIG] = "preference is misconfigured: ";
+	en[StringID::SETTINGS_INTMIA] = "Int preference does not exist: ";
+	en[StringID::SETTINGS_BADINT] = "Int preference can't be converted to a string: ";
+	en[StringID::SETTINGS_STRINGMIA] = "String preference does not exist: ";
 }
 
 StringRes::~StringRes()

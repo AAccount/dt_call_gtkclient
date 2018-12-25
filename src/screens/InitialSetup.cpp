@@ -29,6 +29,35 @@ InitialSetup::InitialSetup()
 	gtk_widget_show(window);
 
 	strings = StringRes::getInstance();
+
+	if(!Vars::serverAddress.empty())
+	{
+		gtk_entry_set_text(addr, Vars::serverAddress.c_str());
+	}
+	if(Vars::commandPort != 0)
+	{
+		gtk_entry_set_text(commandPort, std::to_string(Vars::commandPort).c_str());
+	}
+	if(Vars::mediaPort != 0)
+	{
+		gtk_entry_set_text(mediaPort, std::to_string(Vars::mediaPort).c_str());
+	}
+	if(!Vars::username.empty())
+	{
+		gtk_entry_set_text(username, Vars::username.c_str());
+	}
+	if(Vars::serverCert.get() != NULL)
+	{
+		const std::string certOk = strings->getString(Vars::lang, StringRes::StringID::INITIAL_SETUP_SERVER_CERT_OK);
+		gtk_button_set_label(serverCert, certOk.c_str());
+		gotServerCert = true;
+	}
+	if(Vars::privateKey.get() != NULL)
+	{
+		const std::string privateOk = strings->getString(Vars::lang, StringRes::StringID::INITIAL_SETUP_PRIVATE_KEY_OK);
+		gtk_button_set_label(privateKey, privateOk.c_str());
+		gotPrivateKey = true;
+	}
 }
 
 InitialSetup::~InitialSetup()
@@ -168,10 +197,17 @@ void InitialSetup::asyncResult(int result)
 	if(result == LoginAsync::LoginResult::LOGIN_OK)
 	{
 		std::cerr << "Login ok";
+		Settings* settings = Settings::getInstance();
+		settings->setString(Settings::SettingName::SETTING_ADDR, Vars::serverAddress);
+		settings->setInt(Settings::SettingName::SETTING_COMMAND_PORT, Vars::commandPort);
+		settings->setInt(Settings::SettingName::SETTING_MEDIA_PORT, Vars::mediaPort);
+		settings->setString(Settings::SettingName::SETTING_UNAME, Vars::username);
+		settings->save();
 	}
 	else if(result == LoginAsync::LoginResult::LOGIN_NOTOK)
 	{
-		std::cerr << "Login failed";
+		const std::string error = strings->getString(Vars::lang, StringRes::StringID::INITIAL_SETUP_LOGIN_FAIL);
+		Utils::show_popup(error, (GtkWindow*)window);
 	}
 }
 

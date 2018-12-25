@@ -47,6 +47,10 @@ std::string Utils::file_chooser(const std::string& message, GtkWindow* parent)
 std::string Utils::dumpSmallFile(const std::string& path)
 {
 	std::ifstream fileStream(path);
+	if(!fileStream.good())
+	{
+		return "";
+	}
 	std::stringstream stringStream;
 	stringStream << fileStream.rdbuf();
 	fileStream.close();

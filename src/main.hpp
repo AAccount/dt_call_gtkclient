@@ -16,5 +16,6 @@
 
 #include "screens/InitialSetup.hpp"
 #include "vars.hpp"
+#include "settings.hpp"
 
 #endif /* SRC_MAIN_HPP_ */

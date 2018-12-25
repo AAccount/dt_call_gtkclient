@@ -9,14 +9,14 @@ CXX = g++ -std=c++14
 GTKLIB = `pkg-config --cflags gtk+-3.0 --libs gtk+-3.0`
 TARGET = gtkclient
 
-OBJS = main.o utils.o prefs.o SodiumSocket.o vars.o InitialSetup.o StringRes.o LoginAsync.o
+OBJS = main.o utils.o settings.o SodiumSocket.o vars.o InitialSetup.o StringRes.o LoginAsync.o
 DTOPERATOROBJS = stringify.o sodium_utils.o
 
 all: $(OBJS)
 	$(CXX) -o $(TARGET) $(OBJS) ${DTOPERATOROBJS} $(LDFLAGS) $(GTKLIB) -export-dynamic ${SELF_LIBS} ${SELF_SODIUM} ${SELF_STRINGIFY} ${MATH} ${PTHREAD} ${SODIUM}
     
-prefs.o : src/prefs.cpp src/prefs.hpp
-	${CXX} ${CFLAGS} -c src/prefs.cpp
+settings.o : src/settings.cpp src/settings.hpp
+	${CXX} ${CFLAGS} -c src/settings.cpp $(GTKLIB)
 	
 main.o: src/main.cpp
 	$(CXX) $(CFLAGS) -c src/main.cpp $(GTKLIB)

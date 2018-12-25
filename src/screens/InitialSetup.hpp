@@ -19,6 +19,7 @@
 #include "../StringRes.hpp"
 #include "../background/AsyncReceiver.hpp"
 #include "../background/LoginAsync.hpp"
+#include "../settings.hpp"
 
 class InitialSetup : public virtual AsyncReceiver
 {
