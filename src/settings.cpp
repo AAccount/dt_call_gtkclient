@@ -111,7 +111,7 @@ void Settings::setInt(SettingName setting, int newValue)
 	settingsTable[settingName] = std::to_string(newValue);
 }
 
-void Settings::setString(SettingName setting, std::string newValue)
+void Settings::setString(SettingName setting, std::string& newValue)
 {
 	if(settingsNames.count(setting) == 0)
 	{
@@ -271,7 +271,7 @@ bool Settings::getSodiumFile(SettingName setting) const
 
 //private functions
 //copied and pasted from server's Utils class
-std::string Settings::trim (const std::string &input) const
+std::string Settings::trim (const std::string& input) const
 {//
 	//nothing to trim in a blank string
 	if(input.length() == 0)
