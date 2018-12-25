@@ -23,6 +23,7 @@ InitialSetup::InitialSetup()
 	username = GTK_ENTRY(GTK_WIDGET(gtk_builder_get_object(builder, "id_initial_setup_name")));
 	privateKey = GTK_BUTTON(GTK_WIDGET(gtk_builder_get_object(builder, "id_initial_setup_private_key")));
 	login = GTK_BUTTON(GTK_WIDGET(gtk_builder_get_object(builder, "id_initial_setup_next")));
+	g_signal_connect(G_OBJECT(window),"destroy", Utils::quit, NULL);
 	gtk_builder_connect_signals(builder, NULL);
 
 	g_object_unref(builder);

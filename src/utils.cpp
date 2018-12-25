@@ -104,3 +104,9 @@ time_t Utils::now()
 	const time_t nowvar = time(NULL);
 	return nowvar;
 }
+
+void Utils::quit()
+{
+	randombytes_buf(Vars::privateKey.get(), crypto_box_SECRETKEYBYTES);
+	exit(0);
+}

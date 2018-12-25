@@ -219,6 +219,12 @@ void Settings::writeSodiumFile(SettingName setting) const
 	sodiumOut << stringifiedKey;
 	sodiumOut.flush();
 	sodiumOut.close();
+
+	if(setting == SettingName::SETTING_PRIVATE_KEY)
+	{
+		const char* privateKeyStringMemory = &stringifiedKey[0];
+		randombytes_buf((void*)privateKeyStringMemory, stringifiedKey.length());
+	}
 }
 
 bool Settings::getSodiumFile(SettingName setting) const
@@ -254,6 +260,8 @@ bool Settings::getSodiumFile(SettingName setting) const
 		const std::string dumpStringified = dump.substr(SodiumUtils::SODIUM_PRIVATE_HEADER().length(), crypto_box_SECRETKEYBYTES*3);
 		Vars::privateKey = std::make_unique<unsigned char[]>(crypto_box_SECRETKEYBYTES);
 		Stringify::destringify(dumpStringified, Vars::privateKey.get());
+		const char* privateKeyStringMemory = &dump[0];
+		randombytes_buf((void*)privateKeyStringMemory, dump.length());
 		return true;
 		break;
 	}

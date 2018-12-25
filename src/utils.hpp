@@ -18,6 +18,8 @@
 #include <vector>
 #include <gtk/gtk.h>
 #include <time.h>
+#include <sodium.h>
+#include "vars.hpp"
 
 namespace Utils
 {
@@ -28,6 +30,7 @@ namespace Utils
 	std::vector<std::string> parse(unsigned char command[]);
 	bool validTS(time_t ts);
 	time_t now();
+	void quit();
 };
 
 #endif /* UTILS_HPP_ */
