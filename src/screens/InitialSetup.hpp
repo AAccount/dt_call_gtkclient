@@ -20,6 +20,7 @@
 #include "../background/AsyncReceiver.hpp"
 #include "../background/LoginAsync.hpp"
 #include "../settings.hpp"
+#include "UserHome.hpp"
 
 class InitialSetup : public virtual AsyncReceiver
 {
@@ -51,6 +52,7 @@ private:
 	StringRes* strings;
 	bool gotServerCert = false;
 	bool gotPrivateKey = false;
+	gulong destroySignalID;
 };
 
 #endif /* SRC_SCREENS_INITIALSETUP_HPP_ */

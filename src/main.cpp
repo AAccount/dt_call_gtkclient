@@ -11,6 +11,8 @@
 
 int main(int argc, char *argv[])
 {
+    XInitThreads(); //the magic required to open another window
+
 	gtk_init(&argc, &argv);
 
 //	if(argc == 3)

@@ -13,6 +13,7 @@
 #include <pthread.h>
 
 #include <unistd.h>
+#include <X11/Xlib.h>
 
 #include "screens/InitialSetup.hpp"
 #include "vars.hpp"

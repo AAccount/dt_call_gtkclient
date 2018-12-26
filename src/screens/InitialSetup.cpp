@@ -23,7 +23,7 @@ InitialSetup::InitialSetup()
 	username = GTK_ENTRY(GTK_WIDGET(gtk_builder_get_object(builder, "id_initial_setup_name")));
 	privateKey = GTK_BUTTON(GTK_WIDGET(gtk_builder_get_object(builder, "id_initial_setup_private_key")));
 	login = GTK_BUTTON(GTK_WIDGET(gtk_builder_get_object(builder, "id_initial_setup_next")));
-	g_signal_connect(G_OBJECT(window),"destroy", Utils::quit, NULL);
+	destroySignalID = g_signal_connect(G_OBJECT(window),"destroy", Utils::quit, NULL);
 	gtk_builder_connect_signals(builder, NULL);
 
 	g_object_unref(builder);
@@ -63,6 +63,7 @@ InitialSetup::InitialSetup()
 
 InitialSetup::~InitialSetup()
 {
+	g_signal_handler_disconnect(window, destroySignalID);
 	gtk_widget_destroy(window);
 	g_object_unref(window);
 }
@@ -204,6 +205,7 @@ void InitialSetup::asyncResult(int result)
 		settings->setInt(Settings::SettingName::SETTING_MEDIA_PORT, Vars::mediaPort);
 		settings->setString(Settings::SettingName::SETTING_UNAME, Vars::username);
 		settings->save();
+		UserHome::render();
 	}
 	else if(result == LoginAsync::LoginResult::LOGIN_NOTOK)
 	{
