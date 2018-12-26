@@ -19,17 +19,21 @@ UserHome::UserHome()
 	entry = GTK_ENTRY(GTK_WIDGET(gtk_builder_get_object(builder, "user_home_entry")));
 	contactList = GTK_BOX(GTK_WIDGET(gtk_builder_get_object(builder, "user_home_contact_list")));
 	destroySignalID = g_signal_connect(G_OBJECT(window),"destroy", Utils::quit, NULL);
+
+	gtk_window_set_default_size(GTK_WINDOW(window), 400, 250);
 	gtk_builder_connect_signals(builder, NULL);
 	g_object_unref(builder);
 	gtk_widget_show(window);
-	onScreen = true;
 
+	onScreen = true;
 	InitialSetup::remove();
 }
 
 UserHome::~UserHome()
 {
+	//this window is purposely going away, unhook it from the main quit function
 	g_signal_handler_disconnect(window, destroySignalID);
+
 	gtk_widget_destroy(window);
 	g_object_unref(window);
 }
@@ -53,6 +57,7 @@ void UserHome::remove()
 	if(instance != NULL)
 	{
 		delete instance;
+		instance = NULL;
 	}
 }
 

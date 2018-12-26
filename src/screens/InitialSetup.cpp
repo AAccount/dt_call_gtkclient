@@ -24,8 +24,8 @@ InitialSetup::InitialSetup()
 	privateKey = GTK_BUTTON(GTK_WIDGET(gtk_builder_get_object(builder, "id_initial_setup_private_key")));
 	login = GTK_BUTTON(GTK_WIDGET(gtk_builder_get_object(builder, "id_initial_setup_next")));
 	destroySignalID = g_signal_connect(G_OBJECT(window),"destroy", Utils::quit, NULL);
-	gtk_builder_connect_signals(builder, NULL);
 
+	gtk_builder_connect_signals(builder, NULL);
 	g_object_unref(builder);
 	gtk_widget_show(window);
 
@@ -63,7 +63,9 @@ InitialSetup::InitialSetup()
 
 InitialSetup::~InitialSetup()
 {
+	//this window is purposely going away, unhook it from the main quit function
 	g_signal_handler_disconnect(window, destroySignalID);
+
 	gtk_widget_destroy(window);
 	g_object_unref(window);
 }
@@ -86,6 +88,7 @@ void InitialSetup::remove()
 	if(instance != NULL)
 	{
 		delete instance;
+		instance = NULL;
 	}
 }
 

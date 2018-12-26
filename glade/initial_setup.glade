@@ -4,6 +4,7 @@
   <requires lib="gtk+" version="3.20"/>
   <object class="GtkWindow" id="window_initial_setup">
     <property name="can_focus">False</property>
+    <property name="title" translatable="yes">DT Call Setup</property>
     <property name="resizable">False</property>
     <property name="default_width">-1</property>
     <child type="titlebar">
