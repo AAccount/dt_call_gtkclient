@@ -16,10 +16,14 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <string>
+#include <stdexcept>
 #include <gtk/gtk.h>
 #include <time.h>
 #include <sodium.h>
-#include "vars.hpp"
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 
 namespace Utils
 {
@@ -28,9 +32,10 @@ namespace Utils
 	std::string file_chooser(const std::string& message, GtkWindow* parent);
 	std::string dumpSmallFile(const std::string& path);
 	std::vector<std::string> parse(unsigned char command[]);
-	bool validTS(time_t ts);
+	bool validTS(const std::string& ts);
 	time_t now();
-	void quit();
+	void quit(unsigned char privateKey[], unsigned char voiceKey[]);
+	bool connectFD(int& fd, int type, const std::string& caddr, int cport, struct sockaddr_in* serv_addr);
 };
 
 #endif /* UTILS_HPP_ */

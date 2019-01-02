@@ -9,14 +9,21 @@
 
 SodiumSocket::SodiumSocket() :
 socketFD(0),
-strings(StringRes::getInstance())
+useable(false),
+r(R::getInstance()),
+logger(Logger::getInstance("/tmp/"))
 {
+	logger->insertLog(Log(Log::TAG::SODIUM_SOCKET, r->getString(R::StringID::SODIUM_DEFAULT_CONSTRUCTOR), Log::TYPE::ERROR).toString());
 	memset(serverPublic, 0, crypto_box_PUBLICKEYBYTES);
 	memset(tcpKey, 0, crypto_secretbox_KEYBYTES);
 }
 
 SodiumSocket::SodiumSocket(const std::string& caddr, int cport, unsigned char cserverPublic[])
-:strings(StringRes::getInstance())
+:
+useable(false),
+r(R::getInstance()),
+logger(Logger::getInstance(""))
+
 {
 	memset(serverPublic, 0, crypto_box_PUBLICKEYBYTES);
 	memcpy(serverPublic, cserverPublic, crypto_box_PUBLICKEYBYTES);
@@ -28,19 +35,30 @@ SodiumSocket::SodiumSocket(const std::string& caddr, int cport, unsigned char cs
 
 	try
 	{
-		connectFD(caddr, cport);
+		struct sockaddr_in serv_addr;
+		bool socketok = Utils::connectFD(socketFD, AF_INET, caddr, cport, &serv_addr);
+		if(!socketok)
+		{
+			const std::string error = r->getString(R::StringID::ERR_SOCKET);
+			logger->insertLog(Log(Log::TAG::SODIUM_SOCKET, error, Log::TYPE::ERROR).toString());
+			throw std::string(error);
+		}
 
 		const int writePublicErr = write(socketFD, tempPublic, crypto_box_PUBLICKEYBYTES);
 		if(writePublicErr == -1)
 		{
-			throw strings->getString(StringRes::Language::EN, StringRes::StringID::ERR_SODIUM_SEND_TEMP_PUBLIC);
+			const std::string error = r->getString(R::StringID::SODIUM_SEND_TEMP_PUBLIC);
+			logger->insertLog(Log(Log::TAG::SODIUM_SOCKET, error, Log::TYPE::ERROR).toString());
+			throw std::string(error);
 		}
 
 		unsigned char symmetricEncrypted[ENCRYPTION_BUFFER_SIZE] = {};
 		const int readAmount = read(socketFD, symmetricEncrypted, ENCRYPTION_BUFFER_SIZE);
 		if(readAmount < 0)
 		{
-			throw strings->getString(StringRes::Language::EN, StringRes::StringID::ERR_SODIUM_READ_TCP_SYMM);
+			const std::string error = r->getString(R::StringID::SODIUM_READ_TCP_SYMM);
+			logger->insertLog(Log(Log::TAG::SODIUM_SOCKET, error, Log::TYPE::ERROR).toString());
+			throw std::string(error);
 		}
 
 		std::unique_ptr<unsigned char[]> symmetricDecrypted;
@@ -48,7 +66,9 @@ SodiumSocket::SodiumSocket(const std::string& caddr, int cport, unsigned char cs
 		SodiumUtils::sodiumDecrypt(true, symmetricEncrypted, readAmount, tempPrivate, serverPublic, symmetricDecrypted, length);
 		if(length == 0)
 		{
-			throw strings->getString(StringRes::Language::EN, StringRes::StringID::ERR_SODIUM_DECRYPT_TCP_SYMM);
+			const std::string error = r->getString(R::StringID::SODIUM_DECRYPT_TCP_SYMM);
+			logger->insertLog(Log(Log::TAG::SODIUM_SOCKET, error, Log::TYPE::ERROR).toString());
+			throw std::string(error);
 		}
 		randombytes_buf(tempPrivate, crypto_box_SECRETKEYBYTES);
 		memcpy(tcpKey, symmetricDecrypted.get(), crypto_secretbox_KEYBYTES);
@@ -56,8 +76,10 @@ SodiumSocket::SodiumSocket(const std::string& caddr, int cport, unsigned char cs
 	}
 	catch(std::string& e)
 	{
+		logger->insertLog(Log(Log::TAG::SODIUM_SOCKET, e, Log::TYPE::ERROR).toString());
 		throw e;
 	}
+	useable = true;
 }
 
 SodiumSocket::~SodiumSocket()
@@ -65,43 +87,27 @@ SodiumSocket::~SodiumSocket()
 	randombytes_buf(tcpKey, crypto_box_SECRETKEYBYTES);
 }
 
-void SodiumSocket::connectFD(const std::string& caddr, int cport)
-{
-	socketFD = socket(AF_INET, SOCK_STREAM, 0);
-	if(socketFD < 0)
-	{
-		throw strings->getString(StringRes::Language::EN, StringRes::StringID::ERR_SODIUM_SOCKET_SYSCALL);
-	}
-	struct sockaddr_in serv_addr;
-	memset(&serv_addr, '0', sizeof(serv_addr));
-	serv_addr.sin_family = AF_INET;
-	serv_addr.sin_port = htons(cport);
-	const int result = inet_pton(AF_INET, caddr.c_str(), &serv_addr.sin_addr);
-	if(result < 0)
-	{
-		throw strings->getString(StringRes::Language::EN, StringRes::StringID::ERR_SODIUM_INET_PTON);
-	}
-
-	const int connectOk = connect(socketFD, (struct sockaddr *)&serv_addr, sizeof(serv_addr));
-	if(connectOk < 0)
-	{
-		throw strings->getString(StringRes::Language::EN, StringRes::StringID::ERR_SODIUM_CONNECT_SYSCALL);
-	}
-}
-
 void SodiumSocket::getTcpKeyCopy(std::unique_ptr<unsigned char[]>& output) const
 {
 	memcpy(output.get(), tcpKey, crypto_secretbox_KEYBYTES);
 }
 
-void SodiumSocket::stop() const
+void SodiumSocket::stop()
 {
 	shutdown(socketFD, 2);
 	close(socketFD);
+	useable = false;
 }
 
 std::string SodiumSocket::readString()
 {
+	if(!useable)
+	{
+		const std::string error = r->getString(R::StringID::SODIUM_NOTREADABLE);
+		logger->insertLog(Log(Log::TAG::SODIUM_SOCKET, error, Log::TYPE::ERROR).toString());
+		return "";
+	}
+
 	std::unique_ptr<unsigned char[]> binary;
 	int binaryLength = readBinary(binary);
 	std::string result((char*)binary.get(), binaryLength);
@@ -110,40 +116,69 @@ std::string SodiumSocket::readString()
 
 int SodiumSocket::readBinary(std::unique_ptr<unsigned char[]>& output)
 {
+	if(!useable)
+	{
+		const std::string error = r->getString(R::StringID::SODIUM_NOTREADABLE);
+		logger->insertLog(Log(Log::TAG::SODIUM_SOCKET, error, Log::TYPE::ERROR).toString());
+		output = std::unique_ptr<unsigned char[]>();
+		return 0;
+	}
+
 	unsigned char encrypted[ENCRYPTION_BUFFER_SIZE] = {};
 	const int amountRead = read(socketFD, encrypted, ENCRYPTION_BUFFER_SIZE);
 	if(amountRead < 1)
 	{
-		throw strings->getString(StringRes::Language::EN, StringRes::StringID::ERR_SODIUM_READ);
+		const std::string error = r->getString(R::StringID::SODIUM_READ);
+		logger->insertLog(Log(Log::TAG::SODIUM_SOCKET, error, Log::TYPE::ERROR).toString());
+		throw std::string(error);
 	}
 
 	int decryptionLength = 0;
 	SodiumUtils::sodiumDecrypt(false, encrypted, amountRead, tcpKey, NULL, output, decryptionLength);
 	if(decryptionLength == 0)
 	{
-		throw strings->getString(StringRes::Language::EN, StringRes::StringID::ERR_SODIUM_READ);
+		const std::string error = r->getString(R::StringID::SODIUM_READ);
+		logger->insertLog(Log(Log::TAG::SODIUM_SOCKET, error, Log::TYPE::ERROR).toString());
+		throw std::string(error);
 	}
 	return decryptionLength;
 }
 
 void SodiumSocket::writeString(const std::string& message)
 {
+	if(!useable)
+	{
+		const std::string error = r->getString(R::StringID::SODIUM_NOTWRITEABLE);
+		logger->insertLog(Log(Log::TAG::SODIUM_SOCKET, error, Log::TYPE::ERROR).toString());
+		return;
+	}
 	writeBinary((unsigned char*)message.c_str(), message.length());
 }
 
 void SodiumSocket::writeBinary(unsigned char uchars[], int amount)
 {
+	if(!useable)
+	{
+		const std::string error = r->getString(R::StringID::SODIUM_NOTWRITEABLE);
+		logger->insertLog(Log(Log::TAG::SODIUM_SOCKET, error, Log::TYPE::ERROR).toString());
+		return;
+	}
+
 	std::unique_ptr<unsigned char[]> encrypted;
 	int encryptionLength = 0;
 	SodiumUtils::sodiumEncrypt(false, uchars, amount, tcpKey, NULL, encrypted, encryptionLength);
 	if(encryptionLength == 0)
 	{
-		throw strings->getString(StringRes::Language::EN, StringRes::StringID::ERR_SODIUM_WRITE);
+		const std::string error = r->getString(R::StringID::SODIUM_WRITE);
+		logger->insertLog(Log(Log::TAG::SODIUM_SOCKET, error, Log::TYPE::ERROR).toString());
+		throw std::string(error);
 	}
 
 	const int writeAmount = write(socketFD, encrypted.get(), encryptionLength);
 	if(writeAmount == 0)
 	{
-		throw strings->getString(StringRes::Language::EN, StringRes::StringID::ERR_SODIUM_WRITE);
+		const std::string error = r->getString(R::StringID::SODIUM_WRITE);
+		logger->insertLog(Log(Log::TAG::SODIUM_SOCKET, error, Log::TYPE::ERROR).toString());
+		throw std::string(error);
 	}
 }

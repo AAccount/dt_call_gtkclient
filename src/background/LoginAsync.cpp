@@ -9,11 +9,19 @@
 
 namespace
 {
+	const int RETRY_DELAY = 60;
 	const int LOGIN_MAX_SEGMENTS = 3;
-	void* loginThread(void* context)
+	bool retry = false;
+	R* r;
+	Logger* logger;
+
+	static pthread_mutex_t inUse;
+	static bool running = false;
+	static bool heartbeatStarted = false;
+
+	bool loginFunction(AsyncReceiver* receiver)
 	{
-		StringRes* strings = StringRes::getInstance();
-		AsyncReceiver* receiver = (AsyncReceiver*)context;
+		r = R::getInstance();
 		try
 		{
 			Vars::commandSocket = SodiumSocket(Vars::serverAddress, Vars::commandPort, Vars::serverCert.get());
@@ -24,23 +32,22 @@ namespace
 			const std::vector<std::string> loginChallengeContents = Utils::parse((unsigned char*) loginChallenge.c_str());
 			if (loginChallengeContents.size() != LOGIN_MAX_SEGMENTS)
 			{
-				std::cerr << strings->getString(Vars::lang, StringRes::StringID::LOGINASYNC_LOGIN1_FORMAT) << "\n";
-				receiver->asyncResult(LoginAsync::LoginResult::LOGIN_NOTOK);
-				return 0;
+				logger->insertLog(Log(Log::TAG::LOGIN, r->getString(R::StringID::LOGINASYNC_LOGIN1_FORMAT), Log::TYPE::ERROR).toString());
+				receiver->asyncResult(Vars::Broadcast::LOGIN_NOTOK);
+				return false;
 			}
 			if (loginChallengeContents[1] != "login1resp")
 			{
-				std::cerr << strings->getString(Vars::lang, StringRes::StringID::LOGINASYNC_LOGIN1_FORMAT) << "\n";
-				receiver->asyncResult(LoginAsync::LoginResult::LOGIN_NOTOK);
-				return 0;
+				logger->insertLog(Log(Log::TAG::LOGIN, r->getString(R::StringID::LOGINASYNC_LOGIN1_FORMAT), Log::TYPE::ERROR).toString());
+				receiver->asyncResult(Vars::Broadcast::LOGIN_NOTOK);
+				return false;
 			}
 
-			const time_t ts1 = std::stoull(loginChallengeContents[0]);
-			if (!Utils::validTS(ts1))
+			if (!Utils::validTS(loginChallengeContents[0]))
 			{
-				std::cerr << strings->getString(Vars::lang, StringRes::StringID::LOGINASYNC_LOGIN1_TS) << "\n";
-				receiver->asyncResult(LoginAsync::LoginResult::LOGIN_NOTOK);
-				return 0;
+				logger->insertLog(Log(Log::TAG::LOGIN, r->getString(R::StringID::LOGINASYNC_LOGIN1_TS), Log::TYPE::ERROR).toString());
+				receiver->asyncResult(Vars::Broadcast::LOGIN_NOTOK);
+				return false;
 			}
 
 			const int challengeLength = loginChallengeContents[2].length() / 3;
@@ -52,9 +59,9 @@ namespace
 			SodiumUtils::sodiumDecrypt(true, challengeUChars, challengeLength, Vars::privateKey.get(), Vars::serverCert.get(), decrypted, decryptedLength);
 			if (decryptedLength == 0)
 			{
-				std::cerr << strings->getString(Vars::lang, StringRes::StringID::LOGINASYNC_CALLENGE_FAILED) << "\n";
-				receiver->asyncResult(LoginAsync::LoginResult::LOGIN_NOTOK);
-				return 0;
+				logger->insertLog(Log(Log::TAG::LOGIN, r->getString(R::StringID::LOGINASYNC_CALLENGE_FAILED), Log::TYPE::ERROR).toString());
+				receiver->asyncResult(Vars::Broadcast::LOGIN_NOTOK);
+				return false;
 			}
 			const std::string challengeDec((char*) decrypted.get(), decryptedLength);
 			//TODO: keep udp flag
@@ -65,56 +72,91 @@ namespace
 			const std::vector<std::string> answerResponseContents = Utils::parse((unsigned char*) answerResponse.c_str());
 			if (answerResponseContents.size() != LOGIN_MAX_SEGMENTS)
 			{
-				std::cerr << strings->getString(Vars::lang, StringRes::StringID::LOGINASYNC_LOGIN2_FORMAT) << "\n";
-				receiver->asyncResult(LoginAsync::LoginResult::LOGIN_NOTOK);
-				return 0;
+				logger->insertLog(Log(Log::TAG::LOGIN, r->getString(R::StringID::LOGINASYNC_LOGIN2_FORMAT), Log::TYPE::ERROR).toString());
+				receiver->asyncResult(Vars::Broadcast::LOGIN_NOTOK);
+				return false;
 			}
 			if (answerResponseContents[1] != "login2resp")
 			{
-				std::cerr << strings->getString(Vars::lang, StringRes::StringID::LOGINASYNC_LOGIN2_FORMAT) << "\n";
-				receiver->asyncResult(LoginAsync::LoginResult::LOGIN_NOTOK);
-				return 0;
+				logger->insertLog(Log(Log::TAG::LOGIN, r->getString(R::StringID::LOGINASYNC_LOGIN2_FORMAT), Log::TYPE::ERROR).toString());
+				receiver->asyncResult(Vars::Broadcast::LOGIN_NOTOK);
+				return false;
 			}
 
-			const time_t ts2 = std::stoull(answerResponseContents[0]);
-			if (!Utils::validTS(ts2))
+			if (!Utils::validTS(answerResponseContents[0]))
 			{
-				std::cerr << strings->getString(Vars::lang, StringRes::StringID::LOGINASYNC_LOGIN2_TS) << "\n";
-				receiver->asyncResult(LoginAsync::LoginResult::LOGIN_NOTOK);
-				return 0;
+				logger->insertLog(Log(Log::TAG::LOGIN, r->getString(R::StringID::LOGINASYNC_LOGIN2_TS), Log::TYPE::ERROR).toString());
+				receiver->asyncResult(Vars::Broadcast::LOGIN_NOTOK);
+				return false;
 			}
 
 			Vars::sessionKey = answerResponseContents[2];
-			receiver->asyncResult(LoginAsync::LoginResult::LOGIN_OK);
+			receiver->asyncResult(Vars::Broadcast::LOGIN_OK);
+			CmdListener::startService();
+			if(!heartbeatStarted)
+			{
+				heartbeatStarted = true;
+				Heartbeat::startService();
+			}
+			return true;
 		}
 		catch(std::exception& e)
 		{
-			std::cerr << "exception in login async: " << e.what() << "\n";
-			receiver->asyncResult(LoginAsync::LoginResult::LOGIN_NOTOK);
-			return 0;
+			logger->insertLog(Log(Log::TAG::LOGIN, std::string(e.what()), Log::TYPE::ERROR).toString());
+			receiver->asyncResult(Vars::Broadcast::LOGIN_NOTOK);
+			return false;
 		}
 		catch(std::string& e)
 		{
-			std::cerr << "my exception: " << e << "\n";
-			receiver->asyncResult(LoginAsync::LoginResult::LOGIN_NOTOK);
-			return 0;
+			logger->insertLog(Log(Log::TAG::LOGIN, e, Log::TYPE::ERROR).toString());
+			receiver->asyncResult(Vars::Broadcast::LOGIN_NOTOK);
+			return false;
 		}
+		return false;
+	}
+
+	void* loginThread(void* context)
+	{
+		AsyncReceiver* receiver = (AsyncReceiver*)context;
+		bool ok = loginFunction(receiver);
+		if(retry && !ok)
+		{
+			sleep(RETRY_DELAY);
+			ok = loginFunction(receiver);
+		}
+		pthread_mutex_lock(&inUse);
+			running = false;
+		pthread_mutex_unlock(&inUse);
 		return 0;
 	}
 }
 
-
-void LoginAsync::execute(AsyncReceiver* receiver)
+void LoginAsync::init()
 {
-	pthread_t callThread;
-	if(pthread_create(&callThread, NULL, loginThread, receiver) != 0)
-	{
-		std::string error = "cannot create the login async thread (" + std::to_string(errno) + ") " + std::string(strerror(errno));
-		std::cout << error << "\n";
-	}
+	pthread_mutex_init(&inUse, NULL);
 }
 
-AsyncReceiver::~AsyncReceiver()
+void LoginAsync::execute(AsyncReceiver* receiver, bool pretry)
 {
+	bool willDo = false;
+	pthread_mutex_lock(&inUse);
+		if(!running)
+		{
+			running = true;
+			willDo = true;
+		}
+	pthread_mutex_unlock(&inUse);
+	if(!willDo)
+	{
+		logger->insertLog(Log(Log::TAG::LOGIN, r->getString(R::StringID::LOGINASYNC_REJECT_REQUEST), Log::TYPE::ERROR).toString());
+		return;
+	}
 
+	retry = pretry;
+	pthread_t thread;
+	if(pthread_create(&thread, NULL, loginThread, receiver) != 0)
+	{
+		const std::string error = r->getString(R::StringID::ERR_THREAD_CREATE) + std::to_string(errno) + ") " + std::string(strerror(errno));
+		logger->insertLog(Log(Log::TAG::LOGIN, error, Log::TYPE::ERROR).toString());
+	}
 }

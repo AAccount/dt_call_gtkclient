@@ -100,9 +100,11 @@
             <property name="left_padding">10</property>
             <property name="right_padding">10</property>
             <child>
-              <object class="GtkEntry" id="user_home_entry">
+              <object class="GtkLabel" id="user_home_connection">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
+                <property name="can_focus">False</property>
+                <property name="halign">start</property>
+                <property name="label" translatable="yes">Signed In</property>
               </object>
             </child>
           </object>
@@ -116,18 +118,14 @@
           <object class="GtkAlignment">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="top_padding">5</property>
+            <property name="top_padding">10</property>
             <property name="bottom_padding">5</property>
             <property name="left_padding">10</property>
             <property name="right_padding">10</property>
             <child>
-              <object class="GtkButton">
-                <property name="label" translatable="yes">Dial</property>
+              <object class="GtkEntry" id="user_home_entry">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="halign">end</property>
-                <signal name="clicked" handler="onclick_user_home_dial" swapped="no"/>
               </object>
             </child>
           </object>
@@ -146,7 +144,55 @@
             <property name="left_padding">10</property>
             <property name="right_padding">10</property>
             <child>
-              <object class="GtkLabel">
+              <object class="GtkGrid">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="halign">end</property>
+                <child>
+                  <object class="GtkButton" id="user_home_add_contact">
+                    <property name="label" translatable="yes">Add Contact</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">True</property>
+                    <signal name="clicked" handler="onclick_user_home_add_contact" swapped="no"/>
+                  </object>
+                  <packing>
+                    <property name="left_attach">0</property>
+                    <property name="top_attach">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkButton" id="user_home_dial">
+                    <property name="label" translatable="yes">Dial</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">True</property>
+                    <signal name="clicked" handler="onclick_user_home_dial" swapped="no"/>
+                  </object>
+                  <packing>
+                    <property name="left_attach">1</property>
+                    <property name="top_attach">0</property>
+                  </packing>
+                </child>
+              </object>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">3</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkAlignment">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="top_padding">5</property>
+            <property name="bottom_padding">5</property>
+            <property name="left_padding">10</property>
+            <property name="right_padding">10</property>
+            <child>
+              <object class="GtkLabel" id="user_home_label_contacts">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="halign">start</property>
@@ -157,7 +203,7 @@
           <packing>
             <property name="expand">False</property>
             <property name="fill">True</property>
-            <property name="position">3</property>
+            <property name="position">4</property>
           </packing>
         </child>
         <child>
@@ -188,7 +234,7 @@
           <packing>
             <property name="expand">False</property>
             <property name="fill">True</property>
-            <property name="position">4</property>
+            <property name="position">5</property>
           </packing>
         </child>
       </object>

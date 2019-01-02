@@ -10,7 +10,7 @@
 class AsyncReceiver
 {
 public:
-	virtual ~AsyncReceiver();
+	virtual ~AsyncReceiver(){};
 	virtual void asyncResult(int result) = 0;
 };
 

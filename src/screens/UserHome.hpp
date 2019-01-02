@@ -12,6 +12,11 @@
 #include <gtk/gtk.h>
 #include "../background/AsyncReceiver.hpp"
 #include "InitialSetup.hpp"
+#include "CallScreen.hpp"
+#include "../R.hpp"
+#include "../Log.hpp"
+#include "../Logger.hpp"
+#include "../background/CommandCall.hpp"
 
 class UserHome : public virtual AsyncReceiver
 {
@@ -27,8 +32,14 @@ private:
 	UserHome();
 	virtual ~UserHome();
 	static bool onScreen;
-	GtkWidget* window;
+	Logger* logger;
+	R* r;
+	GtkWindow* window;
+	GtkLabel* connectionStatus;
 	GtkEntry* entry;
+	GtkButton* dial;
+	GtkLabel* contactsLabel;
+	GtkButton* addContact;
 	GtkBox* contactList;
 	gulong destroySignalID;
 };

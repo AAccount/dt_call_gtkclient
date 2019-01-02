@@ -22,9 +22,13 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+
+#include "R.hpp"
 #include "sodium_utils.hpp"
-#include "StringRes.hpp"
 #include "stringify.hpp"
+#include "utils.hpp"
+#include "Log.hpp"
+#include "Logger.hpp"
 
 class SodiumSocket
 {
@@ -37,20 +41,20 @@ public:
 	std::string readString();
 	void writeBinary(unsigned char uchars[], int amount);
 	void writeString(const std::string& message);
-	void stop() const;
+	void stop();
 	void getTcpKeyCopy(std::unique_ptr<unsigned char[]>& output) const;
 
 private:
-	void connectFD(const std::string& address, int port);
-
 	const static int DECRYPTION_BUFFER_SIZE = 2048;
 	const static int ENCRYPTION_BUFFER_SIZE = DECRYPTION_BUFFER_SIZE*2;
 
 	int socketFD;
 	unsigned char serverPublic[crypto_box_PUBLICKEYBYTES];
 	unsigned char tcpKey[crypto_secretbox_KEYBYTES];
+	bool useable;
 
-	const StringRes* strings;
+	const R* r;
+	Logger* logger;
 };
 
 #endif /* SRC_SODIUMSOCKET_HPP_ */

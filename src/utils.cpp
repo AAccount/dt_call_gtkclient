@@ -86,11 +86,21 @@ std::vector<std::string> Utils::parse(unsigned char command[])
 	return result;
 }
 
-bool Utils::validTS(time_t ts)
+bool Utils::validTS(const std::string& ts)
 {
+	time_t tsraw = 0;
+	try
+	{
+		tsraw = std::stoull(ts);
+	}
+	catch(std::invalid_argument& e)
+	{
+		return false;
+	}
+
 	const time_t now = time(NULL);
-	const time_t bigger = std::max(ts, now);
-	const time_t smaller = std::min(ts, now);
+	const time_t bigger = std::max(tsraw, now);
+	const time_t smaller = std::min(tsraw, now);
 	const time_t difference = bigger - smaller;
 	if(difference > 60*5)
 	{
@@ -105,8 +115,44 @@ time_t Utils::now()
 	return nowvar;
 }
 
-void Utils::quit()
+void Utils::quit(unsigned char privateKey[], unsigned char voiceKey[])
 {
-	randombytes_buf(Vars::privateKey.get(), crypto_box_SECRETKEYBYTES);
+	if(privateKey != NULL)
+	{
+		randombytes_buf(privateKey, crypto_box_SECRETKEYBYTES);
+	}
+
+	if(voiceKey != NULL)
+	{
+		randombytes_buf(voiceKey, crypto_secretbox_KEYBYTES);
+	}
 	exit(0);
+}
+
+bool Utils::connectFD(int& fd, int type, const std::string& caddr, int cport, struct sockaddr_in* serv_addr)
+{
+	fd = socket(type, SOCK_STREAM, 0);
+	if(fd < 0)
+	{
+//		throw strings->getString(StringRes::Language::EN, StringRes::StringID::ERR_SODIUM_SOCKET_SYSCALL);
+		return false;
+	}
+
+	memset(serv_addr, '0', sizeof(struct sockaddr_in));
+	serv_addr->sin_family = type;
+	serv_addr->sin_port = htons(cport);
+	const int result = inet_pton(type, caddr.c_str(), &serv_addr->sin_addr);
+	if(result < 0)
+	{
+//		throw strings->getString(StringRes::Language::EN, StringRes::StringID::ERR_SODIUM_INET_PTON);
+		return false;
+	}
+
+	const int connectOk = connect(fd, (struct sockaddr *)serv_addr, sizeof(struct sockaddr_in));
+	if(connectOk < 0)
+	{
+//		throw strings->getString(StringRes::Language::EN, StringRes::StringID::ERR_SODIUM_CONNECT_SYSCALL);
+		return false;
+	}
+	return true;
 }

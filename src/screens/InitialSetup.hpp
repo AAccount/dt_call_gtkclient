@@ -16,10 +16,12 @@
 #include "../utils.hpp"
 #include "../sodium_utils.hpp"
 #include "../stringify.hpp"
-#include "../StringRes.hpp"
+#include "../R.hpp"
 #include "../background/AsyncReceiver.hpp"
 #include "../background/LoginAsync.hpp"
 #include "../settings.hpp"
+#include "../Logger.hpp"
+#include "../Log.hpp"
 #include "UserHome.hpp"
 
 class InitialSetup : public virtual AsyncReceiver
@@ -40,7 +42,7 @@ private:
 	virtual ~InitialSetup();
 
 	static bool onScreen;
-	GtkWidget* window;
+	GtkWindow* window;
 	GtkEntry* addr;
 	GtkEntry* commandPort;
 	GtkEntry* mediaPort;
@@ -49,7 +51,8 @@ private:
 	GtkButton* privateKey;
 	GtkButton* login;
 
-	StringRes* strings;
+	R* r;
+	Logger* logger;
 	bool gotServerCert = false;
 	bool gotPrivateKey = false;
 	gulong destroySignalID;

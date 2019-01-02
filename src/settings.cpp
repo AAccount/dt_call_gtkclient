@@ -19,13 +19,15 @@ Settings* Settings::getInstance()
 }
 
 Settings::Settings() //mostly copied from server's user utils
-: settingsNames(std::unordered_map<SettingName, std::string>()),
-  locationValues(std::unordered_map<FileLocation, std::string>()),
-  settingsTable(std::unordered_map<std::string, std::string>()),
-  contacts(std::unordered_map<std::string, std::string>()),
-  publicKeys(std::unordered_map<std::string, std::string>())
+:
+settingsNames(std::unordered_map<SettingName, std::string>()),
+locationValues(std::unordered_map<FileLocation, std::string>()),
+settingsTable(std::unordered_map<std::string, std::string>()),
+contacts(std::unordered_map<std::string, std::string>()),
+publicKeys(std::unordered_map<std::string, std::string>()),
+logger(Logger::getInstance("")),
+r(R::getInstance())
 {
-	strings = StringRes::getInstance();
 
 	settingsNames[SettingName::SETTING_ADDR] = "server_address";
 	settingsNames[SettingName::SETTING_COMMAND_PORT] = "command_port";
@@ -56,7 +58,8 @@ int Settings::getInt(SettingName setting, int defaultValue) const
 {
 	if(settingsNames.count(setting) == 0)
 	{
-		std::cerr << strings->getString(StringRes::Language::EN, StringRes::StringID::SETTINGS_INTMIA) << std::to_string(setting) << "\n";
+		const std::string error = r->getString(R::StringID::SETTINGS_INTMIA) + std::to_string(setting);
+		logger->insertLog(Log(Log::TAG::SETTINGS, error, Log::TYPE::ERROR).toString());
 		return defaultValue;
 	}
 
@@ -64,7 +67,8 @@ int Settings::getInt(SettingName setting, int defaultValue) const
 	const std::string settingName = settingsNames.at(setting);
 	if(settingsTable.count(settingName) == 0)
 	{
-		std::cerr << strings->getString(StringRes::Language::EN, StringRes::StringID::SETTINGS_INTMIA) << settingName << "\n";
+		const std::string error = r->getString(R::StringID::SETTINGS_INTMIA) + settingName;
+		logger->insertLog(Log(Log::TAG::SETTINGS, error, Log::TYPE::ERROR).toString());
 		return defaultValue;
 	}
 
@@ -75,8 +79,8 @@ int Settings::getInt(SettingName setting, int defaultValue) const
 	}
 	catch(std::exception& e) //catch misconfigured settings
 	{
-		std::cerr << strings->getString(StringRes::Language::EN, StringRes::StringID::SETTINGS_BADINT) << settingName << " "  << rawValue << "\n";
-		std::cerr << e.what();
+		std::string error = r->getString(R::StringID::SETTINGS_BADINT) + settingName + " "  + rawValue + " " + e.what();
+		logger->insertLog(Log(Log::TAG::SETTINGS, error, Log::TYPE::ERROR).toString());
 		return defaultValue;
 	}
 }
@@ -85,18 +89,19 @@ std::string Settings::getString(SettingName setting, std::string defaultValue) c
 {
 	if(settingsNames.count(setting) == 0)
 	{
-		std::cerr << strings->getString(StringRes::Language::EN, StringRes::StringID::SETTINGS_STRINGMIA) << std::to_string(setting) << "\n";
+		const std::string error = r->getString(R::StringID::SETTINGS_STRINGMIA) + std::to_string(setting);
+		logger->insertLog(Log(Log::TAG::SETTINGS, error, Log::TYPE::ERROR).toString());
 		return defaultValue;
 	}
 
 	const std::string settingName = settingsNames.at(setting);
 	if(settingsTable.count(settingName) == 0)
 	{
-		std::cerr << strings->getString(StringRes::Language::EN, StringRes::StringID::SETTINGS_STRINGMIA) << settingName << "\n";
+		const std::string error = r->getString(R::StringID::SETTINGS_STRINGMIA) + settingName;
 		return defaultValue;
 	}
 
-	std::string value = settingsTable.at(settingName);
+	const std::string value = settingsTable.at(settingName);
 	return value;
 }
 
@@ -104,7 +109,8 @@ void Settings::setInt(SettingName setting, int newValue)
 {
 	if(settingsNames.count(setting) == 0)
 	{
-		std::cerr << strings->getString(StringRes::Language::EN, StringRes::StringID::SETTINGS_INTMIA) << std::to_string(setting) << "\n";
+		const std::string error = r->getString(R::StringID::SETTINGS_INTMIA) + std::to_string(setting);
+		logger->insertLog(Log(Log::TAG::SETTINGS, error, Log::TYPE::ERROR).toString());
 		return;
 	}
 	const std::string settingName = settingsNames[setting];
@@ -115,7 +121,7 @@ void Settings::setString(SettingName setting, std::string& newValue)
 {
 	if(settingsNames.count(setting) == 0)
 	{
-		std::cerr << strings->getString(StringRes::Language::EN, StringRes::StringID::SETTINGS_STRINGMIA) << std::to_string(setting) << "\n";
+		const std::string error = r->getString(R::StringID::SETTINGS_STRINGMIA) + std::to_string(setting);
 		return;
 	}
 	const std::string settingName = settingsNames[setting];
@@ -327,11 +333,10 @@ void Settings::parseSettingsSave(const std::string& location, std::unordered_map
 		//need both a setting and its value to continue
 		if(name == "" || value == "")
 		{
-			std::cerr << strings->getString(StringRes::Language::EN, StringRes::StringID::SETTINGS_BADCONFIG);
+			const std::string error = r->getString(R::StringID::SETTINGS_BADCONFIG);
+			logger->insertLog(Log(Log::TAG::SETTINGS, error, Log::TYPE::ERROR).toString());
 			continue;
 		}
-
-		std::cerr << "READ from settings file: " << name << " has value " << value << "\n";
 
 		//insert into the preferences table. using operator[] because you want it to create a new entry if it doesn't exist
 		output[name] = value;
@@ -343,7 +348,7 @@ void Settings::parseSettingsSave(const std::string& location, std::unordered_map
 void Settings::writeSettingsSave(const std::string& location, const std::unordered_map<std::string, std::string>& input) const
 {
 	std::ofstream settingsOut(location);
-	settingsOut << strings->getString(Vars::lang, StringRes::StringID::SETTINGS_AUTOGEN_WARNING);
+	settingsOut << r->getString(R::StringID::SETTINGS_AUTOGEN_WARNING);
 	for(auto& prefs_pair : input)
 	{
 		settingsOut << prefs_pair.first << " = " << prefs_pair.second << "\n";

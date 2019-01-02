@@ -14,9 +14,14 @@
 
 #include <unistd.h>
 #include <X11/Xlib.h>
+#include <stdlib.h>
 
 #include "screens/InitialSetup.hpp"
 #include "vars.hpp"
 #include "settings.hpp"
+#include "Logger.hpp"
+#include "Log.hpp"
+#include "R.hpp"
+#include "background/LoginAsync.hpp"
 
 #endif /* SRC_MAIN_HPP_ */

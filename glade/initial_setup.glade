@@ -150,7 +150,7 @@
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <signal name="clicked" handler="onclick_intial_server_certificate" swapped="no"/>
+                <signal name="clicked" handler="onclick_initial_setup_certificate" swapped="no"/>
               </object>
             </child>
           </object>

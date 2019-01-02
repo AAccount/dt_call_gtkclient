@@ -16,11 +16,14 @@
 #include <cstdlib>
 #include <sodium.h>
 #include <stdlib.h>
-#include "StringRes.hpp"
+
+#include "R.hpp"
 #include "vars.hpp"
 #include "stringify.hpp"
 #include "sodium_utils.hpp"
 #include "utils.hpp"
+#include "Logger.hpp"
+#include "Log.hpp"
 
 class Settings
 {
@@ -79,7 +82,8 @@ private:
 
 	std::string trim(const std::string &input) const;
 
-	StringRes* strings;
+	R* r;
+	Logger* logger;
 };
 
 #endif /* SRC_SETTINGS_HPP_ */

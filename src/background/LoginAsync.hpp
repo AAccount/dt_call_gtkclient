@@ -17,12 +17,19 @@
 #include "../utils.hpp"
 #include "../stringify.hpp"
 #include "../sodium_utils.hpp"
-#include "../StringRes.hpp"
+#include "../R.hpp"
+#include "../stringify.hpp"
+#include "../settings.hpp"
+#include "CmdListener.hpp"
+#include "../screens/CallScreen.hpp"
+#include "../Logger.hpp"
+#include "../Log.hpp"
+#include "Heartbeat.hpp"
 
 namespace LoginAsync
 {
-	typedef enum {LOGIN_OK, LOGIN_NOTOK} LoginResult;
-	void execute(AsyncReceiver* receiver);
+	void init();
+	void execute(AsyncReceiver* receiver, bool retry);
 };
 
 #endif /* SRC_BACKGROUND_LOGINASYNC_HPP_ */

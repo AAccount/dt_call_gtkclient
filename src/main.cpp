@@ -11,8 +11,10 @@
 
 int main(int argc, char *argv[])
 {
-    XInitThreads(); //the magic required to open another window
+	Logger* logger = Logger::getInstance("/tmp/"); //logs don't need to be kept forever like the server
+	LoginAsync::init();
 
+	XInitThreads(); //the magic required to open another window
 	gtk_init(&argc, &argv);
 
 //	if(argc == 3)
@@ -24,10 +26,11 @@ int main(int argc, char *argv[])
 //		{
 //			if(language == "other")
 //			{
-//				Vars::lang = StringRes::Language::other_
+//				R::activeLang = R::Language::other_
 //			}
 //		}
 //	}
+	R::activeLang = R::Language::EN;
 
 	Settings* settings = Settings::getInstance();
 	Vars::serverAddress = settings->getString(Settings::SETTING_ADDR, "");
@@ -40,7 +43,7 @@ int main(int argc, char *argv[])
 	if(!Vars::serverAddress.empty() && Vars::commandPort != 0 && Vars::mediaPort != 0 && !Vars::username.empty()
 			&& gotServerCert && gotPrivateKey)
 	{
-		std::cerr << "would've been able to skip to home\n";
+		logger->insertLog(Log(Log::TAG::MAIN, R::getInstance()->getString(R::StringID::MAIN_SKIP_TOHOME), Log::TYPE::INFO).toString());
 	}
 	else
 	{
