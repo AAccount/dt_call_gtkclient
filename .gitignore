@@ -11,3 +11,15 @@
 /gtkclient
 /settings.o
 /UserHome.o
+/CallScreen.o
+/CmdListener.o
+/CommandAccept.o
+/CommandCall.o
+/CommandEnd.o
+/Heartbeat.o
+/Opus.o
+/R.o
+/Log.o
+/liblogger.so
+/libsodiumutils.so
+/libstringify.so

@@ -133,6 +133,8 @@ R::R()
 	en[StringID::CMDLISTENER_PASSTHROUGH_FAIL] = "Couldn't decrypt passthrough of voice key";
 	en[StringID::CMDLISTENER_REGISTERUDP_SEALFAIL] = "failed to create sealed box for udp registration";
 
+	en[StringID::HEARTBEAT_FAIL] = "couldn't write heartbeat: ";
+
 	en[StringID::OPUS_INIT_DECERR] = "decoder create failed: ";
 	en[StringID::OPUS_INIT_ENCERR] = "encoder create failed: ";
 

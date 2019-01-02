@@ -9,6 +9,8 @@
 
 namespace
 {
+	Logger* logger = Logger::getInstance("");
+	R* r = R::getInstance();
 	void* heartbeatThread(void* pointer)
 	{
 		const int TIMEOUT = 60*5;
@@ -18,11 +20,13 @@ namespace
 			try
 			{
 				Vars::commandSocket.writeString(ping);
+				logger->insertLog(Log(Log::TAG::HEARTBEAT, ping, Log::TYPE::OUTBOUND).toString());
 				sleep(TIMEOUT);
 			}
 			catch(std::string& e)
 			{
-				std::cerr << "couldn't write heartbeat: " << e << "\n";
+				const std::string error = r->getString(R::StringID::HEARTBEAT_FAIL) + e;
+				logger->insertLog(Log(Log::TAG::HEARTBEAT, error, Log::TYPE::ERROR).toString());
 				Vars::commandSocket.stop();
 				LoginAsync::execute(UserHome::instance, true);
 				break;
@@ -37,8 +41,8 @@ void Heartbeat::startService()
 	pthread_t thread;
 	if(pthread_create(&thread, NULL, heartbeatThread, NULL) != 0)
 	{
-		std::string error = "cannot create the login async thread (" + std::to_string(errno) + ") " + std::string(strerror(errno));
-		std::cout << error << "\n";
+		const std::string error = r->getString(R::StringID::ERR_THREAD_CREATE) + std::to_string(errno) + ") " + std::string(strerror(errno));
+		logger->insertLog(Log(Log::TAG::HEARTBEAT, error, Log::TYPE::ERROR).toString());
 	}
 }
 

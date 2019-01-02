@@ -15,6 +15,9 @@
 #include <pthread.h>
 #include "../vars.hpp"
 #include "LoginAsync.hpp"
+#include "../Log.hpp"
+#include "../Logger.hpp"
+#include "../R.hpp"
 
 namespace Heartbeat
 {
