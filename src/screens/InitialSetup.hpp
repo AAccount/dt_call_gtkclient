@@ -35,7 +35,7 @@ public:
 	void onclick_initial_setup_certificate();
 	void onclick_initial_setup_login();
 	void onclick_initial_setup_private_key();
-	void asyncResult(int result);
+	void asyncResult(int result) override;
 
 private:
 	InitialSetup();

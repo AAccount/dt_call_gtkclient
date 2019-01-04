@@ -51,17 +51,7 @@ void Opus::init()
 int Opus::encode(short* wav, int wavSize, unsigned char* opus, int opusSize)
 {
 	const int wavSamplesPerChannel = wavSize/STEREO2CH;
-
-	const int RECOMMENDED_BUFFER_SIZE = 4000;
-	unsigned char* output = (unsigned char*)alloca(RECOMMENDED_BUFFER_SIZE);
-	const int length = opus_encode(enc, wav, wavSamplesPerChannel, output, RECOMMENDED_BUFFER_SIZE);
-	if(length > 0)
-	{
-		const int copyAmount = opusSize < length ? opusSize : length;
-		memcpy(opus, output, copyAmount);
-	}
-
-	randombytes_buf(output, RECOMMENDED_BUFFER_SIZE);
+	const int length = opus_encode(enc, wav, wavSamplesPerChannel, opus, opusSize);
 	return length;
 }
 
@@ -73,15 +63,7 @@ void Opus::closeEncoder()
 
 int Opus::decode(unsigned char* opus, int opusSize, short* wav, int wavSize)
 {
-	short* output = (short*)alloca(wavSize*sizeof(short));
-
-	const int decodedSamples = opus_decode(dec, opus, opusSize, output, wavSize/STEREO2CH, false)*STEREO2CH;
-	if(decodedSamples > 0)
-	{
-		const int copyAmount = wavSize < decodedSamples ? wavSize : decodedSamples;
-		memcpy(wav, output, copyAmount);
-	}
-
+	const int decodedSamples = opus_decode(dec, opus, opusSize, wav, wavSize/STEREO2CH, false)*STEREO2CH;
 	return decodedSamples;
 }
 

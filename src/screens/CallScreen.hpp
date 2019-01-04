@@ -38,7 +38,7 @@ public:
 	static int remove(void* a);
 	static CallScreen* instance;
 
-	void asyncResult(int result);
+	void asyncResult(int result) override;
 	void onclickEnd();
 	void onclickMute();
 	void onclickAccept();

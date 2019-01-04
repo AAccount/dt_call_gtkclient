@@ -25,7 +25,7 @@ public:
 	static int remove(void* a);
 	static UserHome* instance;
 
-	void asyncResult(int result);
+	void asyncResult(int result) override;
 	void onclickDial();
 	void onclickNewContact();
 
