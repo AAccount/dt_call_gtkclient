@@ -27,7 +27,7 @@ settings.o : src/settings.cpp src/settings.hpp
 	${CXX} ${CFLAGS} -c src/settings.cpp $(GTKLIB)
 	
 main.o: src/main.cpp
-	$(CXX) $(CFLAGS) -c src/main.cpp $(GTKLIB)
+	$(CXX) $(CFLAGS) -c src/main.cpp $(GTKLIB) ${MATH}
 
 utils.o : src/utils.cpp src/utils.hpp
 	${CXX} ${CFLAGS} -c src/utils.cpp $(GTKLIB)
@@ -54,7 +54,7 @@ UserHome.o : src/screens/UserHome.cpp src/screens/UserHome.hpp glade/user_home2.
 	${CXX} ${CFLAGS} -c src/screens/UserHome.cpp $(GTKLIB)
 
 CallScreen.o : src/screens/CallScreen.cpp src/screens/CallScreen.hpp glade/call_screen.glade
-	${CXX} ${CFLAGS} -c src/screens/CallScreen.cpp $(GTKLIB) ${OPUS} ${PULSEAUDIO}
+	${CXX} ${CFLAGS} -c src/screens/CallScreen.cpp $(GTKLIB) ${OPUS} ${PULSEAUDIO} ${MATH}
 
 LoginAsync.o : src/background/LoginAsync.cpp src/background/LoginAsync.hpp
 	${CXX} ${CFLAGS} -c src/background/LoginAsync.cpp ${PTHREAD} $(GTKLIB)

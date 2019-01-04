@@ -30,7 +30,7 @@ namespace
 	}
 }
 
-void Utils::show_popup(const std::string& message, GtkWindow* parent) //TODO: this also needs to run on the ui thread
+void Utils::show_popup(const std::string& message, GtkWindow* parent)
 {
 	popupMessage = message;
 	popupParent = parent;
@@ -129,7 +129,7 @@ time_t Utils::now()
 	return nowvar;
 }
 
-void Utils::quit(unsigned char privateKey[], unsigned char voiceKey[])
+void Utils::quit(unsigned char privateKey[], unsigned char voiceKey[]) //TODO: close the sodium socket
 {
 	if(privateKey != NULL)
 	{
@@ -148,6 +148,7 @@ bool Utils::connectFD(int& fd, int type, const std::string& caddr, int cport, st
 	fd = socket(AF_INET, type, 0);
 	if(fd < 0)
 	{
+		//TODO: log these errors
 //		throw strings->getString(StringRes::Language::EN, StringRes::StringID::ERR_SODIUM_SOCKET_SYSCALL);
 		return false;
 	}

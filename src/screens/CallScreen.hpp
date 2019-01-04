@@ -11,6 +11,7 @@
 #include <string>
 #include <iostream>
 #include <sstream>
+#include <memory>
 
 #include <sodium.h>
 #include <pthread.h>
@@ -43,6 +44,11 @@ public:
 	void onclickMute();
 	void onclickAccept();
 
+	constexpr static double RINGTONE_SAMPLERATE = 8000.0;
+	constexpr static double TONE_TIME = 1.5;
+	constexpr static double SILENCE_TIME = 1.0;
+	static std::unique_ptr<short[]> ringtone;
+
 private:
 	CallScreen();
 	virtual ~CallScreen();
@@ -63,6 +69,14 @@ private:
 	double formatInternetMetric(int metric, std::string& units);
 	GtkTextBuffer* statsBuffer;
 
+	const static int INIT_TIMEOUT = 30;
+	pa_simple* ringtonePlayer = NULL;
+	pthread_mutex_t ringtoneLock;
+	bool ringtoneDone;
+	void ring();
+	static void* ringThread(void* context);
+	void stopRing();
+
 	void changeToCallMode();
 	bool muted, muteStatusNew;
 	pthread_mutex_t deadUDPLock;
@@ -73,6 +87,7 @@ private:
 	static void* mediaDecodeHelp(void* context);
 	void reconnectUDP();
 	const static int OORANGE_LIMIT = 100;
+
 
 	R* r;
 	Logger* logger;

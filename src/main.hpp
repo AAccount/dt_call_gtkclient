@@ -11,13 +11,17 @@
 #include <gtk/gtk.h>
 #include <iostream>
 #include <pthread.h>
+#include <memory>
 
 #include <unistd.h>
 #include <X11/Xlib.h>
 #include <stdlib.h>
+#include <limits.h>
+#include <math.h>
 
 #include "screens/InitialSetup.hpp"
 #include "screens/UserHome.hpp"
+#include "screens/CallScreen.hpp"
 #include "vars.hpp"
 #include "settings.hpp"
 #include "Logger.hpp"

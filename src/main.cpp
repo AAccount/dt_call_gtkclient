@@ -30,6 +30,23 @@ int main(int argc, char *argv[])
 //			}
 //		}
 //	}
+
+	//generate 1/10th of a second of the ~440hz tone used as the ringtone
+	const double TONE_FREQ = 440;
+	const double TOTAL_SAMPLES = CallScreen::RINGTONE_SAMPLERATE/10.0;
+	CallScreen::ringtone = std::make_unique<short[]>(TOTAL_SAMPLES);
+
+//	const double TONE_LAST_SAMPLE = CallScreen::RINGTONE_SAMPLERATE*CallScreen::TONE_TIME;
+	const double PI = 3.14;
+	const double AMP = SHRT_MAX-5;
+	const double FACTOR = (2.0*PI*TONE_FREQ) / CallScreen::RINGTONE_SAMPLERATE;
+	short* ringtoneArray = CallScreen::ringtone.get();
+	for(double i=0.0; i<TOTAL_SAMPLES; i=i+1.0)
+	{
+		ringtoneArray[(int)i] = AMP*sin(FACTOR*i);
+		std::cout << ringtoneArray[(int)i] << "\n";
+	}
+
 	R::activeLang = R::Language::EN;
 
 	Settings* settings = Settings::getInstance();

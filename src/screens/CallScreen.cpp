@@ -12,6 +12,7 @@
 bool CallScreen::onScreen = false;
 CallScreen::Mode CallScreen::mode;
 CallScreen* CallScreen::instance = NULL;
+std::unique_ptr<short[]> CallScreen::ringtone;
 
 extern "C" void call_screen_quit()
 {
@@ -80,10 +81,16 @@ logger(Logger::getInstance(""))
 	reconnectionAttempted = false;
 	memset(&lastReceivedTimestamp, 0, sizeof(struct timeval));
 
+	ringtonePlayer = NULL;
+
 	gtk_window_set_default_size(GTK_WINDOW(window), 400, 250);
 	gtk_widget_show((GtkWidget*)window);
 	gtk_builder_connect_signals(builder, NULL);
 	g_object_unref(builder);
+
+	pthread_mutex_init(&ringtoneLock, NULL);
+	ringtoneDone = false;
+	ring();
 
 	onScreen = true;
 }
@@ -135,6 +142,7 @@ void CallScreen::asyncResult(int result)
 
 void CallScreen::onclickEnd()
 {
+	stopRing();
 	Vars::ustate = Vars::UserState::NONE;
 	CommandEnd::execute();
 	asyncResult(Vars::Broadcast::CALL_END);
@@ -163,7 +171,6 @@ void* CallScreen::timeCounterHelp(void* context)
 void* CallScreen::timeCounter(void)
 {//this function is run on the UI thread: started form the constructor (which was called by the ui thread).
 	const int A_SECOND = 1;
-	const int INIT_TIMEOUT = 30;
 	while(Vars::ustate != Vars::UserState::NONE)
 	{
 		updateTime();
@@ -268,6 +275,8 @@ void CallScreen::changeToCallMode()
 	gtk_widget_set_sensitive((GtkWidget*)buttonAccept, false);
 	gtk_widget_set_sensitive((GtkWidget*)buttonMute, true);
 	min = sec = 0;
+
+	stopRing();
 
 	Opus::init();
 	pthread_t mediaEncodeThread;
@@ -519,6 +528,86 @@ pthread_mutex_lock(&deadUDPLock);
 pthread_mutex_unlock(&deadUDPLock);
 }
 
+
+void* CallScreen::ringThread(void* context)
+{
+	CallScreen* screen = (CallScreen*)context;
+
+	pa_sample_spec ss;
+	memset(&ss, 0, sizeof(pa_sample_spec));
+	ss.format = PA_SAMPLE_S16NE; //TODO: is this really ok or should an endian preference be enforced?
+	ss.channels = 1;
+	ss.rate = RINGTONE_SAMPLERATE;
+	const std::string self = screen->r->getString(R::StringID::SELF);
+	const std::string description = screen->r->getString(R::StringID::CALL_SCREEN_MEDIA_RINGTONE_DESC);
+	screen->ringtonePlayer = pa_simple_new(NULL, self.c_str(), PA_STREAM_PLAYBACK, NULL, description.c_str(), &ss, NULL, NULL, NULL);
+
+	//write the ringtone 1/10th of a second at a time for 1.5s then 1s of silence.
+	//using this weird 1/10th of a second at a time scheme because pa_simple functions all block
+	const double TOTAL_SAMPLES = RINGTONE_SAMPLERATE/10;
+	short silence[(int)TOTAL_SAMPLES] = {};
+	const int MAX_TENTHS = CallScreen::INIT_TIMEOUT*10;
+	const int TENTHS_RINGTONE = CallScreen::TONE_TIME*10;
+	const int TENTHS_SILENCE = CallScreen::SILENCE_TIME*10;
+	bool playRingtone = true;
+	int tenthsPlayed = 0;
+	for(int i=0; i<MAX_TENTHS; i++)
+	{
+		short* item = silence;
+		if(playRingtone)
+		{
+			item = CallScreen::ringtone.get();
+		}
+		tenthsPlayed++;
+
+		if(playRingtone && (tenthsPlayed == TENTHS_RINGTONE))
+		{
+			tenthsPlayed = 0;
+			playRingtone = false;
+		}
+		else if(!playRingtone && (tenthsPlayed == TENTHS_RINGTONE))
+		{
+			tenthsPlayed = 0;
+			playRingtone = true;
+		}
+
+		pthread_mutex_lock(&screen->ringtoneLock);
+			if(screen->ringtoneDone)
+			{
+				pthread_mutex_unlock(&screen->ringtoneLock);
+				return NULL;
+			}
+			int paWriteError = 0;
+			pa_simple_write(screen->ringtonePlayer, item, TOTAL_SAMPLES*sizeof(short), &paWriteError);
+			std::cout << "ringtone write error: " << paWriteError << "\n";
+		pthread_mutex_unlock(&screen->ringtoneLock);
+	}
+	return NULL;
+}
+
+void CallScreen::ring()
+{
+	pthread_t ringThread;
+	if(pthread_create(&ringThread, NULL, &CallScreen::ringThread, this) != 0)
+	{
+		const std::string error = "ringThread " + r->getString(R::StringID::ERR_THREAD_CREATE) + std::to_string(errno) + ") " + std::string(strerror(errno));
+		logger->insertLog(Log(Log::TAG::CALL_SCREEN, error, Log::TYPE::ERROR).toString());
+	}
+}
+
+void CallScreen::stopRing()
+{
+	if(ringtonePlayer != NULL)
+	{
+		pthread_mutex_lock(&ringtoneLock);
+			int error = 0;
+			pa_simple_flush(ringtonePlayer, &error);
+			pa_simple_free(ringtonePlayer);
+			ringtonePlayer = NULL;
+			ringtoneDone = true;
+		pthread_mutex_unlock(&ringtoneLock);
+	}
+}
 extern "C" void onclick_call_screen_end()
 {
 	if(CallScreen::instance != NULL)

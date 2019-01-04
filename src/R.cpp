@@ -129,7 +129,9 @@ R::R()
 	en[StringID::CALL_SCREEN_MEDIA_DEC_OPUS_ERR] = "Opus decoder error: ";
 	en[StringID::CALL_SCREEN_MEDIA_DEC_STOP] = "Media decoding thread stopped";
 	en[StringID::CALL_SCREEN_MEDIA_DEC_SODIUM_ERR] = "voice symmetric decryption failed";
-	en[StringID::CALL_SCREEN_MEDIA_DEC_NETWORK_ERR] = "receiving voice on the udp socket failed;";
+	en[StringID::CALL_SCREEN_MEDIA_DEC_NETWORK_ERR] = "receiving voice on the udp socket failed";
+	en[StringID::CALL_SCREEN_MEDIA_RINGTONE_DESC] = "play ringtone";
+
 
 
 	en[StringID::LOGINASYNC_LOGIN1_FORMAT] = "login1 improperly formatted";
