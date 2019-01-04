@@ -154,28 +154,13 @@ void CallScreen::onclickAccept()
 }
 
 //static
-int CallScreen::timeCounterUIHelp(void* context)
-{
-	((CallScreen*)context)->timeCounter();
-	return 0;
-}
-
-void* CallScreen::timeCounterUI(void)
-{
-	gtk_label_set_text(time, runningTime.c_str());
-	gtk_text_buffer_set_text(statsBuffer, currentStats.c_str(), -1);
-	gtk_text_view_set_buffer(stats, statsBuffer);
-	return 0;
-}
-
-//static
 void* CallScreen::timeCounterHelp(void* context)
 {
 	return((CallScreen*)context)->timeCounter();
 }
 
 void* CallScreen::timeCounter(void)
-{
+{//this function is run on the UI thread: started form the constructor (which was called by the ui thread).
 	const int A_SECOND = 1;
 	const int INIT_TIMEOUT = 30;
 	while(Vars::ustate != Vars::UserState::NONE)
@@ -205,8 +190,6 @@ void* CallScreen::timeCounter(void)
 		pthread_mutex_unlock(&rxTSLock);
 
 		updateStats();
-//		Utils::runOnUiThread(&CallScreen::timeCounterUIHelp, this);
-		std::cout << runningTime << "\n" << currentStats << "\n";
 		sleep(A_SECOND);
 	}
 	return 0;
@@ -233,7 +216,9 @@ void CallScreen::updateTime()
 	{
 		timeBuilder  << min << ":" << sec;
 	}
-	runningTime = timeBuilder.str();
+	const std::string runningTime = timeBuilder.str();
+	gtk_label_set_text(time, runningTime.c_str());
+
 }
 
 void CallScreen::updateStats()
@@ -246,7 +231,9 @@ void CallScreen::updateStats()
 			<< rxLabel << ": " << formatInternetMetric(rxtotal, rxUnits) << rxUnits << " " << txLabel << ": " << formatInternetMetric(txtotal, txUnits) << txUnits <<"\n"
 			<< rxSeqLabel << ": " << rxSeq << " " << txSeqLabel << ": " << txSeq << "\n"
 			<< skippedLabel << ": " << skipped << " " << oorangeLabel << ":  " << oorange;
-	currentStats = statBuilder.str();
+	const std::string currentStats = statBuilder.str();
+	gtk_text_buffer_set_text(statsBuffer, currentStats.c_str(), -1);
+	gtk_text_view_set_buffer(stats, statsBuffer);
 }
 
 double CallScreen::formatInternetMetric(int metric, std::string& units)

@@ -53,9 +53,6 @@ private:
 	pthread_mutex_t rxTSLock;
 	void* timeCounter(void);
 	static void* timeCounterHelp(void* context);
-	void* timeCounterUI(void);
-	static int timeCounterUIHelp(void* context);
-	std::string runningTime, currentStats;
 	struct timeval lastReceivedTimestamp;
 	void updateTime();
 	void updateStats();
