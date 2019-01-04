@@ -42,6 +42,16 @@ UserHome::UserHome()
 	gtk_widget_show((GtkWidget*)window);
 	g_object_unref(builder);
 
+	if(Vars::sessionKey.empty())
+	{
+		gtk_label_set_text(connectionStatus, r->getString(R::StringID::USER_HOME_OFFLINE).c_str());
+		LoginAsync::execute(this, true);
+	}
+	else
+	{
+		gtk_label_set_text(connectionStatus, r->getString(R::StringID::USER_HOME_ONLINE).c_str());
+	}
+
 	onScreen = true;
 	Utils::runOnUiThread(&InitialSetup::remove);
 }

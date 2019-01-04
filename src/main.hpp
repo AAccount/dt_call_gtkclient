@@ -17,6 +17,7 @@
 #include <stdlib.h>
 
 #include "screens/InitialSetup.hpp"
+#include "screens/UserHome.hpp"
 #include "vars.hpp"
 #include "settings.hpp"
 #include "Logger.hpp"

@@ -15,7 +15,6 @@ int main(int argc, char *argv[])
 	LoginAsync::init();
 
 	XInitThreads(); //the magic required to open another window
-
 	gtk_init(&argc, &argv);
 
 //	if(argc == 3)
@@ -45,12 +44,13 @@ int main(int argc, char *argv[])
 			&& gotServerCert && gotPrivateKey)
 	{
 		logger->insertLog(Log(Log::TAG::MAIN, R::getInstance()->getString(R::StringID::MAIN_SKIP_TOHOME), Log::TYPE::INFO).toString());
+		UserHome::render(NULL);
 	}
 	else
 	{
-		std::cerr << "not able to skip to home\n";
+		InitialSetup::render(NULL); //this IS the ui thread run the render function directly
 	}
-	InitialSetup::render(NULL); //this IS the ui thread run the render function directly
 	gtk_main();
+
 	return 0;
 }
