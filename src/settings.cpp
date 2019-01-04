@@ -51,7 +51,6 @@ r(R::getInstance())
 
 Settings::~Settings()
 {
-	// TODO Auto-generated destructor stub. Nothing to destruct.
 }
 
 int Settings::getInt(SettingName setting, int defaultValue) const
@@ -98,6 +97,7 @@ std::string Settings::getString(SettingName setting, std::string defaultValue) c
 	if(settingsTable.count(settingName) == 0)
 	{
 		const std::string error = r->getString(R::StringID::SETTINGS_STRINGMIA) + settingName;
+		logger->insertLog(Log(Log::TAG::SETTINGS, error, Log::TYPE::ERROR).toString());
 		return defaultValue;
 	}
 
@@ -122,6 +122,7 @@ void Settings::setString(SettingName setting, std::string& newValue)
 	if(settingsNames.count(setting) == 0)
 	{
 		const std::string error = r->getString(R::StringID::SETTINGS_STRINGMIA) + std::to_string(setting);
+		logger->insertLog(Log(Log::TAG::SETTINGS, error, Log::TYPE::ERROR).toString());
 		return;
 	}
 	const std::string settingName = settingsNames[setting];
@@ -251,7 +252,6 @@ bool Settings::getSodiumFile(SettingName setting) const
 		Vars::serverCert = std::make_unique<unsigned char[]>(crypto_box_PUBLICKEYBYTES);
 		Stringify::destringify(dumpStringified, Vars::serverCert.get());
 		return true;
-		break;
 	}
 	case SettingName::SETTING_PRIVATE_KEY:
 	{
@@ -269,7 +269,6 @@ bool Settings::getSodiumFile(SettingName setting) const
 		const char* privateKeyStringMemory = &dump[0];
 		randombytes_buf((void*)privateKeyStringMemory, dump.length());
 		return true;
-		break;
 	}
 	}
 	return false;
@@ -321,7 +320,7 @@ void Settings::parseSettingsSave(const std::string& location, std::unordered_map
 		}
 
 		//read the setting and value
-		std::string name, value, publicKeyDump;
+		std::string name, value;
 		std::stringstream ss(line);
 		getline(ss, name, '=');
 		getline(ss, value, '=');
