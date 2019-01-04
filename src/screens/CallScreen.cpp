@@ -78,6 +78,7 @@ logger(Logger::getInstance(""))
 	muted = muteStatusNew = false;
 	pthread_mutex_init(&deadUDPLock, NULL);
 	reconnectionAttempted = false;
+	memset(&lastReceivedTimestamp, 0, sizeof(struct timeval));
 
 	gtk_window_set_default_size(GTK_WINDOW(window), 400, 250);
 	gtk_widget_show((GtkWidget*)window);
@@ -172,22 +173,25 @@ void* CallScreen::timeCounter(void)
 			onclickEnd();
 		}
 
-		pthread_mutex_lock(&rxTSLock);
+		if(Vars::ustate == Vars::UserState::INCALL)
 		{
-			const int ASECOND_AS_US = 1000000;
-			struct timeval now;
-			memset(&now, 0, sizeof(struct timeval));
-			gettimeofday(&now, NULL);
-			const int btw = now.tv_usec - lastReceivedTimestamp.tv_usec;
-			if(btw > ASECOND_AS_US && Vars::mediaSocket != -1)
+			pthread_mutex_lock(&rxTSLock);
 			{
-				logger->insertLog(Log(Log::TAG::CALL_SCREEN, r->getString(R::StringID::CALL_SCREEN_LAST_UDP_FOREVER), Log::TYPE::ERROR).toString());
-				shutdown(Vars::mediaSocket, 2);
-				close(Vars::mediaSocket);
-				Vars::mediaSocket = -1;
+				const int ASECOND_AS_US = 1000000;
+				struct timeval now;
+				memset(&now, 0, sizeof(struct timeval));
+				gettimeofday(&now, NULL);
+				const int btw = now.tv_usec - lastReceivedTimestamp.tv_usec;
+				if(btw > ASECOND_AS_US && Vars::mediaSocket != -1)
+				{
+					logger->insertLog(Log(Log::TAG::CALL_SCREEN, r->getString(R::StringID::CALL_SCREEN_LAST_UDP_FOREVER), Log::TYPE::ERROR).toString());
+					shutdown(Vars::mediaSocket, 2);
+					close(Vars::mediaSocket);
+					Vars::mediaSocket = -1;
+				}
 			}
+			pthread_mutex_unlock(&rxTSLock);
 		}
-		pthread_mutex_unlock(&rxTSLock);
 
 		updateStats();
 		sleep(A_SECOND);
@@ -417,8 +421,15 @@ void* CallScreen::mediaDecode(void)
 			reconnectUDP();
 			continue;
 		}
-		rxtotal = rxtotal + receivedLength + HEADERS;
-
+		else
+		{
+			pthread_mutex_lock(&rxTSLock);
+			{
+				gettimeofday(&lastReceivedTimestamp, NULL);
+			}
+			pthread_mutex_unlock(&rxTSLock);
+			rxtotal = rxtotal + receivedLength + HEADERS;
+		}
 		std::unique_ptr<unsigned char[]> packetDecrypted;
 		int packetDecryptedLength = 0;
 		SodiumUtils::sodiumDecrypt(false, packetBuffer, receivedLength, Vars::voiceKey.get(), NULL, packetDecrypted, packetDecryptedLength);
