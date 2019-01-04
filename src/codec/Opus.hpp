@@ -8,7 +8,6 @@
 #ifndef SRC_CODEC_OPUS_HPP_
 #define SRC_CODEC_OPUS_HPP_
 
-#include <memory>
 #include <sodium.h>
 #include <string.h>
 #include <opus/opus.h>
@@ -23,9 +22,9 @@ namespace Opus
 	const int WAVFRAMESIZE = 2880;
 
 	void init();
-	int encode(short wav[], int wavSize, std::unique_ptr<unsigned char[]>& opus, int opusSize);
+	int encode(short* wav, int wavSize, unsigned char* opus, int opusSize);
 	void closeEncoder();
-	int decode(unsigned char opus[], int opusSize, std::unique_ptr<short[]>& wav, int wavSize);
+	int decode(unsigned char* opus, int opusSize, short* wav, int wavSize);
 	void closeDecoder();
 };
 

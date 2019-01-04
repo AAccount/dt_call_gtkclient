@@ -85,7 +85,7 @@ InitialSetup::~InitialSetup()
 }
 
 //static
-void InitialSetup::render()
+int InitialSetup::render(void* a)
 {
 	onScreen = true;
 	if(instance != NULL)
@@ -93,10 +93,11 @@ void InitialSetup::render()
 		delete instance;
 	}
 	instance = new InitialSetup();
+	return 0;
 }
 
 //static
-void InitialSetup::remove()
+int InitialSetup::remove(void* a)
 {
 	onScreen = false;
 	if(instance != NULL)
@@ -104,6 +105,7 @@ void InitialSetup::remove()
 		delete instance;
 		instance = NULL;
 	}
+	return 0;
 }
 
 //static
@@ -222,7 +224,8 @@ void InitialSetup::asyncResult(int result)
 		settings->setInt(Settings::SettingName::SETTING_MEDIA_PORT, Vars::mediaPort);
 		settings->setString(Settings::SettingName::SETTING_UNAME, Vars::username);
 		settings->save();
-		UserHome::render();
+
+		Utils::runOnUiThread(&UserHome::render);
 	}
 	else if(result == Vars::Broadcast::LOGIN_NOTOK)
 	{

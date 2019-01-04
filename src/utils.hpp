@@ -24,6 +24,8 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include "Logger.hpp"
+#include "Log.hpp"
 
 namespace Utils
 {
@@ -36,6 +38,7 @@ namespace Utils
 	time_t now();
 	void quit(unsigned char privateKey[], unsigned char voiceKey[]);
 	bool connectFD(int& fd, int type, const std::string& caddr, int cport, struct sockaddr_in* serv_addr);
+	void runOnUiThread(GSourceFunc func);
 };
 
 #endif /* UTILS_HPP_ */

@@ -52,6 +52,7 @@ R::R()
   colors(std::unordered_map<ColorID, std::string>())
 
 {
+	en[StringID::SELF] = "DT Call GTKClient";
 	en[StringID::ERR_NOT_ONSCREEN] = "not on screen";
 	en[StringID::ERR_SOCKET] = "Couldn't establish socket";
 	en[StringID::ERR_THREAD_CREATE] = "Couldn't create thread: ";
@@ -100,6 +101,7 @@ R::R()
 	en[StringID::CALL_SCREEN_STATUS_INCALL] = "In Call";
 	en[StringID::CALL_SCREEN_BUTTON_END] = "End";
 	en[StringID::CALL_SCREEN_BUTTON_MUTE] = "Mute";
+	en[StringID::CALL_SCREEN_BUTTON_MUTE_UNMUTE] = "Unmute";
 	en[StringID::CALL_SCREEN_BUTTON_ACCEPT] = "Accept";
 	en[StringID::CALL_SCREEN_STAT_MISSING] = "Missing";
 	en[StringID::CALL_SCREEN_STAT_TX] = "Out";
@@ -109,6 +111,23 @@ R::R()
 	en[StringID::CALL_SCREEN_STAT_TXSEQ] = "Out#";
 	en[StringID::CALL_SCREEN_STAT_SKIP] = "Skipped";
 	en[StringID::CALL_SCREEN_STAT_RANGE] = "!!Range";
+	en[StringID::CALL_SCREEN_LAST_UDP_FOREVER] = "delay since last received more than 1s";
+	en[StringID::CALL_SCREEN_POPUP_MUTE_WARNING] = "DOUBLE CHECK mute label. It can take up to 1 second to change mute/unmute";
+	en[StringID::CALL_SCREEN_MEDIA_ENC_START] = "Media encoding thread started";
+	en[StringID::CALL_SCREEN_MEDIA_ENC_DESC] = "Voice call record";
+	en[StringID::CALL_SCREEN_MEDIA_ENC_PA_ERR] = "Pulse audio read from mic failed with: ";
+	en[StringID::CALL_SCREEN_MEDIA_ENC_OPUS_ERR] = "Opus encoder error: ";
+	en[StringID::CALL_SCREEN_MEDIA_ENC_STOP] = "Media encoding thread stopped";
+	en[StringID::CALL_SCREEN_MEDIA_ENC_SODIUM_ERR] = "voice symmetric encryption failed";
+	en[StringID::CALL_SCREEN_MEDIA_ENC_NETWORK_ERR] = "sending voice out the udp socket failed;";
+	en[StringID::CALL_SCREEN_MEDIA_DEC_START] = "Media decoding thread started";
+	en[StringID::CALL_SCREEN_MEDIA_DEC_DESC] = "Voice call playback";
+	en[StringID::CALL_SCREEN_MEDIA_DEC_PA_ERR] = "Pulse audio playback failed with: ";
+	en[StringID::CALL_SCREEN_MEDIA_DEC_OPUS_ERR] = "Opus decoder error: ";
+	en[StringID::CALL_SCREEN_MEDIA_DEC_STOP] = "Media decoding thread stopped";
+	en[StringID::CALL_SCREEN_MEDIA_DEC_SODIUM_ERR] = "voice symmetric decryption failed";
+	en[StringID::CALL_SCREEN_MEDIA_DEC_NETWORK_ERR] = "receiving voice on the udp socket failed;";
+
 
 	en[StringID::LOGINASYNC_LOGIN1_FORMAT] = "login1 improperly formatted";
 	en[StringID::LOGINASYNC_LOGIN1_TS] = "login1 bad timestamp";

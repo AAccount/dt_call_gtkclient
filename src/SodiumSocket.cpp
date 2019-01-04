@@ -36,7 +36,7 @@ logger(Logger::getInstance(""))
 	try
 	{
 		struct sockaddr_in serv_addr;
-		bool socketok = Utils::connectFD(socketFD, AF_INET, caddr, cport, &serv_addr);
+		bool socketok = Utils::connectFD(socketFD, SOCK_STREAM, caddr, cport, &serv_addr);
 		if(!socketok)
 		{
 			const std::string error = r->getString(R::StringID::ERR_SOCKET);
@@ -89,6 +89,7 @@ SodiumSocket::~SodiumSocket()
 
 void SodiumSocket::getTcpKeyCopy(std::unique_ptr<unsigned char[]>& output) const
 {
+	output = std::make_unique<unsigned char[]>(crypto_box_SECRETKEYBYTES);
 	memcpy(output.get(), tcpKey, crypto_secretbox_KEYBYTES);
 }
 

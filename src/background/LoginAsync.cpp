@@ -63,9 +63,9 @@ namespace
 				receiver->asyncResult(Vars::Broadcast::LOGIN_NOTOK);
 				return false;
 			}
+			const std::string keepudp = (Vars::ustate == Vars::UserState::INCALL) ? "|keepudp" : "";
 			const std::string challengeDec((char*) decrypted.get(), decryptedLength);
-			//TODO: keep udp flag
-			const std::string loginChallengeResponse = std::to_string(Utils::now()) + "|login2|" + Vars::username + "|" + challengeDec;
+			const std::string loginChallengeResponse = std::to_string(Utils::now()) + "|login2|" + Vars::username + "|" + challengeDec + keepudp;
 			Vars::commandSocket.writeString(loginChallengeResponse);
 
 			const std::string answerResponse = Vars::commandSocket.readString();

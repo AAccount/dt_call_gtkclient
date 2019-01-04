@@ -23,5 +23,6 @@
 #include "Log.hpp"
 #include "R.hpp"
 #include "background/LoginAsync.hpp"
+#include "utils.hpp"
 
 #endif /* SRC_MAIN_HPP_ */

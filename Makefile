@@ -3,7 +3,7 @@ PTHREAD = -pthread
 SODIUM = -lsodium
 X11 = -lX11
 OPUS = -lopus
-PULSEAUDIO = -lpulse
+PULSEAUDIO = -lpulse-simple -lpulse
 
 DTOPERATOR_LOCATION = -L.
 DTOPERATOR_SODIUM = -lsodiumutils

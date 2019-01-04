@@ -7,6 +7,7 @@
 
 #include "vars.hpp"
 
+struct sockaddr_in Vars::serv_addr;
 std::string Vars::serverAddress = "";
 int Vars::commandPort = 0;
 int Vars::mediaPort = 0;

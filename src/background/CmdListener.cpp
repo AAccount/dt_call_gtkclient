@@ -68,7 +68,7 @@ namespace
 					Vars::callWith = involved;
 
 					CallScreen::mode = CallScreen::Mode::RECEIVING;
-					CallScreen::render();
+					Utils::runOnUiThread(&CallScreen::render);
 					continue;
 				}
 
@@ -83,7 +83,6 @@ namespace
 				{
 					Vars::ustate = Vars::UserState::INIT;
 					isCallInitiator = true;
-					haveVoiceKey = false;
 					preparationsComplete = false;
 					UserHome::instance->asyncResult(Vars::Broadcast::CALL_TRY);
 				}
@@ -97,7 +96,8 @@ namespace
 					Settings::getInstance()->getPublicKey(Vars::callWith, expectedKey);
 					if(expectedKey.get() != NULL)
 					{
-						if(!memcmp(receivedKey.get(), expectedKey.get(), crypto_box_PUBLICKEYBYTES))
+						const int compare = memcmp(receivedKey.get(), expectedKey.get(), crypto_box_PUBLICKEYBYTES);
+						if(compare != 0)
 						{
 							const std::string expecting = Stringify::stringify(expectedKey.get(), crypto_box_PUBLICKEYBYTES);
 							const std::string got = Stringify::stringify(receivedKey.get(), crypto_box_PUBLICKEYBYTES);
@@ -129,6 +129,7 @@ namespace
 						const std::string passthrough = std::to_string(Utils::now()) + "|passthrough|" + Vars::callWith + "|" + outputStringified + "|" + Vars::sessionKey;
 						Vars::commandSocket.writeString(passthrough);
 						logger->insertLog(Log(Log::TAG::CMD_LISTENER, passthrough, Log::TYPE::OUTBOUND).toString());
+						haveVoiceKey = true;
 					}
 
 					const bool registeredUDP = CmdListener::registerUDP();
@@ -242,8 +243,7 @@ void CmdListener::startService()
 
 bool CmdListener::registerUDP()
 {
-	struct sockaddr_in serv_addr;
-	bool udpConnected = Utils::connectFD(Vars::mediaSocket, SOCK_DGRAM, Vars::serverAddress, Vars::mediaPort, &serv_addr);
+	bool udpConnected = Utils::connectFD(Vars::mediaSocket, SOCK_DGRAM, Vars::serverAddress, Vars::mediaPort, &Vars::serv_addr);
 	if(!udpConnected)
 	{
 		return false;
@@ -256,22 +256,21 @@ bool CmdListener::registerUDP()
 		const int registrationLength = crypto_box_SEALBYTES + registration.length();
 		unsigned char sodiumSealedRegistration[registrationLength];
 		const int sealed = crypto_box_seal(sodiumSealedRegistration, (unsigned char*)registration.c_str(), registration.length(), Vars::serverCert.get());
-		if(!sealed)
+		if(sealed != 0)
 		{
 			logger->insertLog(Log(Log::TAG::CMD_LISTENER, r->getString(R::StringID::CMDLISTENER_REGISTERUDP_SEALFAIL), Log::TYPE::ERROR).toString());
 			retries--;
 			continue;
 		}
 
-		const int sent = sendto(Vars::mediaSocket, sodiumSealedRegistration, registrationLength, 0, (struct sockaddr*)&serv_addr, sizeof(struct sockaddr_in));
+		const int sent = sendto(Vars::mediaSocket, sodiumSealedRegistration, registrationLength, 0, (struct sockaddr*)&Vars::serv_addr, sizeof(struct sockaddr_in));
 		if(sent < 0)
 		{
 			retries--;
 			continue;
 		}
 
-		//TODO: standardize max_udp
-		unsigned char ackBuffer[1500] = {};
+		unsigned char ackBuffer[Vars::MAX_UDP] = {};
 		struct sockaddr_in sender;
 		socklen_t senderLength = sizeof(struct sockaddr_in);
 		const int receivedLength = recvfrom(Vars::mediaSocket, ackBuffer, 1500, 0, (struct sockaddr*)&sender, &senderLength);

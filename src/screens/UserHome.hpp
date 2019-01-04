@@ -21,12 +21,13 @@
 class UserHome : public virtual AsyncReceiver
 {
 public:
-	static void render();
-	static void remove();
+	static int render(void* a);
+	static int remove(void* a);
 	static UserHome* instance;
 
 	void asyncResult(int result);
 	void onclickDial();
+	void onclickNewContact();
 
 private:
 	UserHome();

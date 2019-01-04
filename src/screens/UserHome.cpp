@@ -39,11 +39,11 @@ UserHome::UserHome()
 
 	gtk_window_set_default_size(GTK_WINDOW(window), 400, 250);
 	gtk_builder_connect_signals(builder, NULL);
-	g_object_unref(builder);
 	gtk_widget_show((GtkWidget*)window);
+	g_object_unref(builder);
 
 	onScreen = true;
-	InitialSetup::remove();
+	Utils::runOnUiThread(&InitialSetup::remove);
 }
 
 UserHome::~UserHome()
@@ -56,19 +56,20 @@ UserHome::~UserHome()
 }
 
 //static
-void UserHome::render()
+int UserHome::render(void* a)
 {
-//	InitialSetup::remove();
 	onScreen = true;
 	if(instance != NULL)
 	{//only 1 version of the screen will be active
 		delete instance;
 	}
 	instance = new UserHome();
+
+	return 0;
 }
 
 //static
-void UserHome::remove()
+int UserHome::remove(void* a)
 {
 	onScreen = false;
 	if(instance != NULL)
@@ -76,6 +77,7 @@ void UserHome::remove()
 		delete instance;
 		instance = NULL;
 	}
+	return 0;
 }
 
 void UserHome::asyncResult(int result)
@@ -98,7 +100,7 @@ void UserHome::asyncResult(int result)
 	{
 		gtk_widget_set_sensitive((GtkWidget*)dial, false);
 		CallScreen::mode == CallScreen::Mode::DIALING;
-		CallScreen::render();
+		Utils::runOnUiThread(&CallScreen::render);
 	}
 	else if (result == Vars::Broadcast::UNLOCK_USERHOME)
 	{
@@ -118,6 +120,11 @@ void UserHome::onclickDial()
 	CommandCall::execute();
 }
 
+void UserHome::onclickNewContact()
+{
+	std::cout << "clicked new contact\n";
+}
+
 extern "C" void onclick_user_home_dial()
 {
 	if(UserHome::instance != NULL)
@@ -130,7 +137,7 @@ extern "C" void onclick_user_home_add_contact()
 {
 	if(UserHome::instance != NULL)
 	{
-		UserHome::instance->onclickDial();
+		UserHome::instance->onclickNewContact();
 		std::cerr << "clicked add contact\n";
 	}
 }

@@ -10,7 +10,7 @@
 #include <time.h>
 #include <stdint.h>
 
-void Utils::show_popup(const std::string& message, GtkWindow* parent)
+void Utils::show_popup(const std::string& message, GtkWindow* parent) //TODO: this also needs to run on the ui thread
 {
 	GtkWidget* popup = gtk_message_dialog_new(parent,
 			GTK_DIALOG_DESTROY_WITH_PARENT,
@@ -131,7 +131,7 @@ void Utils::quit(unsigned char privateKey[], unsigned char voiceKey[])
 
 bool Utils::connectFD(int& fd, int type, const std::string& caddr, int cport, struct sockaddr_in* serv_addr)
 {
-	fd = socket(type, SOCK_STREAM, 0);
+	fd = socket(AF_INET, type, 0);
 	if(fd < 0)
 	{
 //		throw strings->getString(StringRes::Language::EN, StringRes::StringID::ERR_SODIUM_SOCKET_SYSCALL);
@@ -139,9 +139,9 @@ bool Utils::connectFD(int& fd, int type, const std::string& caddr, int cport, st
 	}
 
 	memset(serv_addr, '0', sizeof(struct sockaddr_in));
-	serv_addr->sin_family = type;
+	serv_addr->sin_family = AF_INET;
 	serv_addr->sin_port = htons(cport);
-	const int result = inet_pton(type, caddr.c_str(), &serv_addr->sin_addr);
+	const int result = inet_pton(AF_INET, caddr.c_str(), &serv_addr->sin_addr);
 	if(result < 0)
 	{
 //		throw strings->getString(StringRes::Language::EN, StringRes::StringID::ERR_SODIUM_INET_PTON);
@@ -155,4 +155,12 @@ bool Utils::connectFD(int& fd, int type, const std::string& caddr, int cport, st
 		return false;
 	}
 	return true;
+}
+
+void Utils::runOnUiThread(GSourceFunc func)
+{
+	GSource *source = g_idle_source_new();
+	g_source_set_callback(source, func, NULL, NULL);
+	g_source_attach(source, NULL);
+	g_source_unref(source);
 }

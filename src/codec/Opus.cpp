@@ -48,7 +48,7 @@ void Opus::init()
 
 }
 
-int Opus::encode(short wav[], int wavSize, std::unique_ptr<unsigned char[]>& opus, int opusSize)
+int Opus::encode(short* wav, int wavSize, unsigned char* opus, int opusSize)
 {
 	const int wavSamplesPerChannel = wavSize/STEREO2CH;
 
@@ -57,12 +57,11 @@ int Opus::encode(short wav[], int wavSize, std::unique_ptr<unsigned char[]>& opu
 	const int length = opus_encode(enc, wav, wavSamplesPerChannel, output, RECOMMENDED_BUFFER_SIZE);
 	if(length > 0)
 	{
-		opus = std::make_unique<unsigned char[]>(opusSize);
 		const int copyAmount = opusSize < length ? opusSize : length;
-		memcpy(opus.get(), output, copyAmount);
+		memcpy(opus, output, copyAmount);
 	}
 
-	randombytes_buf(wav, wavSize*sizeof(short));
+	randombytes_buf(output, RECOMMENDED_BUFFER_SIZE);
 	return length;
 }
 
@@ -72,7 +71,7 @@ void Opus::closeEncoder()
 	enc = NULL;
 }
 
-int Opus::decode(unsigned char opus[], int opusSize, std::unique_ptr<short[]>& wav, int wavSize)
+int Opus::decode(unsigned char* opus, int opusSize, short* wav, int wavSize)
 {
 	short* output = (short*)alloca(wavSize*sizeof(short));
 
@@ -80,11 +79,9 @@ int Opus::decode(unsigned char opus[], int opusSize, std::unique_ptr<short[]>& w
 	if(decodedSamples > 0)
 	{
 		const int copyAmount = wavSize < decodedSamples ? wavSize : decodedSamples;
-		wav = std::make_unique<short[]>(wavSize);
-		memcpy(wav.get(), output, copyAmount);
+		memcpy(wav, output, copyAmount);
 	}
 
-	randombytes_buf(opus, opusSize);
 	return decodedSamples;
 }
 

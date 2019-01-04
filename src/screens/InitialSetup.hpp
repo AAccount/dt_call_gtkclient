@@ -27,8 +27,8 @@
 class InitialSetup : public virtual AsyncReceiver
 {
 public:
-	static void render();
-	static void remove();
+	static int render(void* a);
+	static int remove(void* a);
 
 	//required public to make the extern C calls work. don't touch
 	static InitialSetup* instance;
