@@ -289,7 +289,9 @@ void CallScreen::changeToCallMode()
 void* CallScreen::mediaEncode(void)
 {
 	//assuming pulse audio get microphone always works (unlike android audio record)
-	logger->insertLog(Log(Log::TAG::CALL_SCREEN, r->getString(R::StringID::CALL_SCREEN_MEDIA_ENC_START), Log::TYPE::INFO).toString());
+	Logger* localLogger = Logger::getInstance("");
+	R* localRes = R::getInstance();
+	localLogger->insertLog(Log(Log::TAG::CALL_SCREEN, localRes->getString(R::StringID::CALL_SCREEN_MEDIA_ENC_START), Log::TYPE::INFO).toString());
 
 	//setup pulse audio as the voice recorder
 	pa_simple* wavRecorder = NULL;
@@ -298,8 +300,8 @@ void* CallScreen::mediaEncode(void)
 	ss.format = PA_SAMPLE_S16NE; //TODO: is this really ok or should an endian preference be enforced?
 	ss.channels = 2;
 	ss.rate = Opus::SAMPLERATE;
-	const std::string self = r->getString(R::StringID::SELF);
-	const std::string description = r->getString(R::StringID::CALL_SCREEN_MEDIA_ENC_DESC);
+	const std::string self = localRes->getString(R::StringID::SELF);
+	const std::string description = localRes->getString(R::StringID::CALL_SCREEN_MEDIA_ENC_DESC);
 	wavRecorder = pa_simple_new(NULL, self.c_str(), PA_STREAM_RECORD, NULL, description.c_str(), &ss, NULL, NULL, NULL);
 
 	const int wavFrames = Opus::WAVFRAMESIZE;
@@ -311,10 +313,10 @@ void* CallScreen::mediaEncode(void)
 	{
 		if(muteStatusNew)
 		{
-			std::string text = r->getString(R::StringID::CALL_SCREEN_BUTTON_MUTE);
+			std::string text = localRes->getString(R::StringID::CALL_SCREEN_BUTTON_MUTE);
 			if(muted)
 			{
-				text = r->getString(R::StringID::CALL_SCREEN_BUTTON_MUTE_UNMUTE);
+				text = localRes->getString(R::StringID::CALL_SCREEN_BUTTON_MUTE_UNMUTE);
 			}
 			gtk_button_set_label(buttonMute, text.c_str());
 			muteStatusNew = false;
@@ -325,8 +327,8 @@ void* CallScreen::mediaEncode(void)
 		const int paread = pa_simple_read(wavRecorder, wavBuffer, wavFrames*sizeof(short), &paReadError);
 		if(paread != 0 )
 		{
-			const std::string error = r->getString(R::StringID::CALL_SCREEN_MEDIA_ENC_PA_ERR) + std::to_string(paReadError);
-			logger->insertLog(Log(Log::TAG::CALL_SCREEN, error, Log::TYPE::ERROR).toString());
+			const std::string error = localRes->getString(R::StringID::CALL_SCREEN_MEDIA_ENC_PA_ERR) + std::to_string(paReadError);
+			localLogger->insertLog(Log(Log::TAG::CALL_SCREEN, error, Log::TYPE::ERROR).toString());
 			continue;
 		}
 
@@ -340,8 +342,8 @@ void* CallScreen::mediaEncode(void)
 		const int encodeLength = Opus::encode(wavBuffer, wavFrames, encodedBuffer, wavFrames);
 		if(encodeLength < 1)
 		{
-			const std::string error = r->getString(R::StringID::CALL_SCREEN_MEDIA_ENC_OPUS_ERR) + std::to_string(encodeLength);
-			logger->insertLog(Log(Log::TAG::CALL_SCREEN, error, Log::TYPE::ERROR).toString());
+			const std::string error = localRes->getString(R::StringID::CALL_SCREEN_MEDIA_ENC_OPUS_ERR) + std::to_string(encodeLength);
+			localLogger->insertLog(Log(Log::TAG::CALL_SCREEN, error, Log::TYPE::ERROR).toString());
 			continue;
 		}
 
@@ -355,16 +357,16 @@ void* CallScreen::mediaEncode(void)
 		SodiumUtils::sodiumEncrypt(false, packetBuffer, sizeof(uint32_t)+encodeLength, Vars::voiceKey.get(), NULL, packetEncrypted, packetEncryptedLength);
 		if(packetEncryptedLength < 1)
 		{
-			const std::string error = r->getString(R::StringID::CALL_SCREEN_MEDIA_ENC_SODIUM_ERR);
-			logger->insertLog(Log(Log::TAG::CALL_SCREEN, error, Log::TYPE::ERROR).toString());
+			const std::string error = localRes->getString(R::StringID::CALL_SCREEN_MEDIA_ENC_SODIUM_ERR);
+			localLogger->insertLog(Log(Log::TAG::CALL_SCREEN, error, Log::TYPE::ERROR).toString());
 			continue;
 		}
 
 		const int sent = sendto(Vars::mediaSocket, packetEncrypted.get(), packetEncryptedLength, 0, (struct sockaddr*)&Vars::serv_addr, sizeof(struct sockaddr_in));
 		if(sent < 0)
 		{
-			const std::string error = r->getString(R::StringID::CALL_SCREEN_MEDIA_ENC_NETWORK_ERR);
-			logger->insertLog(Log(Log::TAG::CALL_SCREEN, error, Log::TYPE::ERROR).toString());
+			const std::string error = localRes->getString(R::StringID::CALL_SCREEN_MEDIA_ENC_NETWORK_ERR);
+			localLogger->insertLog(Log(Log::TAG::CALL_SCREEN, error, Log::TYPE::ERROR).toString());
 			reconnectUDP();
 			continue;
 		}
@@ -378,7 +380,7 @@ void* CallScreen::mediaEncode(void)
 	randombytes_buf(encodedBuffer, wavFrames);
 	Opus::closeEncoder();
 	pa_simple_free(wavRecorder);
-	logger->insertLog(Log(Log::TAG::CALL_SCREEN, r->getString(R::StringID::CALL_SCREEN_MEDIA_ENC_STOP), Log::TYPE::INFO).toString());
+	localLogger->insertLog(Log(Log::TAG::CALL_SCREEN, localRes->getString(R::StringID::CALL_SCREEN_MEDIA_ENC_STOP), Log::TYPE::INFO).toString());
 	return 0;
 }
 
@@ -389,7 +391,9 @@ void* CallScreen::mediaEncodeHelp(void* context)
 
 void* CallScreen::mediaDecode(void)
 {
-	logger->insertLog(Log(Log::TAG::CALL_SCREEN, r->getString(R::StringID::CALL_SCREEN_MEDIA_DEC_START), Log::TYPE::INFO).toString());
+	Logger* localLogger = Logger::getInstance("");
+	R* localRes = R::getInstance();
+	localLogger->insertLog(Log(Log::TAG::CALL_SCREEN, localRes->getString(R::StringID::CALL_SCREEN_MEDIA_DEC_START), Log::TYPE::INFO).toString());
 
 	//setup pulse audio for voice playback
 	pa_simple* wavPlayer = NULL;
@@ -398,8 +402,8 @@ void* CallScreen::mediaDecode(void)
 	ss.format = PA_SAMPLE_S16NE; //TODO: is this really ok or should an endian preference be enforced?
 	ss.channels = 2;
 	ss.rate = Opus::SAMPLERATE;
-	const std::string self = r->getString(R::StringID::SELF);
-	const std::string description = r->getString(R::StringID::CALL_SCREEN_MEDIA_DEC_DESC);
+	const std::string self = localRes->getString(R::StringID::SELF);
+	const std::string description = localRes->getString(R::StringID::CALL_SCREEN_MEDIA_DEC_DESC);
 	wavPlayer = pa_simple_new(NULL, self.c_str(), PA_STREAM_PLAYBACK, NULL, description.c_str(), &ss, NULL, NULL, NULL);
 
 	const int wavFrames = Opus::WAVFRAMESIZE;
@@ -416,8 +420,8 @@ void* CallScreen::mediaDecode(void)
 		const int receivedLength = recvfrom(Vars::mediaSocket, packetBuffer, Vars::MAX_UDP, 0, (struct sockaddr*)&sender, &senderLength);
 		if(receivedLength < 0)
 		{
-			const std::string error = r->getString(R::StringID::CALL_SCREEN_MEDIA_DEC_NETWORK_ERR);
-			logger->insertLog(Log(Log::TAG::CALL_SCREEN, error, Log::TYPE::ERROR).toString());
+			const std::string error = localRes->getString(R::StringID::CALL_SCREEN_MEDIA_DEC_NETWORK_ERR);
+			localLogger->insertLog(Log(Log::TAG::CALL_SCREEN, error, Log::TYPE::ERROR).toString());
 			reconnectUDP();
 			continue;
 		}
@@ -435,8 +439,8 @@ void* CallScreen::mediaDecode(void)
 		SodiumUtils::sodiumDecrypt(false, packetBuffer, receivedLength, Vars::voiceKey.get(), NULL, packetDecrypted, packetDecryptedLength);
 		if(packetDecryptedLength < 1)
 		{
-			const std::string error = r->getString(R::StringID::CALL_SCREEN_MEDIA_DEC_SODIUM_ERR);
-			logger->insertLog(Log(Log::TAG::CALL_SCREEN, error, Log::TYPE::ERROR).toString());
+			const std::string error = localRes->getString(R::StringID::CALL_SCREEN_MEDIA_DEC_SODIUM_ERR);
+			localLogger->insertLog(Log(Log::TAG::CALL_SCREEN, error, Log::TYPE::ERROR).toString());
 			continue;
 		}
 
@@ -464,8 +468,8 @@ void* CallScreen::mediaDecode(void)
 		const int frames = Opus::decode(encBuffer, opusLength, wavBuffer, wavFrames);
 		if(frames < 1)
 		{
-			const std::string error = r->getString(R::StringID::CALL_SCREEN_MEDIA_DEC_OPUS_ERR) + std::to_string(frames);
-			logger->insertLog(Log(Log::TAG::CALL_SCREEN, error, Log::TYPE::ERROR).toString());
+			const std::string error = localRes->getString(R::StringID::CALL_SCREEN_MEDIA_DEC_OPUS_ERR) + std::to_string(frames);
+			localLogger->insertLog(Log(Log::TAG::CALL_SCREEN, error, Log::TYPE::ERROR).toString());
 			randombytes_buf(packetDecrypted.get(), packetDecryptedLength);
 			continue;
 		}
@@ -473,8 +477,8 @@ void* CallScreen::mediaDecode(void)
 		const int paWrite = pa_simple_write(wavPlayer, wavBuffer, frames*sizeof(short), &paWriteError);
 		if(paWrite != 0 )
 		{
-			const std::string error = r->getString(R::StringID::CALL_SCREEN_MEDIA_DEC_PA_ERR) + std::to_string(paWriteError);
-			logger->insertLog(Log(Log::TAG::CALL_SCREEN, error, Log::TYPE::ERROR).toString());
+			const std::string error = localRes->getString(R::StringID::CALL_SCREEN_MEDIA_DEC_PA_ERR) + std::to_string(paWriteError);
+			localLogger->insertLog(Log(Log::TAG::CALL_SCREEN, error, Log::TYPE::ERROR).toString());
 		}
 		randombytes_buf(packetDecrypted.get(), packetDecryptedLength);
 	}
@@ -484,7 +488,7 @@ void* CallScreen::mediaDecode(void)
 	randombytes_buf(wavBuffer, wavFrames*sizeof(short));
 	pa_simple_free(wavPlayer);
 	Opus::closeDecoder();
-	logger->insertLog(Log(Log::TAG::CALL_SCREEN, r->getString(R::StringID::CALL_SCREEN_MEDIA_DEC_STOP), Log::TYPE::INFO).toString());
+	localLogger->insertLog(Log(Log::TAG::CALL_SCREEN, localRes->getString(R::StringID::CALL_SCREEN_MEDIA_DEC_STOP), Log::TYPE::INFO).toString());
 	return 0;
 }
 
