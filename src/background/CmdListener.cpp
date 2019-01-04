@@ -149,11 +149,12 @@ namespace
 					const std::string setupString = respContents.at(2);
 					const int setupDesgringifiedLength = setupString.length() / 3;
 					unsigned char setup[setupDesgringifiedLength] = {};
+					Stringify::destringify(setupString, setup);
 					std::unique_ptr<unsigned char[]> callWithKey;
 					Settings::getInstance()->getPublicKey(Vars::callWith, callWithKey);
 					std::unique_ptr<unsigned char[]> voiceKeyDecrypted;
 					int voiceKeyDecLength = 0;
-					SodiumUtils::sodiumDecrypt(false, setup, setupDesgringifiedLength, Vars::privateKey.get(), callWithKey.get(), Vars::voiceKey, voiceKeyDecLength);
+					SodiumUtils::sodiumDecrypt(true, setup, setupDesgringifiedLength, Vars::privateKey.get(), callWithKey.get(), Vars::voiceKey, voiceKeyDecLength);
 
 					if(voiceKeyDecLength != 0)
 					{
