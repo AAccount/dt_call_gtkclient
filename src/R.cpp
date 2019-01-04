@@ -111,6 +111,9 @@ R::R()
 	en[StringID::CALL_SCREEN_STAT_TXSEQ] = "Out#";
 	en[StringID::CALL_SCREEN_STAT_SKIP] = "Skipped";
 	en[StringID::CALL_SCREEN_STAT_RANGE] = "!!Range";
+	en[StringID::CALL_SCREEN_STAT_MB] = "mbytes";
+	en[StringID::CALL_SCREEN_STAT_KB] = "kbytes";
+	en[StringID::CALL_SCREEN_STAT_B] = "bytes";
 	en[StringID::CALL_SCREEN_LAST_UDP_FOREVER] = "delay since last received more than 1s";
 	en[StringID::CALL_SCREEN_POPUP_MUTE_WARNING] = "DOUBLE CHECK mute label. It can take up to 1 second to change mute/unmute";
 	en[StringID::CALL_SCREEN_MEDIA_ENC_START] = "Media encoding thread started";

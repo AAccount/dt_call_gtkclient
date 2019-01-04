@@ -164,3 +164,11 @@ void Utils::runOnUiThread(GSourceFunc func)
 	g_source_attach(source, NULL);
 	g_source_unref(source);
 }
+
+void Utils::runOnUiThread(GSourceFunc func, gpointer data)
+{
+	GSource *source = g_idle_source_new();
+	g_source_set_callback(source, func, data, NULL);
+	g_source_attach(source, NULL);
+	g_source_unref(source);
+}

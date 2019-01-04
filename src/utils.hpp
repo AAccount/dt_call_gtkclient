@@ -39,6 +39,7 @@ namespace Utils
 	void quit(unsigned char privateKey[], unsigned char voiceKey[]);
 	bool connectFD(int& fd, int type, const std::string& caddr, int cport, struct sockaddr_in* serv_addr);
 	void runOnUiThread(GSourceFunc func);
+	void runOnUiThread(GSourceFunc func, gpointer data);
 };
 
 #endif /* UTILS_HPP_ */

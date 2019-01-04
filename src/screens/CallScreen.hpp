@@ -53,6 +53,9 @@ private:
 	pthread_mutex_t rxTSLock;
 	void* timeCounter(void);
 	static void* timeCounterHelp(void* context);
+	void* timeCounterUI(void);
+	static int timeCounterUIHelp(void* context);
+	std::string runningTime, currentStats;
 	struct timeval lastReceivedTimestamp;
 	void updateTime();
 	void updateStats();
@@ -60,7 +63,7 @@ private:
 	std::stringstream statBuilder;
 	std::string missingLabel, txLabel, rxLabel, garbageLabel, rxSeqLabel, txSeqLabel, skippedLabel, oorangeLabel;
 	int garbage, rxtotal, txtotal, rxSeq, txSeq, skipped, oorange;
-	double formatInternetMetric(int metric);
+	double formatInternetMetric(int metric, std::string& units);
 	GtkTextBuffer* statsBuffer;
 
 	void changeToCallMode();

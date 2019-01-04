@@ -68,11 +68,11 @@ logger(Logger::getInstance(""))
 	oorangeLabel = r->getString(R::StringID::CALL_SCREEN_STAT_RANGE);
 	statsBuffer = gtk_text_buffer_new(NULL);
 	pthread_t timerThread;
-//	if(pthread_create(&timerThread, NULL, &CallScreen::timeCounterHelp, this) != 0)
-//	{
-//		const std::string error = "timerThread " + r->getString(R::StringID::ERR_THREAD_CREATE) + std::to_string(errno) + ") " + std::string(strerror(errno));
-//		logger->insertLog(Log(Log::TAG::CALL_SCREEN, error, Log::TYPE::ERROR).toString());
-//	}
+	if(pthread_create(&timerThread, NULL, &CallScreen::timeCounterHelp, this) != 0)
+	{
+		const std::string error = "timerThread " + r->getString(R::StringID::ERR_THREAD_CREATE) + std::to_string(errno) + ") " + std::string(strerror(errno));
+		logger->insertLog(Log(Log::TAG::CALL_SCREEN, error, Log::TYPE::ERROR).toString());
+	}
 
 	//other setup
 	muted = muteStatusNew = false;
@@ -137,6 +137,7 @@ void CallScreen::onclickEnd()
 	Vars::ustate = Vars::UserState::NONE;
 	CommandEnd::execute();
 	asyncResult(Vars::Broadcast::CALL_END);
+	UserHome::instance->asyncResult(Vars::Broadcast::UNLOCK_USERHOME);
 }
 
 void CallScreen::onclickMute()
@@ -150,6 +151,21 @@ void CallScreen::onclickMute()
 void CallScreen::onclickAccept()
 {
 	CommandAccept::execute();
+}
+
+//static
+int CallScreen::timeCounterUIHelp(void* context)
+{
+	((CallScreen*)context)->timeCounter();
+	return 0;
+}
+
+void* CallScreen::timeCounterUI(void)
+{
+	gtk_label_set_text(time, runningTime.c_str());
+	gtk_text_buffer_set_text(statsBuffer, currentStats.c_str(), -1);
+	gtk_text_view_set_buffer(stats, statsBuffer);
+	return 0;
 }
 
 //static
@@ -189,6 +205,8 @@ void* CallScreen::timeCounter(void)
 		pthread_mutex_unlock(&rxTSLock);
 
 		updateStats();
+//		Utils::runOnUiThread(&CallScreen::timeCounterUIHelp, this);
+		std::cout << runningTime << "\n" << currentStats << "\n";
 		sleep(A_SECOND);
 	}
 	return 0;
@@ -215,39 +233,40 @@ void CallScreen::updateTime()
 	{
 		timeBuilder  << min << ":" << sec;
 	}
-	const std::string runningTime = timeBuilder.str();
-	gtk_label_set_text(time, runningTime.c_str());
+	runningTime = timeBuilder.str();
 }
 
 void CallScreen::updateStats()
 {
 	statBuilder.str(std::string());
 	statBuilder.precision(3); //match the android version
+	std::string rxUnits, txUnits;
 	const int missing = txSeq - rxSeq;
 	statBuilder << missingLabel << ": " << (missing > 0 ? missing : 0) << " " << garbageLabel << ": " << garbage << "\n"
-			<< rxLabel << ": " << formatInternetMetric(rxtotal) << " " << txLabel << ": " << formatInternetMetric(txtotal) << "\n"
+			<< rxLabel << ": " << formatInternetMetric(rxtotal, rxUnits) << rxUnits << " " << txLabel << ": " << formatInternetMetric(txtotal, txUnits) << txUnits <<"\n"
 			<< rxSeqLabel << ": " << rxSeq << " " << txSeqLabel << ": " << txSeq << "\n"
 			<< skippedLabel << ": " << skipped << " " << oorangeLabel << ":  " << oorange;
-	const std::string currentStats = statBuilder.str();
-	gtk_text_buffer_set_text(statsBuffer, currentStats.c_str(), -1);
-	gtk_text_view_set_buffer(stats, statsBuffer);
+	currentStats = statBuilder.str();
 }
 
-double CallScreen::formatInternetMetric(int metric)
+double CallScreen::formatInternetMetric(int metric, std::string& units)
 {
 	const double MEGA = 1000000.0;
 	const double KILO = 1000.0;
 	double dmetric = (double)metric;
 	if(metric > MEGA)
 	{
+		units = r->getString(R::StringID::CALL_SCREEN_STAT_MB);
 		return dmetric / MEGA;
 	}
 	else if (metric > KILO)
 	{
+		units = r->getString(R::StringID::CALL_SCREEN_STAT_KB);
 		return dmetric / KILO;
 	}
 	else
 	{
+		units = r->getString(R::StringID::CALL_SCREEN_STAT_B);
 		return dmetric;
 	}
 }
@@ -411,6 +430,7 @@ void* CallScreen::mediaDecode(void)
 			reconnectUDP();
 			continue;
 		}
+		rxtotal = rxtotal + receivedLength + HEADERS;
 
 		std::unique_ptr<unsigned char[]> packetDecrypted;
 		int packetDecryptedLength = 0;
