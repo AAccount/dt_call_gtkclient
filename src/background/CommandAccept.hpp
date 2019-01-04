@@ -13,6 +13,7 @@
 #include <string.h>
 #include <pthread.h>
 #include "AsyncReceiver.hpp"
+#include "../screens/UserHome.hpp"
 #include "../vars.hpp"
 #include "../utils.hpp"
 #include "../SodiumSocket.hpp"

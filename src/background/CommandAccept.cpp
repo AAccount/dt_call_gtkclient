@@ -11,6 +11,7 @@ namespace
 {
 	Logger* logger = Logger::getInstance("");
 	R* r = R::getInstance();
+
 	void* callAcceptThread(void* pointer)
 	{
 		try
@@ -18,6 +19,7 @@ namespace
 			const std::string resp = std::to_string(Utils::now()) + "|accept|" + Vars::callWith + "|" + Vars::sessionKey;
 			logger->insertLog(Log(Log::TAG::CMD_ACCEPT, resp, Log::TYPE::OUTBOUND).toString());
 			Vars::commandSocket.writeString(resp);
+			UserHome::instance->asyncResult(Vars::Broadcast::LOCK_USERHOME);
 		}
 		catch(std::string& e)
 		{

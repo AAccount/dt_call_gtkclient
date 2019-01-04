@@ -10,17 +10,31 @@
 #include <time.h>
 #include <stdint.h>
 
+namespace
+{
+
+	std::string popupMessage;
+	GtkWindow* popupParent;
+
+	int popupThread(void* a)
+	{
+		GtkWidget* popup = gtk_message_dialog_new(popupParent,
+				GTK_DIALOG_DESTROY_WITH_PARENT,
+				GTK_MESSAGE_ERROR,
+				GTK_BUTTONS_CLOSE,
+				popupMessage.c_str(),
+				NULL);
+		gtk_dialog_run(GTK_DIALOG(popup));
+		gtk_widget_destroy(popup);
+		return 0;
+	}
+}
+
 void Utils::show_popup(const std::string& message, GtkWindow* parent) //TODO: this also needs to run on the ui thread
 {
-	GtkWidget* popup = gtk_message_dialog_new(parent,
-			GTK_DIALOG_DESTROY_WITH_PARENT,
-			GTK_MESSAGE_ERROR,
-			GTK_BUTTONS_CLOSE,
-			message.c_str(),
-			NULL);
-//	g_signal_connect_swapped(popup, "response", G_CALLBACK(gtk_widget_destroy), popup);
-	gtk_dialog_run(GTK_DIALOG(popup));
-	gtk_widget_destroy(popup);
+	popupMessage = message;
+	popupParent = parent;
+	runOnUiThread(popupThread);
 }
 
 std::string Utils::file_chooser(const std::string& message, GtkWindow* parent)

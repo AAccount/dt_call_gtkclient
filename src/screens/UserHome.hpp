@@ -33,6 +33,12 @@ private:
 	UserHome();
 	virtual ~UserHome();
 	static bool onScreen;
+
+	static int lockDial(void* context);
+	static int unlockDial(void* context);
+	static int statusOnline(void* context);
+	static int statusOffline(void* context);
+
 	Logger* logger;
 	R* r;
 	GtkWindow* window;

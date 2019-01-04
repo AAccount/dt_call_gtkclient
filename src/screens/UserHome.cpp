@@ -90,31 +90,61 @@ int UserHome::remove(void* a)
 	return 0;
 }
 
+int UserHome::lockDial(void* context)
+{
+	UserHome* screen = (UserHome*)context;
+	gtk_widget_set_sensitive((GtkWidget*)(screen->dial), false);
+	return 0;
+}
+
+int UserHome::unlockDial(void* context)
+{
+	UserHome* screen = (UserHome*)context;
+	gtk_widget_set_sensitive((GtkWidget*)(screen->dial), true);
+	return 0;
+}
+
+int UserHome::statusOnline(void* context)
+{
+	UserHome* screen = (UserHome*)context;
+	const std::string text = screen->r->getString(R::StringID::USER_HOME_ONLINE);
+	gtk_label_set_text(screen->connectionStatus, text.c_str());
+	return 0;
+}
+
+int UserHome::statusOffline(void* context)
+{
+	UserHome* screen = (UserHome*)context;
+	const std::string text = screen->r->getString(R::StringID::USER_HOME_OFFLINE);
+	gtk_label_set_text(screen->connectionStatus, text.c_str());
+	return 0;
+}
 void UserHome::asyncResult(int result)
 {
 	if(result == Vars::Broadcast::LOGIN_OK)
 	{
-		const std::string text = r->getString(R::StringID::USER_HOME_ONLINE);
-		gtk_label_set_text(connectionStatus, text.c_str());
+		Utils::runOnUiThread(&UserHome::statusOnline, this);
 	}
-	else if (result == Vars::Broadcast::LOGIN_NOTOK)
+	else if(result == Vars::Broadcast::LOGIN_NOTOK)
 	{
-		const std::string text = r->getString(R::StringID::USER_HOME_OFFLINE);
-		gtk_label_set_text(connectionStatus, text.c_str());
+		Utils::runOnUiThread(&UserHome::statusOffline, this);
 	}
-	else if (result == Vars::Broadcast::CALL_END)
+	else if(result == Vars::Broadcast::CALL_END)
 	{
 		Utils::show_popup(r->getString(R::StringID::USER_HOME_CANT_DIAL), window);
 	}
-	else if (result == Vars::Broadcast::CALL_TRY)
+	else if(result == Vars::Broadcast::CALL_TRY)
 	{
-		gtk_widget_set_sensitive((GtkWidget*)dial, false);
 		CallScreen::mode == CallScreen::Mode::DIALING;
 		Utils::runOnUiThread(&CallScreen::render);
 	}
-	else if (result == Vars::Broadcast::UNLOCK_USERHOME)
+	else if(result == Vars::Broadcast::UNLOCK_USERHOME)
 	{
-		gtk_widget_set_sensitive((GtkWidget*)dial, true);
+		Utils::runOnUiThread(&UserHome::unlockDial, this);
+	}
+	else if(result == Vars::Broadcast::LOCK_USERHOME)
+	{
+		Utils::runOnUiThread(&UserHome::lockDial, this);
 	}
 }
 

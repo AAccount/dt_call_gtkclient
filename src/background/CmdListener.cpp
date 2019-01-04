@@ -85,6 +85,7 @@ namespace
 					isCallInitiator = true;
 					preparationsComplete = false;
 					UserHome::instance->asyncResult(Vars::Broadcast::CALL_TRY);
+					UserHome::instance->asyncResult(Vars::Broadcast::LOCK_USERHOME);
 				}
 				else if(command == "prepare")
 				{

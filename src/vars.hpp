@@ -23,7 +23,7 @@ public:
 
 	const static int MAX_UDP = 1400;
 	typedef enum {NONE, INIT, INCALL} UserState;
-	typedef enum {CALL_TRY, CALL_START, CALL_END, LOGIN_NOTOK, LOGIN_OK, UNLOCK_USERHOME} Broadcast;
+	typedef enum {CALL_TRY, CALL_START, CALL_END, LOGIN_NOTOK, LOGIN_OK, UNLOCK_USERHOME, LOCK_USERHOME} Broadcast;
 
 	Vars();
 	virtual ~Vars();
