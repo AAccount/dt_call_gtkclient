@@ -544,14 +544,14 @@ void* CallScreen::ringThread(void* context)
 
 	//write the ringtone 1/10th of a second at a time for 1.5s then 1s of silence.
 	//using this weird 1/10th of a second at a time scheme because pa_simple functions all block
-	const double TOTAL_SAMPLES = RINGTONE_SAMPLERATE/10;
+	const double TOTAL_SAMPLES = RINGTONE_SAMPLERATE/RINGTONE_DIVISION;
 	short silence[(int)TOTAL_SAMPLES] = {};
-	const int MAX_TENTHS = CallScreen::INIT_TIMEOUT*10;
-	const int TENTHS_RINGTONE = CallScreen::TONE_TIME*10;
-	const int TENTHS_SILENCE = CallScreen::SILENCE_TIME*10;
+	const int MAX_DIVISIONS = CallScreen::INIT_TIMEOUT*RINGTONE_DIVISION;
+	const int DIVISIONS_RINGTONE = CallScreen::TONE_TIME*RINGTONE_DIVISION;
+	const int DIVISIONS_SILENCE = CallScreen::SILENCE_TIME*RINGTONE_DIVISION;
 	bool playRingtone = true;
 	int tenthsPlayed = 0;
-	for(int i=0; i<MAX_TENTHS; i++)
+	for(int i=0; i<MAX_DIVISIONS; i++)
 	{
 		short* item = silence;
 		if(playRingtone)
@@ -560,12 +560,12 @@ void* CallScreen::ringThread(void* context)
 		}
 		tenthsPlayed++;
 
-		if(playRingtone && (tenthsPlayed == TENTHS_RINGTONE))
+		if(playRingtone && (tenthsPlayed == DIVISIONS_RINGTONE))
 		{
 			tenthsPlayed = 0;
 			playRingtone = false;
 		}
-		else if(!playRingtone && (tenthsPlayed == TENTHS_RINGTONE))
+		else if(!playRingtone && (tenthsPlayed == DIVISIONS_RINGTONE))
 		{
 			tenthsPlayed = 0;
 			playRingtone = true;
@@ -579,8 +579,8 @@ void* CallScreen::ringThread(void* context)
 			}
 			int paWriteError = 0;
 			pa_simple_write(screen->ringtonePlayer, item, TOTAL_SAMPLES*sizeof(short), &paWriteError);
-			std::cout << "ringtone write error: " << paWriteError << "\n";
 		pthread_mutex_unlock(&screen->ringtoneLock);
+		usleep((int)(1000000.0/RINGTONE_DIVISION)); //don't flood the ringtone player with audio data. wait in realtime for it to play first
 	}
 	return NULL;
 }

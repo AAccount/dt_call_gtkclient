@@ -47,6 +47,7 @@ public:
 	constexpr static double RINGTONE_SAMPLERATE = 8000.0;
 	constexpr static double TONE_TIME = 1.5;
 	constexpr static double SILENCE_TIME = 1.0;
+	constexpr static double RINGTONE_DIVISION = 10.0;
 	static std::unique_ptr<short[]> ringtone;
 
 private:
