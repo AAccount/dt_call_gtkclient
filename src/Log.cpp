@@ -74,6 +74,8 @@ std::string Log::tagString() const
 		return "call screen";
 	case OPUS_CODEC:
 		return "opus";
+	case UTILS:
+		return "utils";
 	default:
 		return "";
 	}

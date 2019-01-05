@@ -58,13 +58,14 @@ R::R()
 	en[StringID::ERR_THREAD_CREATE] = "Couldn't create thread: ";
 	en[StringID::ERR_UDP_REGISTRATION_FAILED] = "Couldn't register udp voice port";
 
+	en[StringID::CONNECTFD_SOCKET_SYSCALL] = "socket system call failed, type: ";
+	en[StringID::CONNECTFD_INET_PTON] = "INET_PTON failed, type: ";
+	en[StringID::CONNECTFD_CONNECT_SYSCALL] = "connect system call failed, type: ";
+
 	en[StringID::SODIUM_DEFAULT_CONSTRUCTOR] = "Should not be using the default sodium socket constructor";
 	en[StringID::SODIUM_SEND_TEMP_PUBLIC] = "Cannot send temp public key";
 	en[StringID::SODIUM_READ_TCP_SYMM] = "Cannot read tcp symmetric key";
 	en[StringID::SODIUM_DECRYPT_TCP_SYMM] = "Couldn't decrypt tcp symmetric key";
-	en[StringID::SODIUM_SOCKET_SYSCALL] = "Cannot create underlying tcp socket for sodium socket";
-	en[StringID::SODIUM_INET_PTON] = "Cannot create struct sockaddr_in for underlying tcp socket for sodium socket";
-	en[StringID::SODIUM_CONNECT_SYSCALL] = "Sodium socket can't connectFD";
 	en[StringID::SODIUM_READ] = "sodium socket read using symmetric decryption failed";
 	en[StringID::SODIUM_WRITE] = "sodium socket write using symmetric encryption failed";
 	en[StringID::SODIUM_NOTREADABLE] = "sodium socket isn't useable for reading";

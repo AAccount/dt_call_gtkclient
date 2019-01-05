@@ -23,7 +23,8 @@ public:
 		INITIAL_SETUP,
 		USER_HOME,
 		CALL_SCREEN,
-		OPUS_CODEC
+		OPUS_CODEC,
+		UTILS
 	} TAG;
 
 	TYPE getType() const;

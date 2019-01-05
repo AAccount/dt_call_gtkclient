@@ -142,11 +142,27 @@ void Utils::quit(unsigned char privateKey[], unsigned char voiceKey[])
 
 bool Utils::connectFD(int& fd, int type, const std::string& caddr, int cport, struct sockaddr_in* serv_addr)
 {
+	R* r = R::getInstance();
+	Logger* logger = Logger::getInstance("");
+	std::string typeString = "";
+	if(type == SOCK_DGRAM)
+	{
+		typeString = "SOCK_DGRAM";
+	}
+	else if (type == SOCK_STREAM)
+	{
+		typeString = "SOCK_STREAM";
+	}
+	else
+	{
+		typeString = "no idea: " + std::to_string(type);
+	}
+
 	fd = socket(AF_INET, type, 0);
 	if(fd < 0)
 	{
-		//TODO: log these errors
-//		throw strings->getString(StringRes::Language::EN, StringRes::StringID::ERR_SODIUM_SOCKET_SYSCALL);
+		const std::string error = r->getString(R::StringID::CONNECTFD_SOCKET_SYSCALL) + typeString;
+		logger->insertLog(Log(Log::TAG::UTILS, error, Log::TYPE::ERROR).toString());
 		return false;
 	}
 
@@ -156,14 +172,16 @@ bool Utils::connectFD(int& fd, int type, const std::string& caddr, int cport, st
 	const int result = inet_pton(AF_INET, caddr.c_str(), &serv_addr->sin_addr);
 	if(result < 0)
 	{
-//		throw strings->getString(StringRes::Language::EN, StringRes::StringID::ERR_SODIUM_INET_PTON);
+		const std::string error = r->getString(R::StringID::CONNECTFD_INET_PTON) + typeString;
+		logger->insertLog(Log(Log::TAG::UTILS, error, Log::TYPE::ERROR).toString());
 		return false;
 	}
 
 	const int connectOk = connect(fd, (struct sockaddr *)serv_addr, sizeof(struct sockaddr_in));
 	if(connectOk < 0)
 	{
-//		throw strings->getString(StringRes::Language::EN, StringRes::StringID::ERR_SODIUM_CONNECT_SYSCALL);
+		const std::string error = r->getString(R::StringID::CONNECTFD_CONNECT_SYSCALL) + typeString;
+		logger->insertLog(Log(Log::TAG::UTILS, error, Log::TYPE::ERROR).toString());
 		return false;
 	}
 	return true;

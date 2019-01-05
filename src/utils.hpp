@@ -26,6 +26,7 @@
 #include <arpa/inet.h>
 #include "Logger.hpp"
 #include "Log.hpp"
+#include "R.hpp"
 
 namespace Utils
 {
