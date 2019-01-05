@@ -36,9 +36,8 @@ int main(int argc, char *argv[])
 	const double TOTAL_SAMPLES = CallScreen::RINGTONE_SAMPLERATE/CallScreen::RINGTONE_DIVISION;
 	CallScreen::ringtone = std::make_unique<short[]>(TOTAL_SAMPLES);
 
-	const double PI = 3.14;
 	const double AMP = SHRT_MAX-5;
-	const double FACTOR = (2.0*PI*TONE_FREQ) / CallScreen::RINGTONE_SAMPLERATE;
+	const double FACTOR = (2.0*M_PI*TONE_FREQ) / CallScreen::RINGTONE_SAMPLERATE;
 	short* ringtoneArray = CallScreen::ringtone.get();
 	for(double i=0.0; i<TOTAL_SAMPLES; i=i+1.0)
 	{
