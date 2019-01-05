@@ -69,6 +69,8 @@ private:
 	int garbage, rxtotal, txtotal, rxSeq, txSeq, skipped, oorange;
 	double formatInternetMetric(int metric, std::string& units);
 	GtkTextBuffer* statsBuffer;
+	std::string currentStats, runningTime;
+	static int updateUi(void* context);
 
 	const static int INIT_TIMEOUT = 30;
 	pa_simple* ringtonePlayer = NULL;
