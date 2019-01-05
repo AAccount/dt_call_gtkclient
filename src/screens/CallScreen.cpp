@@ -326,6 +326,10 @@ void* CallScreen::mediaEncode(void)
 	const std::string self = localRes->getString(R::StringID::SELF);
 	const std::string description = localRes->getString(R::StringID::CALL_SCREEN_MEDIA_ENC_DESC);
 	wavRecorder = pa_simple_new(NULL, self.c_str(), PA_STREAM_RECORD, NULL, description.c_str(), &ss, NULL, NULL, NULL);
+	int latencyErr;
+	pa_usec_t latency = pa_simple_get_latency(wavRecorder, &latencyErr);
+	const std::string info = localRes->getString(R::StringID::CALL_SCREEN_MEDIA_ENC_LATENCY) + std::to_string(latency);
+	localLogger->insertLog(Log(Log::TAG::CALL_SCREEN, info, Log::TYPE::INFO).toString());
 
 	const int wavFrames = Opus::WAVFRAMESIZE;
 	unsigned char packetBuffer[Vars::MAX_UDP] = {};
@@ -428,6 +432,10 @@ void* CallScreen::mediaDecode(void)
 	const std::string self = localRes->getString(R::StringID::SELF);
 	const std::string description = localRes->getString(R::StringID::CALL_SCREEN_MEDIA_DEC_DESC);
 	wavPlayer = pa_simple_new(NULL, self.c_str(), PA_STREAM_PLAYBACK, NULL, description.c_str(), &ss, NULL, NULL, NULL);
+	int latencyErr;
+	pa_usec_t latency = pa_simple_get_latency(wavPlayer, &latencyErr);
+	const std::string info = localRes->getString(R::StringID::CALL_SCREEN_MEDIA_DEC_LATENCY) + std::to_string(latency);
+	localLogger->insertLog(Log(Log::TAG::CALL_SCREEN, info, Log::TYPE::INFO).toString());
 
 	const int wavFrames = Opus::WAVFRAMESIZE;
 	unsigned char encBuffer[wavFrames] = {};

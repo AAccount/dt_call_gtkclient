@@ -124,6 +124,7 @@ R::R()
 	en[StringID::CALL_SCREEN_MEDIA_ENC_STOP] = "Media encoding thread stopped";
 	en[StringID::CALL_SCREEN_MEDIA_ENC_SODIUM_ERR] = "voice symmetric encryption failed";
 	en[StringID::CALL_SCREEN_MEDIA_ENC_NETWORK_ERR] = "sending voice out the udp socket failed;";
+	en[StringID::CALL_SCREEN_MEDIA_ENC_LATENCY] = "pulse audio recording latency: ";
 	en[StringID::CALL_SCREEN_MEDIA_DEC_START] = "Media decoding thread started";
 	en[StringID::CALL_SCREEN_MEDIA_DEC_DESC] = "Voice call playback";
 	en[StringID::CALL_SCREEN_MEDIA_DEC_PA_ERR] = "Pulse audio playback failed with: ";
@@ -131,6 +132,7 @@ R::R()
 	en[StringID::CALL_SCREEN_MEDIA_DEC_STOP] = "Media decoding thread stopped";
 	en[StringID::CALL_SCREEN_MEDIA_DEC_SODIUM_ERR] = "voice symmetric decryption failed";
 	en[StringID::CALL_SCREEN_MEDIA_DEC_NETWORK_ERR] = "receiving voice on the udp socket failed";
+	en[StringID::CALL_SCREEN_MEDIA_DEC_LATENCY] = "pulse audio playback latency: ";
 	en[StringID::CALL_SCREEN_MEDIA_RINGTONE_DESC] = "play ringtone";
 
 
