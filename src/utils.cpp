@@ -88,7 +88,8 @@ std::vector<std::string> Utils::parse(unsigned char command[])
 	int i = 0;
 	std::vector<std::string> result;
 	token = strtok_r((char*)command, "|", &save);
-	while(token != NULL && i < 5) //TODO: this 5 came from COMMAND_MAX_SEGMENTS
+	const static int COMMAND_SEGMENTS_MAX = 5;
+	while(token != NULL && i < COMMAND_SEGMENTS_MAX)
 	{
 		result.push_back(std::string(token));
 		token = strtok_r(NULL, "|", &save);
