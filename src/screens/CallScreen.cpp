@@ -27,6 +27,8 @@ CallScreen::CallScreen() :
 r(R::getInstance()),
 logger(Logger::getInstance(""))
 {
+	Settings* settings = Settings::getInstance();
+
 	//typical ui setup
 	GtkBuilder* builder;
 	builder = gtk_builder_new();
@@ -38,7 +40,8 @@ logger(Logger::getInstance(""))
 	time = GTK_LABEL(gtk_builder_get_object(builder, "call_screen_time"));
 	gtk_label_set_text(time, "0:00");
 	callerID = GTK_LABEL(gtk_builder_get_object(builder, "call_screen_callerid"));
-	gtk_label_set_text(callerID, Vars::callWith.c_str()); //TODO: use the nick name
+	const std::string nickname = settings->getNickname(Vars::callWith);
+	gtk_label_set_text(callerID, nickname.c_str());
 	buttonEnd = GTK_BUTTON(gtk_builder_get_object(builder, "call_screen_end"));
 	gtk_button_set_label(buttonEnd, r->getString(R::StringID::CALL_SCREEN_BUTTON_END).c_str());
 	buttonMute = GTK_BUTTON(gtk_builder_get_object(builder, "call_screen_mute"));
@@ -81,14 +84,13 @@ logger(Logger::getInstance(""))
 	reconnectionAttempted = false;
 	memset(&lastReceivedTimestamp, 0, sizeof(struct timeval));
 
-	ringtonePlayer = NULL;
-
 	gtk_window_set_default_size(GTK_WINDOW(window), 400, 250);
 	gtk_widget_show((GtkWidget*)window);
 	gtk_builder_connect_signals(builder, NULL);
 	g_object_unref(builder);
 
 	pthread_mutex_init(&ringtoneLock, NULL);
+	ringtonePlayer = NULL;
 	ringtoneDone = false;
 	ring();
 

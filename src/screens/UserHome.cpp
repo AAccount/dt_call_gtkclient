@@ -12,6 +12,7 @@ UserHome* UserHome::instance = NULL;
 
 extern "C" void user_home_quit()
 {
+	Vars::commandSocket.stop();
 	Utils::quit(Vars::privateKey.get(), Vars::voiceKey.get());
 }
 

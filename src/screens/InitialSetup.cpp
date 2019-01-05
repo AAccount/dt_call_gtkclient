@@ -12,6 +12,7 @@ bool InitialSetup::onScreen = false;
 
 extern "C" void initial_setup_quit()
 {
+	Vars::commandSocket.stop();
 	Utils::quit(Vars::privateKey.get(), Vars::voiceKey.get());
 }
 

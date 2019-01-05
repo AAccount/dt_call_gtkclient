@@ -29,6 +29,7 @@
 #include "../Logger.hpp"
 #include "../vars.hpp"
 #include "../utils.hpp"
+#include "../settings.hpp"
 
 class CallScreen: public virtual AsyncReceiver
 {

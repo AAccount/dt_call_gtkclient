@@ -7,9 +7,6 @@
 
 #include "utils.hpp"
 
-#include <time.h>
-#include <stdint.h>
-
 namespace
 {
 
@@ -129,7 +126,7 @@ time_t Utils::now()
 	return nowvar;
 }
 
-void Utils::quit(unsigned char privateKey[], unsigned char voiceKey[]) //TODO: close the sodium socket
+void Utils::quit(unsigned char privateKey[], unsigned char voiceKey[])
 {
 	if(privateKey != NULL)
 	{
