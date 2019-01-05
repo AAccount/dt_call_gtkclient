@@ -275,7 +275,7 @@ bool CmdListener::registerUDP()
 		unsigned char ackBuffer[Vars::MAX_UDP] = {};
 		struct sockaddr_in sender;
 		socklen_t senderLength = sizeof(struct sockaddr_in);
-		const int receivedLength = recvfrom(Vars::mediaSocket, ackBuffer, 1500, 0, (struct sockaddr*)&sender, &senderLength);
+		const int receivedLength = recvfrom(Vars::mediaSocket, ackBuffer, Vars::MAX_UDP, 0, (struct sockaddr*)&sender, &senderLength);
 		if(receivedLength < 0)
 		{
 			retries--;
