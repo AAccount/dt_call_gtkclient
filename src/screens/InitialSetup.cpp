@@ -86,6 +86,12 @@ InitialSetup::~InitialSetup()
 }
 
 //static
+InitialSetup* InitialSetup::getInstance()
+{
+	return instance;
+}
+
+//static
 int InitialSetup::render(void* a)
 {
 	onScreen = true;
@@ -110,7 +116,7 @@ int InitialSetup::remove(void* a)
 }
 
 //static
-void InitialSetup::onclick_initial_setup_certificate()
+void InitialSetup::setupCertificate()
 {
 	if(!onScreen)
 	{
@@ -144,7 +150,7 @@ void InitialSetup::onclick_initial_setup_certificate()
 	gotServerCert = true;
 }
 
-void InitialSetup::onclick_initial_setup_private_key()
+void InitialSetup::setupPrivateKey()
 {
 	if(!onScreen)
 	{
@@ -178,7 +184,7 @@ void InitialSetup::onclick_initial_setup_private_key()
 	gotPrivateKey = true;
 }
 
-void InitialSetup::onclick_initial_setup_login()
+void InitialSetup::setupLogin()
 {
 	if(!onScreen)
 	{
@@ -237,24 +243,27 @@ void InitialSetup::asyncResult(int result)
 
 extern "C" void onclick_initial_setup_certificate()
 {
-	if(InitialSetup::instance != NULL)
+	InitialSetup* instance = InitialSetup::getInstance();
+	if(instance != NULL)
 	{
-		InitialSetup::instance->onclick_initial_setup_certificate();
+		instance->setupCertificate();
 	}
 }
 
 extern "C" void onclick_initial_setup_private_key()
 {
-	if(InitialSetup::instance != NULL)
+	InitialSetup* instance = InitialSetup::getInstance();
+	if(instance != NULL)
 	{
-		InitialSetup::instance->onclick_initial_setup_private_key();
+		instance->setupPrivateKey();
 	}
 }
 
 extern "C" void onclick_initial_setup_login()
 {
-	if(InitialSetup::instance != NULL)
+	InitialSetup* instance = InitialSetup::getInstance();
+	if(instance != NULL)
 	{
-		InitialSetup::instance->onclick_initial_setup_login();
+		instance->setupLogin();
 	}
 }

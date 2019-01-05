@@ -67,6 +67,12 @@ UserHome::~UserHome()
 }
 
 //static
+UserHome* UserHome::getInstance()
+{
+	return instance;
+}
+
+//static
 int UserHome::render(void* a)
 {
 	onScreen = true;
@@ -168,24 +174,27 @@ void UserHome::onclickNewContact()
 
 extern "C" void onclick_user_home_dial()
 {
-	if(UserHome::instance != NULL)
+	UserHome* instance = UserHome::getInstance();
+	if(instance != NULL)
 	{
-		UserHome::instance->onclickDial();
+		instance->onclickDial();
 	}
 }
 
 extern "C" void onclick_user_home_add_contact()
 {
-	if(UserHome::instance != NULL)
+	UserHome* instance = UserHome::getInstance();
+	if(instance != NULL)
 	{
-		UserHome::instance->onclickNewContact();
+		instance->onclickNewContact();
 		std::cerr << "clicked add contact\n";
 	}
 }
 
 extern "C" void onclick_menu_settings()
 {
-	if(UserHome::instance != NULL)
+	UserHome* instance = UserHome::getInstance();
+	if(instance != NULL)
 	{
 		std::cerr << "open the menu window\n";
 	}
@@ -193,7 +202,9 @@ extern "C" void onclick_menu_settings()
 
 extern "C" void onclick_menu_publickeys()
 {
-	if(UserHome::instance != NULL)
+	UserHome* instance = UserHome::getInstance();
+
+	if(instance != NULL)
 	{
 		std::cerr << "clicked menu public keys\n";
 	}
@@ -201,15 +212,17 @@ extern "C" void onclick_menu_publickeys()
 
 extern "C" void onclick_menu_quit()
 {
-	if(UserHome::instance != NULL)
+	UserHome* instance = UserHome::getInstance();
+	if(instance != NULL)
 	{
-		std::cerr << "clicked menu quit\n";
+		user_home_quit();
 	}
 }
 
 extern "C" void onclick_menu_about()
 {
-	if(UserHome::instance != NULL)
+	UserHome* instance = UserHome::getInstance();
+	if(instance != NULL)
 	{
 		std::cerr << "clicked menu about\n";
 	}

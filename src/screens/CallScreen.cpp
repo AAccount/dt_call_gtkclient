@@ -105,6 +105,12 @@ CallScreen::~CallScreen()
 }
 
 //static
+CallScreen* CallScreen::getInstance()
+{
+	return instance;
+}
+
+//static
 int CallScreen::render(void* a)
 {
 	onScreen = true;
@@ -148,7 +154,7 @@ void CallScreen::onclickEnd()
 	Vars::ustate = Vars::UserState::NONE;
 	CommandEnd::execute();
 	asyncResult(Vars::Broadcast::CALL_END);
-	UserHome::instance->asyncResult(Vars::Broadcast::UNLOCK_USERHOME);
+	UserHome::getInstance()->asyncResult(Vars::Broadcast::UNLOCK_USERHOME);
 }
 
 void CallScreen::onclickMute()
@@ -231,7 +237,6 @@ void CallScreen::updateTime()
 		timeBuilder  << min << ":" << sec;
 	}
 	runningTime = timeBuilder.str();
-
 }
 
 void CallScreen::updateStats()
@@ -245,7 +250,6 @@ void CallScreen::updateStats()
 			<< rxSeqLabel << ": " << rxSeq << " " << txSeqLabel << ": " << txSeq << "\n"
 			<< skippedLabel << ": " << skipped << " " << oorangeLabel << ":  " << oorange;
 	currentStats = statBuilder.str();
-
 }
 
 int CallScreen::updateUi(void* context)
@@ -620,24 +624,27 @@ void CallScreen::stopRing()
 }
 extern "C" void onclick_call_screen_end()
 {
-	if(CallScreen::instance != NULL)
+	CallScreen* instance = CallScreen::getInstance();
+	if(instance != NULL)
 	{
-		CallScreen::instance->onclickEnd();
+		instance->onclickEnd();
 	}
 }
 
 extern "C" void onclick_call_screen_mute()
 {
-	if(CallScreen::instance != NULL)
+	CallScreen* instance = CallScreen::getInstance();
+	if(instance != NULL)
 	{
-		CallScreen::instance->onclickMute();
+		instance->onclickMute();
 	}
 }
 
 extern "C" void onclick_call_screen_accept()
 {
-	if(CallScreen::instance != NULL)
+	CallScreen* instance = CallScreen::getInstance();
+	if(instance != NULL)
 	{
-		CallScreen::instance->onclickAccept();
+		instance->onclickAccept();
 	}
 }

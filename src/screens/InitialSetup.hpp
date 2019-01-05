@@ -29,17 +29,18 @@ class InitialSetup : public virtual AsyncReceiver
 public:
 	static int render(void* a);
 	static int remove(void* a);
+	static InitialSetup* getInstance();
 
-	//required public to make the extern C calls work. don't touch
-	static InitialSetup* instance;
-	void onclick_initial_setup_certificate();
-	void onclick_initial_setup_login();
-	void onclick_initial_setup_private_key();
+	void setupCertificate();
+	void setupLogin();
+	void setupPrivateKey();
 	void asyncResult(int result) override;
 
 private:
 	InitialSetup();
 	virtual ~InitialSetup();
+
+	static InitialSetup* instance;
 
 	static bool onScreen;
 	GtkWindow* window;

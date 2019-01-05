@@ -36,9 +36,10 @@ class CallScreen: public virtual AsyncReceiver
 public:
 	typedef enum {DIALING, RECEIVING} Mode;
 	static Mode mode;
+
 	static int render(void* a);
 	static int remove(void* a);
-	static CallScreen* instance;
+	static CallScreen* getInstance();
 
 	void asyncResult(int result) override;
 	void onclickEnd();
@@ -55,6 +56,7 @@ private:
 	CallScreen();
 	virtual ~CallScreen();
 	static bool onScreen;
+	static CallScreen* instance;
 
 	const static int HEADERS = 52;
 	int min, sec;

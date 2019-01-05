@@ -28,7 +28,7 @@ namespace
 				const std::string error = r->getString(R::StringID::HEARTBEAT_FAIL) + e;
 				logger->insertLog(Log(Log::TAG::HEARTBEAT, error, Log::TYPE::ERROR).toString());
 				Vars::commandSocket.stop();
-				LoginAsync::execute(UserHome::instance, true);
+				LoginAsync::execute(UserHome::getInstance(), true);
 				break;
 			}
 		}

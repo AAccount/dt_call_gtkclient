@@ -23,13 +23,16 @@ class UserHome : public virtual AsyncReceiver
 public:
 	static int render(void* a);
 	static int remove(void* a);
-	static UserHome* instance;
+	static UserHome* getInstance();
 
 	void asyncResult(int result) override;
 	void onclickDial();
 	void onclickNewContact();
 
+
 private:
+	static UserHome* instance;
+
 	UserHome();
 	virtual ~UserHome();
 	static bool onScreen;

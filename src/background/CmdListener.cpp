@@ -84,8 +84,8 @@ namespace
 					Vars::ustate = Vars::UserState::INIT;
 					isCallInitiator = true;
 					preparationsComplete = false;
-					UserHome::instance->asyncResult(Vars::Broadcast::CALL_TRY);
-					UserHome::instance->asyncResult(Vars::Broadcast::LOCK_USERHOME);
+					UserHome::getInstance()->asyncResult(Vars::Broadcast::CALL_TRY);
+					UserHome::getInstance()->asyncResult(Vars::Broadcast::LOCK_USERHOME);
 				}
 				else if(command == "prepare")
 				{
@@ -172,7 +172,7 @@ namespace
 				else if(command == "start")
 				{
 					Vars::ustate = Vars::UserState::INCALL;
-					CallScreen::instance->asyncResult(Vars::Broadcast::CALL_START);
+					CallScreen::getInstance()->asyncResult(Vars::Broadcast::CALL_START);
 				}
 
 				else if(command == "end")
@@ -183,12 +183,12 @@ namespace
 
 					if(oldState == Vars::UserState::NONE)
 					{//won't be in the phone call screen yet. tell user home the call can't be made
-						UserHome::instance->asyncResult(Vars::Broadcast::CALL_END);
+						UserHome::getInstance()->asyncResult(Vars::Broadcast::CALL_END);
 					}
 					else //INIT or INCALL
 					{
-						UserHome::instance->asyncResult(Vars::Broadcast::UNLOCK_USERHOME);
-						CallScreen::instance->asyncResult(Vars::Broadcast::CALL_END);
+						UserHome::getInstance()->asyncResult(Vars::Broadcast::UNLOCK_USERHOME);
+						CallScreen::getInstance()->asyncResult(Vars::Broadcast::CALL_END);
 					}
 				}
 
@@ -198,7 +198,7 @@ namespace
 				inputValid = false;
 				logger->insertLog(Log(Log::TAG::CMD_LISTENER, r->getString(R::StringID::CMDLISTENER_IOERROR), Log::TYPE::ERROR).toString());
 				Vars::commandSocket.stop();
-				LoginAsync::execute(UserHome::instance, true);
+				LoginAsync::execute(UserHome::getInstance(), true);
 			}
 			catch(std::out_of_range& e)
 			{
@@ -229,7 +229,7 @@ namespace
 	void giveUp()
 	{
 		CommandEnd::execute();
-		CallScreen::instance->asyncResult(Vars::Broadcast::CALL_END);
+		CallScreen::getInstance()->asyncResult(Vars::Broadcast::CALL_END);
 	}
 }
 
