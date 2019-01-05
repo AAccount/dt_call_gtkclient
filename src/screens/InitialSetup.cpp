@@ -119,7 +119,7 @@ void InitialSetup::onclick_initial_setup_certificate()
 	}
 
 	const std::string message = r->getString(R::StringID::INITIAL_SETUP_CHOOSE_SERVER_CERT);
-	const std::string certPath = Utils::file_chooser(message, window);
+	const std::string certPath = Utils::fileChooser(message, window);
 
 	if(certPath == "")
 	{
@@ -132,7 +132,7 @@ void InitialSetup::onclick_initial_setup_certificate()
 	{
 		const std::string error = r->getString(R::StringID::INITIAL_SETUP_BAD_SERVER_CERT);
 		logger->insertLog(Log(Log::TAG::INITIAL_SETUP, error, Log::TYPE::ERROR).toString());
-		Utils::show_popup(error, window);
+		Utils::showPopup(error, window);
 		return;
 	}
 	const std::string certStringified = certDump.substr(SodiumUtils::SODIUM_PUBLIC_HEADER().length(), crypto_box_PUBLICKEYBYTES*3);
@@ -153,7 +153,7 @@ void InitialSetup::onclick_initial_setup_private_key()
 	}
 
 	const std::string message = r->getString(R::StringID::INITIAL_SETUP_CHOOSE_PRIVATE_KEY);
-	const std::string privateKeyPath = Utils::file_chooser(message, window);
+	const std::string privateKeyPath = Utils::fileChooser(message, window);
 	if(privateKeyPath == "")
 	{
 		return;
@@ -165,7 +165,7 @@ void InitialSetup::onclick_initial_setup_private_key()
 	{
 		const std::string error = r->getString(R::StringID::INITIAL_SETUP_PRIVATE_KEY_BAD);
 		logger->insertLog(Log(Log::TAG::INITIAL_SETUP, error, Log::TYPE::ERROR).toString());
-		Utils::show_popup(error, window);
+		Utils::showPopup(error, window);
 		return;
 	}
 
@@ -211,7 +211,7 @@ void InitialSetup::onclick_initial_setup_login()
 	else
 	{
 		const std::string error = r->getString(R::StringID::INITIAL_SETUP_INCOMPLETE);
-		Utils::show_popup(error, window);
+		Utils::showPopup(error, window);
 	}
 }
 
@@ -231,7 +231,7 @@ void InitialSetup::asyncResult(int result)
 	else if(result == Vars::Broadcast::LOGIN_NOTOK)
 	{
 		const std::string error = r->getString(R::StringID::INITIAL_SETUP_LOGIN_FAIL);
-		Utils::show_popup(error, window);
+		Utils::showPopup(error, window);
 	}
 }
 

@@ -132,7 +132,7 @@ void UserHome::asyncResult(int result)
 	}
 	else if(result == Vars::Broadcast::CALL_END)
 	{
-		Utils::show_popup(r->getString(R::StringID::USER_HOME_CANT_DIAL), window);
+		Utils::showPopup(r->getString(R::StringID::USER_HOME_CANT_DIAL), window);
 	}
 	else if(result == Vars::Broadcast::CALL_TRY)
 	{

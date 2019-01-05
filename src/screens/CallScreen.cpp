@@ -156,7 +156,7 @@ void CallScreen::onclickMute()
 	muted = !muted;
 	muteStatusNew = true;
 	const std::string warning = r->getString(R::StringID::CALL_SCREEN_POPUP_MUTE_WARNING);
-	Utils::show_popup(warning, window);
+	Utils::showPopup(warning, window);
 }
 
 void CallScreen::onclickAccept()

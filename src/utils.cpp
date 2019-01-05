@@ -27,14 +27,14 @@ namespace
 	}
 }
 
-void Utils::show_popup(const std::string& message, GtkWindow* parent)
+void Utils::showPopup(const std::string& message, GtkWindow* parent)
 {
 	popupMessage = message;
 	popupParent = parent;
 	runOnUiThread(popupThread);
 }
 
-std::string Utils::file_chooser(const std::string& message, GtkWindow* parent)
+std::string Utils::fileChooser(const std::string& message, GtkWindow* parent)
 {
 	std::string path = "";
 	GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_OPEN;

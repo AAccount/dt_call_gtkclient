@@ -31,8 +31,8 @@
 namespace Utils
 {
 	//used for parsing the configuration file: remove whitespace preceding/trailing and comments
-	void show_popup(const std::string& message, GtkWindow* parent);
-	std::string file_chooser(const std::string& message, GtkWindow* parent);
+	void showPopup(const std::string& message, GtkWindow* parent);
+	std::string fileChooser(const std::string& message, GtkWindow* parent);
 	std::string dumpSmallFile(const std::string& path);
 	std::vector<std::string> parse(unsigned char command[]);
 	bool validTS(const std::string& ts);
