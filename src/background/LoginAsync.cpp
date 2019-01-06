@@ -22,6 +22,7 @@ namespace
 	bool loginFunction(AsyncReceiver* receiver)
 	{
 		r = R::getInstance();
+		logger = Logger::getInstance("");
 		try
 		{
 			Vars::commandSocket = SodiumSocket(Vars::serverAddress, Vars::commandPort, Vars::serverCert.get());
