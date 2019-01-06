@@ -320,7 +320,7 @@ void* CallScreen::mediaEncode(void)
 	pa_simple* wavRecorder = NULL;
 	pa_sample_spec ss;
 	memset(&ss, 0, sizeof(pa_sample_spec));
-	ss.format = PA_SAMPLE_S16NE; //TODO: is this really ok or should an endian preference be enforced?
+	ss.format = PA_SAMPLE_S16LE;
 	ss.channels = 2;
 	ss.rate = Opus::SAMPLERATE;
 	const std::string self = localRes->getString(R::StringID::SELF);
@@ -426,7 +426,7 @@ void* CallScreen::mediaDecode(void)
 	pa_simple* wavPlayer = NULL;
 	pa_sample_spec ss;
 	memset(&ss, 0, sizeof(pa_sample_spec));
-	ss.format = PA_SAMPLE_S16NE; //TODO: is this really ok or should an endian preference be enforced?
+	ss.format = PA_SAMPLE_S16LE;
 	ss.channels = 2;
 	ss.rate = Opus::SAMPLERATE;
 	const std::string self = localRes->getString(R::StringID::SELF);
@@ -557,7 +557,7 @@ void* CallScreen::ringThread(void* context)
 
 	pa_sample_spec ss;
 	memset(&ss, 0, sizeof(pa_sample_spec));
-	ss.format = PA_SAMPLE_S16NE; //TODO: is this really ok or should an endian preference be enforced?
+	ss.format = PA_SAMPLE_S16LE;
 	ss.channels = 1;
 	ss.rate = RINGTONE_SAMPLERATE;
 	const std::string self = screen->r->getString(R::StringID::SELF);
