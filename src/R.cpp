@@ -159,6 +159,9 @@ R::R()
 	en[StringID::CMDLISTENER_OORANGE] = "Out of range exception: ";
 	en[StringID::CMDLISTENER_PASSTHROUGH_FAIL] = "Couldn't decrypt passthrough of voice key";
 	en[StringID::CMDLISTENER_REGISTERUDP_SEALFAIL] = "failed to create sealed box for udp registration";
+	en[StringID::CMDLISTENER_UDP_TIMEOUT_REGISTER] = "failed to setup udp timeout when registering ";
+	en[StringID::CMDLISTENER_UDP_TIMEOUT_REMOVE_TIMEOUT] = "failed to remove udp timeout after registering is done ";
+
 
 	en[StringID::HEARTBEAT_FAIL] = "couldn't write heartbeat: ";
 

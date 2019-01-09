@@ -133,7 +133,7 @@
 		<buildTargets>
 			<target name="Main" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 				<buildCommand>make</buildCommand>
-				<buildArguments>all -j4</buildArguments>
+				<buildArguments>all -j16</buildArguments>
 				<buildTarget/>
 				<stopOnError>true</stopOnError>
 				<useDefaultCommand>false</useDefaultCommand>

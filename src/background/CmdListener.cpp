@@ -251,6 +251,16 @@ bool CmdListener::registerUDP()
 		return false;
 	}
 
+	struct timeval registerTimeout;
+	registerTimeout.tv_sec = 0;
+	registerTimeout.tv_usec = 100000;
+
+	if(setsockopt(Vars::mediaSocket, SOL_SOCKET, SO_RCVTIMEO, (char*)&registerTimeout, sizeof(struct timeval)) < 0)
+	{
+		std::string error= r->getString(R::StringID::CMDLISTENER_UDP_TIMEOUT_REGISTER) + std::to_string(errno) + ") " + std::string(strerror(errno));
+		logger->insertLog(Log(Log::TAG::CMD_LISTENER, error, Log::TYPE::ERROR).toString());
+	}
+
 	int retries = UDP_RETRIES;
 	while(retries > 0)
 	{
@@ -297,6 +307,15 @@ bool CmdListener::registerUDP()
 		const bool ackOK = Utils::validTS(ackString);
 		if(ackOK)
 		{
+			struct timeval noTimeout;
+			noTimeout.tv_sec = 0;
+			noTimeout.tv_usec = 0;
+
+			if(setsockopt(Vars::mediaSocket, SOL_SOCKET, SO_RCVTIMEO, (char*)&noTimeout, sizeof(struct timeval)) < 0)
+			{
+				std::string error= r->getString(R::StringID::CMDLISTENER_UDP_TIMEOUT_REMOVE_TIMEOUT) + std::to_string(errno) + ") " + std::string(strerror(errno));
+				logger->insertLog(Log(Log::TAG::CMD_LISTENER, error, Log::TYPE::ERROR).toString());
+			}
 			return true;
 		}
 		retries--;
