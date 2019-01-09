@@ -245,7 +245,7 @@ void CmdListener::startService()
 
 bool CmdListener::registerUDP()
 {
-	bool udpConnected = Utils::connectFD(Vars::mediaSocket, SOCK_DGRAM, Vars::serverAddress, Vars::mediaPort, &Vars::serv_addr);
+	bool udpConnected = Utils::connectFD(Vars::mediaSocket, SOCK_DGRAM, Vars::serverAddress, Vars::mediaPort, &Vars::mediaPortAddrIn);
 	if(!udpConnected)
 	{
 		return false;
@@ -275,7 +275,7 @@ bool CmdListener::registerUDP()
 			continue;
 		}
 
-		const int sent = sendto(Vars::mediaSocket, sodiumSealedRegistration, registrationLength, 0, (struct sockaddr*)&Vars::serv_addr, sizeof(struct sockaddr_in));
+		const int sent = sendto(Vars::mediaSocket, sodiumSealedRegistration, registrationLength, 0, (struct sockaddr*)&Vars::mediaPortAddrIn, sizeof(struct sockaddr_in));
 		if(sent < 0)
 		{
 			retries--;

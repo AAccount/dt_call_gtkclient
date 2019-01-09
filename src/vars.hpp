@@ -29,7 +29,7 @@ public:
 	virtual ~Vars();
 
 	//setup information
-	static struct sockaddr_in serv_addr;
+	static struct sockaddr_in mediaPortAddrIn;
 	static std::string serverAddress;
 	static int commandPort;
 	static int mediaPort;

@@ -389,7 +389,7 @@ void* CallScreen::mediaEncode(void)
 			continue;
 		}
 
-		const int sent = sendto(Vars::mediaSocket, packetEncrypted.get(), packetEncryptedLength, 0, (struct sockaddr*)&Vars::serv_addr, sizeof(struct sockaddr_in));
+		const int sent = sendto(Vars::mediaSocket, packetEncrypted.get(), packetEncryptedLength, 0, (struct sockaddr*)&Vars::mediaPortAddrIn, sizeof(struct sockaddr_in));
 		if(sent < 0)
 		{
 			const std::string error = localRes->getString(R::StringID::CALL_SCREEN_MEDIA_ENC_NETWORK_ERR);
