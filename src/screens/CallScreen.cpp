@@ -209,7 +209,10 @@ void* CallScreen::timeCounter(void)
 		}
 
 		updateStats();
-		Utils::runOnUiThread(&CallScreen::updateUi, this);
+		if(onScreen)
+		{
+			Utils::runOnUiThread(&CallScreen::updateUi, this);
+		}
 		sleep(A_SECOND);
 	}
 	return 0;
