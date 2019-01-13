@@ -85,7 +85,7 @@ namespace
 					isCallInitiator = true;
 					preparationsComplete = false;
 					UserHome::getInstance()->asyncResult(Vars::Broadcast::CALL_TRY);
-					UserHome::getInstance()->asyncResult(Vars::Broadcast::LOCK_USERHOME);
+					UserHome::getInstance()->asyncResult(Vars::Broadcast::USERHOME_LOCK);
 				}
 				else if(command == "prepare")
 				{
@@ -187,7 +187,7 @@ namespace
 					}
 					else //INIT or INCALL
 					{
-						UserHome::getInstance()->asyncResult(Vars::Broadcast::UNLOCK_USERHOME);
+						UserHome::getInstance()->asyncResult(Vars::Broadcast::USERHOME_UNLOCK);
 						CallScreen::getInstance()->asyncResult(Vars::Broadcast::CALL_END);
 					}
 				}

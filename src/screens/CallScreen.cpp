@@ -154,7 +154,7 @@ void CallScreen::onclickEnd()
 	Vars::ustate = Vars::UserState::NONE;
 	CommandEnd::execute();
 	asyncResult(Vars::Broadcast::CALL_END);
-	UserHome::getInstance()->asyncResult(Vars::Broadcast::UNLOCK_USERHOME);
+	UserHome::getInstance()->asyncResult(Vars::Broadcast::USERHOME_UNLOCK);
 }
 
 void CallScreen::onclickMute()

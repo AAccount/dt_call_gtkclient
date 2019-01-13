@@ -96,6 +96,15 @@ R::R()
 	en[StringID::USER_HOME_BUTTON_CONTACT] = "Add Contact";
 	en[StringID::USER_HOME_LABEL_CONTACTS] = "Contacts";
 	en[StringID::USER_HOME_CANT_DIAL] = "User is not available to call";
+	en[StringID::USER_HOME_CONTACTS_EDIT] = "Edit";
+	en[StringID::USER_HOME_CONTACTS_REMOVE] = "Remove";
+	en[StringID::USER_HOME_CONTACTS_NOENTRY] = "Contact button doesn't map to anyone";
+	en[StringID::USER_HOME_CONTACTS_EDIT_NOENTRY] = "Contact EDIT button doesn't map to anyone";
+	en[StringID::USER_HOME_CONTACTS_REMOVE_NOENTRY] = "Contact REMOVE button doesn't map to anyone ";
+	en[StringID::USER_HOME_CONTACTS_NOT_REGISTERED] = "Contact isn't registered: ";
+
+	en[StringID::EDIT_CONTACT_ENTRY_PLACEHOLDER] = "Enter a new nickname for ";
+	en[StringID::EDIT_CONTACT_SAVE] = "Save";
 
 	en[StringID::CALL_SCREEN_TITLE] = "DT Call";
 	en[StringID::CALL_SCREEN_STATUS_RINGING] = "Ringing";
@@ -135,8 +144,6 @@ R::R()
 	en[StringID::CALL_SCREEN_MEDIA_DEC_LATENCY] = "pulse audio playback latency: ";
 	en[StringID::CALL_SCREEN_MEDIA_RINGTONE_DESC] = "play ringtone";
 
-
-
 	en[StringID::LOGINASYNC_LOGIN1_FORMAT] = "login1 improperly formatted";
 	en[StringID::LOGINASYNC_LOGIN1_TS] = "login1 bad timestamp";
 	en[StringID::LOGINASYNC_CALLENGE_FAILED] = "challenge asymmetric decryption failed";
@@ -161,7 +168,6 @@ R::R()
 	en[StringID::CMDLISTENER_REGISTERUDP_SEALFAIL] = "failed to create sealed box for udp registration";
 	en[StringID::CMDLISTENER_UDP_TIMEOUT_REGISTER] = "failed to setup udp timeout when registering ";
 	en[StringID::CMDLISTENER_UDP_TIMEOUT_REMOVE_TIMEOUT] = "failed to remove udp timeout after registering is done ";
-
 
 	en[StringID::HEARTBEAT_FAIL] = "couldn't write heartbeat: ";
 

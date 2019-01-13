@@ -14,6 +14,7 @@
 #include <fstream>
 #include <memory>
 #include <cstdlib>
+#include <vector>
 #include <sodium.h>
 #include <stdlib.h>
 
@@ -45,6 +46,7 @@ public:
 	void setInt(SettingName setting, int newValue);
 	void setString(SettingName setting, std::string& newValue);
 
+	std::vector<std::string> getAllContacts() const;
 	void modifyContact(const std::string& name, const std::string& nickName);
 	void removeContact(const std::string& name);
 	std::string getNickname(const std::string& name) const;

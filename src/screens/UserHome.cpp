@@ -16,10 +16,35 @@ extern "C" void user_home_quit()
 	Utils::quit(Vars::privateKey.get(), Vars::voiceKey.get());
 }
 
-UserHome::UserHome()
+extern "C" void user_home_contact_button(GtkWidget* button, gpointer data)
 {
-	r = R::getInstance();
-	logger = Logger::getInstance("");
+	UserHome* screen = UserHome::getInstance();
+	screen->onclickContact((GtkButton*)button);
+}
+
+extern "C" void user_home_contact_edit(GtkWidget* button, gpointer data)
+{
+	UserHome* screen = UserHome::getInstance();
+	screen->onclickContactEdit((GtkButton*)button);}
+
+extern "C" void user_home_contact_remove(GtkWidget* button, gpointer data)
+{
+	UserHome* screen = UserHome::getInstance();
+	screen->onclickContactRemove((GtkButton*)button);
+}
+
+UserHome::UserHome() :
+settings(Settings::getInstance()),
+r(R::getInstance()),
+logger(Logger::getInstance("")),
+contactToContainer(std::unordered_map<std::string, GtkBox*>()),
+buttonToContact(std::unordered_map<GtkButton*, std::string>()),
+contactToButton(std::unordered_map<std::string, GtkButton*>()),
+editButtonToContact(std::unordered_map<GtkButton*, std::string>()),
+contactToEditButton(std::unordered_map<std::string, GtkButton*>()),
+removeButtonToContact(std::unordered_map<GtkButton*, std::string>()),
+contactToRemoveButton(std::unordered_map<std::string, GtkButton*>())
+{
 
 	GtkBuilder* builder;
 	builder = gtk_builder_new();
@@ -51,6 +76,12 @@ UserHome::UserHome()
 	else
 	{
 		gtk_label_set_text(connectionStatus, r->getString(R::StringID::USER_HOME_ONLINE).c_str());
+	}
+
+	const std::vector<std::string> contacts = settings->getAllContacts();
+	for(std::string contact : contacts)
+	{
+		renderContact(contact);
 	}
 
 	onScreen = true;
@@ -126,6 +157,23 @@ int UserHome::statusOffline(void* context)
 	gtk_label_set_text(screen->connectionStatus, text.c_str());
 	return 0;
 }
+
+int UserHome::changeContactButton(void* context)
+{
+	UserHome* screen = (UserHome*)context;
+	const std::string contact = EditContact::contactInEdit;
+	const std::string newNickname = screen->settings->getNickname(contact);
+	if(screen->contactToButton.count(contact) < 1)
+	{
+		const std::string error = screen->r->getString(R::StringID::USER_HOME_CONTACTS_NOT_REGISTERED) + contact;
+		screen->logger->insertLog(Log(Log::TAG::USER_HOME, error, Log::TYPE::ERROR).toString());
+		return 0;
+	}
+	GtkButton* contactButton = screen->contactToButton[contact];
+	gtk_button_set_label(contactButton, newNickname.c_str());
+	return 0;
+}
+
 void UserHome::asyncResult(int result)
 {
 	if(result == Vars::Broadcast::LOGIN_OK)
@@ -145,13 +193,17 @@ void UserHome::asyncResult(int result)
 		CallScreen::mode == CallScreen::Mode::DIALING;
 		Utils::runOnUiThread(&CallScreen::render);
 	}
-	else if(result == Vars::Broadcast::UNLOCK_USERHOME)
+	else if(result == Vars::Broadcast::USERHOME_UNLOCK)
 	{
 		Utils::runOnUiThread(&UserHome::unlockDial, this);
 	}
-	else if(result == Vars::Broadcast::LOCK_USERHOME)
+	else if(result == Vars::Broadcast::USERHOME_LOCK)
 	{
 		Utils::runOnUiThread(&UserHome::lockDial, this);
+	}
+	else if(result == Vars::Broadcast::USERHOME_CONTACTEDITED)
+	{
+		Utils::runOnUiThread(&UserHome::changeContactButton, this);
 	}
 }
 
@@ -169,7 +221,108 @@ void UserHome::onclickDial()
 
 void UserHome::onclickNewContact()
 {
-	std::cout << "clicked new contact\n";
+	const std::string who = std::string(gtk_entry_get_text(entry));
+	if(who.empty())
+	{
+		return;
+	}
+	settings->modifyContact(who, who);
+	settings->save();
+	renderContact(who);
+}
+
+void UserHome::renderContact(const std::string& name)
+{
+	GtkBox* container = GTK_BOX(gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0));
+	gtk_box_set_homogeneous(container, false);
+	contactToContainer[name] = container;
+
+	GtkButton* contact = GTK_BUTTON(gtk_button_new_with_label(settings->getNickname(name).c_str()));
+	g_signal_connect(G_OBJECT(contact),"clicked", G_CALLBACK(user_home_contact_button), NULL);
+	gtk_box_pack_start(container, (GtkWidget*)contact, true, true, 0);
+	gtk_widget_set_hexpand((GtkWidget*)contact, true);
+	buttonToContact[contact] = name;
+	contactToButton[name] = contact;
+
+	GtkButton* edit = GTK_BUTTON(gtk_button_new_with_label(r->getString(R::StringID::USER_HOME_CONTACTS_EDIT).c_str()));
+	g_signal_connect(G_OBJECT(edit),"clicked", G_CALLBACK(user_home_contact_edit), NULL);
+	gtk_box_pack_start(container, (GtkWidget*)edit, true, true, 0);
+	gtk_widget_set_hexpand((GtkWidget*)edit, false);
+	editButtonToContact[edit] = name;
+	contactToEditButton[name] = edit;
+
+	GtkButton* remove = GTK_BUTTON(gtk_button_new_with_label(r->getString(R::StringID::USER_HOME_CONTACTS_REMOVE).c_str()));
+	g_signal_connect(G_OBJECT(remove),"clicked", G_CALLBACK(user_home_contact_remove), NULL);
+	gtk_box_pack_start(container, (GtkWidget*)remove, true, true, 0);
+	gtk_widget_set_hexpand((GtkWidget*)remove, false);
+	removeButtonToContact[remove] = name;
+	contactToRemoveButton[name] = remove;
+
+	gtk_widget_show(GTK_WIDGET(contact));
+	gtk_widget_show(GTK_WIDGET(edit));
+	gtk_widget_show(GTK_WIDGET(remove));
+	gtk_widget_show(GTK_WIDGET(container));
+	gtk_container_add((GtkContainer*)contactList, (GtkWidget*)container);
+}
+
+void UserHome::onclickContact(GtkButton* button)
+{
+	if(buttonToContact.count(button) < 1)
+	{
+		const std::string error = r->getString(R::StringID::USER_HOME_CONTACTS_NOENTRY);
+		logger->insertLog(Log(Log::TAG::USER_HOME, error, Log::TYPE::ERROR).toString());
+		return;
+	}
+	const std::string actualContact = buttonToContact[button];
+	gtk_entry_set_text(entry, actualContact.c_str());
+}
+
+void UserHome::onclickContactEdit(GtkButton* button)
+{
+	if(editButtonToContact.count(button) < 1)
+	{
+		const std::string error = r->getString(R::StringID::USER_HOME_CONTACTS_EDIT_NOENTRY);
+		logger->insertLog(Log(Log::TAG::USER_HOME, error, Log::TYPE::ERROR).toString());
+		return;
+	}
+	const std::string actualContact = editButtonToContact[button];
+	EditContact::contactInEdit = actualContact;
+	EditContact::render(NULL);
+}
+
+void UserHome::onclickContactRemove(GtkButton* button)
+{
+	if(removeButtonToContact.count(button) < 1)
+	{
+		const std::string error = r->getString(R::StringID::USER_HOME_CONTACTS_REMOVE_NOENTRY);
+		logger->insertLog(Log(Log::TAG::USER_HOME, error, Log::TYPE::ERROR).toString());
+		return;
+	}
+	const std::string actualContact = removeButtonToContact[button];
+	settings->removeContact(actualContact);
+	settings->save();
+
+	try
+	{
+		GtkBox* container = contactToContainer.at(actualContact);
+		gtk_widget_destroy((GtkWidget*)container);
+
+		GtkButton* contactButton = contactToButton.at(actualContact);
+		buttonToContact.erase(contactButton);
+		contactToButton.erase(actualContact);
+		GtkButton* editButton = contactToEditButton.at(actualContact);
+		editButtonToContact.erase(editButton);
+		contactToEditButton.erase(actualContact);
+		GtkButton* removeButton = contactToRemoveButton.at(actualContact);
+		removeButtonToContact.erase(removeButton);
+		contactToRemoveButton.erase(actualContact);
+	}
+	catch(std::out_of_range& e)
+	{
+		const std::string error = r->getString(R::StringID::USER_HOME_CONTACTS_REMOVE_NOENTRY) + e.what();
+		logger->insertLog(Log(Log::TAG::USER_HOME, error, Log::TYPE::ERROR).toString());
+	}
+
 }
 
 extern "C" void onclick_user_home_dial()
@@ -187,7 +340,6 @@ extern "C" void onclick_user_home_add_contact()
 	if(instance != NULL)
 	{
 		instance->onclickNewContact();
-		std::cerr << "clicked add contact\n";
 	}
 }
 

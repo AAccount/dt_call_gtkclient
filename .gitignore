@@ -23,3 +23,5 @@
 /liblogger.so
 /libsodiumutils.so
 /libstringify.so
+/EditContact.o
+/gmon.out

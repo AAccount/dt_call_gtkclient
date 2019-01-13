@@ -129,6 +129,16 @@ void Settings::setString(SettingName setting, std::string& newValue)
 	settingsTable[settingName] = newValue;
 }
 
+std::vector<std::string> Settings::getAllContacts() const
+{
+	std::vector<std::string> result;
+	for(auto contactEntry : contacts)
+	{
+		result.push_back(contactEntry.first);
+	}
+	return result;
+}
+
 void Settings::modifyContact(const std::string& name, const std::string& nickName)
 {
 	if(nickName == "")

@@ -9,14 +9,18 @@
 #define SRC_SCREENS_USERHOME_HPP_
 #include <string>
 #include <iostream>
+#include <vector>
+#include <unordered_map>
 #include <gtk/gtk.h>
-#include "../background/AsyncReceiver.hpp"
 #include "InitialSetup.hpp"
 #include "CallScreen.hpp"
+#include "EditContact.hpp"
+#include "../background/AsyncReceiver.hpp"
+#include "../background/CommandCall.hpp"
 #include "../R.hpp"
 #include "../Log.hpp"
 #include "../Logger.hpp"
-#include "../background/CommandCall.hpp"
+#include "../settings.hpp"
 
 class UserHome : public virtual AsyncReceiver
 {
@@ -28,7 +32,9 @@ public:
 	void asyncResult(int result) override;
 	void onclickDial();
 	void onclickNewContact();
-
+	void onclickContact(GtkButton* button);
+	void onclickContactEdit(GtkButton* button);
+	void onclickContactRemove(GtkButton* button);
 
 private:
 	static UserHome* instance;
@@ -41,9 +47,20 @@ private:
 	static int unlockDial(void* context);
 	static int statusOnline(void* context);
 	static int statusOffline(void* context);
+	static int changeContactButton(void* context);
+
+	void renderContact(const std::string& name);
+	std::unordered_map<std::string, GtkBox*> contactToContainer;
+	std::unordered_map<GtkButton*, std::string> buttonToContact;
+	std::unordered_map<std::string, GtkButton*> contactToButton;
+	std::unordered_map<GtkButton*, std::string> editButtonToContact;
+	std::unordered_map<std::string, GtkButton*> contactToEditButton;
+	std::unordered_map<GtkButton*, std::string> removeButtonToContact;
+	std::unordered_map<std::string, GtkButton*> contactToRemoveButton;
 
 	Logger* logger;
 	R* r;
+	Settings* settings;
 	GtkWindow* window;
 	GtkLabel* connectionStatus;
 	GtkEntry* entry;

@@ -17,7 +17,7 @@ CXX = g++ -std=c++14
 GTKLIB = `pkg-config --cflags gtk+-3.0 --libs gtk+-3.0`
 TARGET = gtkclient
 
-OBJS = main.o utils.o settings.o Log.o SodiumSocket.o vars.o InitialSetup.o R.o LoginAsync.o UserHome.o CallScreen.o CmdListener.o CommandAccept.o CommandEnd.o Heartbeat.o CommandCall.o Opus.o
+OBJS = main.o utils.o settings.o Log.o SodiumSocket.o vars.o InitialSetup.o R.o LoginAsync.o UserHome.o CallScreen.o CmdListener.o CommandAccept.o CommandEnd.o Heartbeat.o CommandCall.o Opus.o EditContact.o
 DTOPERATORLIBS = libstringify.so libsodiumutils.so liblogger.so
 
 all: $(OBJS)
@@ -55,6 +55,9 @@ UserHome.o : src/screens/UserHome.cpp src/screens/UserHome.hpp glade/user_home2.
 
 CallScreen.o : src/screens/CallScreen.cpp src/screens/CallScreen.hpp glade/call_screen.glade
 	${CXX} ${CFLAGS} -c src/screens/CallScreen.cpp $(GTKLIB) ${OPUS} ${PULSEAUDIO} ${MATH}
+	
+EditContact.o : src/screens/EditContact.cpp src/screens/EditContact.hpp glade/edit_contact.glade
+	${CXX} ${CFLAGS} -c src/screens/EditContact.cpp $(GTKLIB)
 
 LoginAsync.o : src/background/LoginAsync.cpp src/background/LoginAsync.hpp
 	${CXX} ${CFLAGS} -c src/background/LoginAsync.cpp ${PTHREAD} $(GTKLIB)

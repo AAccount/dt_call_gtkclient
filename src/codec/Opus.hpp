@@ -11,7 +11,6 @@
 #include <sodium.h>
 #include <string.h>
 #include <opus/opus.h>
-#include <alloca.h>
 #include "../Log.hpp"
 #include "../Logger.hpp"
 #include "../R.hpp"
