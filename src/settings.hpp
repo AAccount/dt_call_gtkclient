@@ -50,6 +50,7 @@ public:
 	void modifyContact(const std::string& name, const std::string& nickName);
 	void removeContact(const std::string& name);
 	std::string getNickname(const std::string& name) const;
+	bool contactExists(const std::string& name) const;
 
 	void modifyPublicKey(const std::string& name, std::unique_ptr<unsigned char[]>& publicKey);
 	void removePublicKey(const std::string& name);

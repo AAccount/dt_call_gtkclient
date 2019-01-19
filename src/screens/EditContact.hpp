@@ -15,24 +15,25 @@
 #include "../Log.hpp"
 #include "../Logger.hpp"
 #include "../settings.hpp"
+#include "../BlockingQ.hpp"
 
 class EditContact
 {
 public:
-	static int render(void* a);
-	static int remove(void* a);
-	static EditContact* getInstance();
-	static std::string contactInEdit;
+
+	static BlockingQ<std::string> editedContacts;
+	static void renderNew(const std::string& toEdit);
 
 	void onclickSave();
+	void onclickQuit();
 
 private:
+	static std::unordered_map<std::string, EditContact*> editWindows;
 
-	static EditContact* instance;
-	EditContact();
+	EditContact(const std::string& toEdit);
 	virtual ~EditContact();
-	static bool onScreen;
 
+	const std::string contactInEdit;
 	GtkWindow* window;
 	GtkEntry* entry;
 	GtkButton* ok;

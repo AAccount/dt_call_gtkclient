@@ -161,7 +161,7 @@ int UserHome::statusOffline(void* context)
 int UserHome::changeContactButton(void* context)
 {
 	UserHome* screen = (UserHome*)context;
-	const std::string contact = EditContact::contactInEdit;
+	const std::string contact = EditContact::editedContacts.pop();
 	const std::string newNickname = screen->settings->getNickname(contact);
 	if(screen->contactToButton.count(contact) < 1)
 	{
@@ -222,10 +222,11 @@ void UserHome::onclickDial()
 void UserHome::onclickNewContact()
 {
 	const std::string who = std::string(gtk_entry_get_text(entry));
-	if(who.empty())
+	if(who.empty() || settings->contactExists(who))
 	{
 		return;
 	}
+
 	settings->modifyContact(who, who);
 	settings->save();
 	renderContact(who);
@@ -285,9 +286,9 @@ void UserHome::onclickContactEdit(GtkButton* button)
 		logger->insertLog(Log(Log::TAG::USER_HOME, error, Log::TYPE::ERROR).toString());
 		return;
 	}
+
 	const std::string actualContact = editButtonToContact[button];
-	EditContact::contactInEdit = actualContact;
-	EditContact::render(NULL);
+	EditContact::renderNew(actualContact);
 }
 
 void UserHome::onclickContactRemove(GtkButton* button)

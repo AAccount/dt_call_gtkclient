@@ -171,6 +171,11 @@ std::string Settings::getNickname(const std::string& name) const
 	}
 }
 
+bool Settings::contactExists(const std::string& name) const
+{
+	return contacts.count(name) > 0;
+}
+
 void Settings::modifyPublicKey(const std::string& name, std::unique_ptr<unsigned char[]>& publicKey)
 {
 	publicKeys[name] = Stringify::stringify(publicKey.get(), crypto_box_PUBLICKEYBYTES);

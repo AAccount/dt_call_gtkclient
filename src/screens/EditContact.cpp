@@ -7,30 +7,45 @@
 
 #include "EditContact.hpp"
 
-bool EditContact::onScreen = false;
-EditContact* EditContact::instance = NULL;
-std::string EditContact::contactInEdit = "";
+BlockingQ<std::string> EditContact::editedContacts;
+std::unordered_map<std::string, EditContact*> EditContact::editWindows;
 
-EditContact::EditContact() :
-settings(Settings::getInstance()),
-r(R::getInstance())
+extern "C" void edit_contact_quit(GtkWidget* button, gpointer data)
 {
+	EditContact* screen = (EditContact*)data;
+	screen->onclickQuit();
+}
+
+extern "C" void onclick_edit_contact_save(GtkWidget* button, gpointer data)
+{
+	EditContact* screen = (EditContact*)data;
+	screen->onclickSave();
+}
+
+EditContact::EditContact(const std::string& toEdit) :
+settings(Settings::getInstance()),
+r(R::getInstance()),
+contactInEdit(toEdit)
+{
+	const std::string placeholder = r->getString(R::StringID::EDIT_CONTACT_ENTRY_PLACEHOLDER) + contactInEdit;
+
 	GtkBuilder* builder;
 	builder = gtk_builder_new();
 	gtk_builder_add_from_file(builder, "glade/edit_contact.glade", NULL);
 	window = GTK_WINDOW(gtk_builder_get_object(builder, "edit_contact_window"));
+	gtk_window_set_title(window, placeholder.c_str());
+	g_signal_connect(G_OBJECT(window),"destroy", G_CALLBACK(edit_contact_quit), this);
 	entry = GTK_ENTRY(gtk_builder_get_object(builder, "edit_contact_entry"));
-	const std::string placeholder = r->getString(R::StringID::EDIT_CONTACT_ENTRY_PLACEHOLDER) + contactInEdit;
 	gtk_entry_set_placeholder_text(entry, placeholder.c_str());
 	ok = GTK_BUTTON(gtk_builder_get_object(builder, "edit_contact_ok"));
 	gtk_button_set_label(ok, r->getString(R::StringID::EDIT_CONTACT_SAVE).c_str());
+	g_signal_connect(G_OBJECT(ok),"clicked", G_CALLBACK(onclick_edit_contact_save), this);
 
-	gtk_window_set_default_size(GTK_WINDOW(window), 300, 75);
+	gtk_window_set_default_size(GTK_WINDOW(window), 400, 75);
 	gtk_builder_connect_signals(builder, NULL);
 	gtk_widget_show((GtkWidget*)window);
 	g_object_unref(builder);
 
-	onScreen = true;
 }
 
 EditContact::~EditContact()
@@ -40,34 +55,22 @@ EditContact::~EditContact()
 }
 
 //static
-EditContact* EditContact::getInstance()
+void EditContact::renderNew(const std::string& toEdit)
 {
-	return instance;
+	if(editWindows.count(toEdit) > 0)
+	{//don't open 2 windows for the same contact
+		return;
+	}
+
+	EditContact* editWindow = new EditContact(toEdit);
+	editWindows[toEdit] = editWindow;
 }
 
-//static
-int EditContact::render(void* a)
+void EditContact::onclickQuit()
 {
-	onScreen = true;
-	if(instance != NULL)
-	{//only 1 version of the screen will be active
-		delete instance;
-	}
-	instance = new EditContact();
-
-	return 0;
-}
-
-//static
-int EditContact::remove(void* a)
-{
-	onScreen = false;
-	if(instance != NULL)
-	{
-		delete instance;
-		instance = NULL;
-	}
-	return 0;
+	EditContact* self = editWindows[contactInEdit];
+	editWindows.erase(contactInEdit);
+	delete(self);
 }
 
 void EditContact::onclickSave()
@@ -80,17 +83,9 @@ void EditContact::onclickSave()
 	settings->modifyContact(contactInEdit, nickname);
 	settings->save();
 
+	editedContacts.push(contactInEdit);
 	UserHome* home = UserHome::getInstance();
 	home->asyncResult(Vars::Broadcast::USERHOME_CONTACTEDITED);
-}
 
-
-extern "C" void onclick_edit_contact_save()
-{
-	EditContact* instance = EditContact::getInstance();
-	if(instance != NULL)
-	{
-		instance->onclickSave();
-	}
-
+	onclickQuit();
 }

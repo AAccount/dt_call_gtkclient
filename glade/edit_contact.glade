@@ -40,7 +40,6 @@
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="hexpand">True</property>
-                <signal name="clicked" handler="onclick_edit_contact_save" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
