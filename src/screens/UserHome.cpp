@@ -241,21 +241,18 @@ void UserHome::renderContact(const std::string& name)
 	GtkButton* contact = GTK_BUTTON(gtk_button_new_with_label(settings->getNickname(name).c_str()));
 	g_signal_connect(G_OBJECT(contact),"clicked", G_CALLBACK(user_home_contact_button), NULL);
 	gtk_box_pack_start(container, (GtkWidget*)contact, true, true, 0);
-	gtk_widget_set_hexpand((GtkWidget*)contact, true);
 	buttonToContact[contact] = name;
 	contactToButton[name] = contact;
 
 	GtkButton* edit = GTK_BUTTON(gtk_button_new_with_label(r->getString(R::StringID::USER_HOME_CONTACTS_EDIT).c_str()));
 	g_signal_connect(G_OBJECT(edit),"clicked", G_CALLBACK(user_home_contact_edit), NULL);
-	gtk_box_pack_start(container, (GtkWidget*)edit, true, true, 0);
-	gtk_widget_set_hexpand((GtkWidget*)edit, false);
+	gtk_box_pack_start(container, (GtkWidget*)edit, false, true, 0);
 	editButtonToContact[edit] = name;
 	contactToEditButton[name] = edit;
 
 	GtkButton* remove = GTK_BUTTON(gtk_button_new_with_label(r->getString(R::StringID::USER_HOME_CONTACTS_REMOVE).c_str()));
 	g_signal_connect(G_OBJECT(remove),"clicked", G_CALLBACK(user_home_contact_remove), NULL);
-	gtk_box_pack_start(container, (GtkWidget*)remove, true, true, 0);
-	gtk_widget_set_hexpand((GtkWidget*)remove, false);
+	gtk_box_pack_start(container, (GtkWidget*)remove, false, true, 0);
 	removeButtonToContact[remove] = name;
 	contactToRemoveButton[name] = remove;
 
