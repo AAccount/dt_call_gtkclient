@@ -2,7 +2,7 @@
 <!-- Generated with glade 3.22.1 -->
 <interface>
   <requires lib="gtk+" version="3.20"/>
-  <object class="GtkWindow" id="window_initial_setup">
+  <object class="GtkWindow" id="window_settings_ui">
     <property name="can_focus">False</property>
     <property name="title" translatable="yes">DT Call Setup</property>
     <property name="resizable">False</property>
@@ -28,38 +28,7 @@
             <property name="left_padding">10</property>
             <property name="right_padding">10</property>
             <child>
-              <object class="GtkLabel">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="halign">start</property>
-                <property name="hexpand">False</property>
-                <property name="label" translatable="yes">Initial Setup</property>
-                <attributes>
-                  <attribute name="weight" value="bold"/>
-                  <attribute name="underline" value="True"/>
-                </attributes>
-              </object>
-            </child>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">0</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkAlignment">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="valign">start</property>
-            <property name="hexpand">True</property>
-            <property name="vexpand">False</property>
-            <property name="top_padding">10</property>
-            <property name="bottom_padding">5</property>
-            <property name="left_padding">10</property>
-            <property name="right_padding">10</property>
-            <child>
-              <object class="GtkEntry" id="id_initial_setup_addr">
+              <object class="GtkEntry" id="id_settings_ui_addr">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="valign">start</property>
@@ -87,7 +56,7 @@
             <property name="left_padding">10</property>
             <property name="right_padding">10</property>
             <child>
-              <object class="GtkEntry" id="id_initial_setup_command">
+              <object class="GtkEntry" id="id_settings_ui_command">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="valign">start</property>
@@ -116,7 +85,7 @@
             <property name="left_padding">10</property>
             <property name="right_padding">10</property>
             <child>
-              <object class="GtkEntry" id="id_initial_setup_media">
+              <object class="GtkEntry" id="id_settings_ui_media">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="valign">start</property>
@@ -145,12 +114,12 @@
             <property name="left_padding">10</property>
             <property name="right_padding">10</property>
             <child>
-              <object class="GtkButton" id="id_initial_setup_certificate">
+              <object class="GtkButton" id="id_settings_ui_certificate">
                 <property name="label" translatable="yes">Choose Expected Certificate</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <signal name="clicked" handler="onclick_initial_setup_certificate" swapped="no"/>
+                <signal name="clicked" handler="onclick_settings_ui_certificate" swapped="no"/>
               </object>
             </child>
           </object>
@@ -172,7 +141,7 @@
             <property name="left_padding">10</property>
             <property name="right_padding">10</property>
             <child>
-              <object class="GtkEntry" id="id_initial_setup_name">
+              <object class="GtkEntry" id="id_settings_ui_name">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="valign">start</property>
@@ -200,12 +169,12 @@
             <property name="left_padding">10</property>
             <property name="right_padding">10</property>
             <child>
-              <object class="GtkButton" id="id_initial_setup_private_key">
+              <object class="GtkButton" id="id_settings_ui_private_key">
                 <property name="label" translatable="yes">Choose Private Key</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <signal name="clicked" handler="onclick_initial_setup_private_key" swapped="no"/>
+                <signal name="clicked" handler="onclick_settings_ui_private_key" swapped="no"/>
               </object>
             </child>
           </object>
@@ -227,14 +196,14 @@
             <property name="left_padding">10</property>
             <property name="right_padding">10</property>
             <child>
-              <object class="GtkButton" id="id_initial_setup_next">
+              <object class="GtkButton" id="id_settings_ui_next">
                 <property name="label" translatable="yes">Login</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="halign">end</property>
                 <property name="hexpand">False</property>
-                <signal name="clicked" handler="onclick_initial_setup_login" swapped="no"/>
+                <signal name="clicked" handler="onclick_settings_ui_next" swapped="no"/>
               </object>
             </child>
           </object>

@@ -19,7 +19,6 @@
 #include <limits.h>
 #include <math.h>
 
-#include "screens/InitialSetup.hpp"
 #include "screens/UserHome.hpp"
 #include "screens/CallScreen.hpp"
 #include "vars.hpp"
@@ -28,6 +27,7 @@
 #include "Log.hpp"
 #include "R.hpp"
 #include "background/LoginAsync.hpp"
+#include "screens/SettingsUI.hpp"
 #include "utils.hpp"
 
 #endif /* SRC_MAIN_HPP_ */

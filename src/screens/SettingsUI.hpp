@@ -5,13 +5,15 @@
  *      Author: Daniel
  */
 
-#ifndef SRC_SCREENS_INITIALSETUP_HPP_
-#define SRC_SCREENS_INITIALSETUP_HPP_
+#ifndef SRC_SCREENS_SETTINGSUI_HPP_
+#define SRC_SCREENS_SETTINGSUI_HPP_
 
 #include <gtk/gtk.h>
 #include <iostream>
 #include <memory>
 #include <sodium.h>
+#include <algorithm>
+#include <cctype>
 #include "../vars.hpp"
 #include "../utils.hpp"
 #include "../sodium_utils.hpp"
@@ -24,23 +26,25 @@
 #include "../Log.hpp"
 #include "UserHome.hpp"
 
-class InitialSetup : public virtual AsyncReceiver
+class SettingsUI : public virtual AsyncReceiver
 {
 public:
+	static bool initialSetup;
+
 	static int render(void* a);
 	static int remove(void* a);
-	static InitialSetup* getInstance();
+	static SettingsUI* getInstance();
 
 	void setupCertificate();
-	void setupLogin();
+	void nextFunction();
 	void setupPrivateKey();
 	void asyncResult(int result) override;
 
 private:
-	InitialSetup();
-	virtual ~InitialSetup();
+	SettingsUI();
+	virtual ~SettingsUI();
 
-	static InitialSetup* instance;
+	static SettingsUI* instance;
 
 	static bool onScreen;
 	GtkWindow* window;
@@ -50,7 +54,11 @@ private:
 	GtkButton* serverCert;
 	GtkEntry* username;
 	GtkButton* privateKey;
-	GtkButton* login;
+	GtkButton* next;
+
+	void login();
+	void saveSettings();
+	void removeWhiteSpace(std::string& s);
 
 	R* r;
 	Logger* logger;
@@ -59,4 +67,4 @@ private:
 	gulong destroySignalID;
 };
 
-#endif /* SRC_SCREENS_INITIALSETUP_HPP_ */
+#endif /* SRC_SCREENS_SETTINGSUI_HPP_ */

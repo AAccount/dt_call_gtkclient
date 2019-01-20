@@ -85,7 +85,7 @@ contactToRemoveButton(std::unordered_map<std::string, GtkButton*>())
 	}
 
 	onScreen = true;
-	Utils::runOnUiThread(&InitialSetup::remove);
+	Utils::runOnUiThread(&SettingsUI::remove);
 }
 
 UserHome::~UserHome()
@@ -349,7 +349,8 @@ extern "C" void onclick_menu_settings()
 	UserHome* instance = UserHome::getInstance();
 	if(instance != NULL)
 	{
-		std::cerr << "open the menu window\n";
+		SettingsUI::initialSetup = false;
+		Utils::runOnUiThread(&SettingsUI::render);
 	}
 }
 

@@ -62,7 +62,8 @@ int main(int argc, char *argv[])
 	}
 	else
 	{
-		InitialSetup::render(NULL); //this IS the ui thread run the render function directly
+		SettingsUI::initialSetup = true;
+		SettingsUI::render(NULL); //this IS the ui thread run the render function directly
 	}
 	gtk_main();
 

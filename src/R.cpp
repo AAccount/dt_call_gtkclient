@@ -53,6 +53,9 @@ R::R()
 
 {
 	en[StringID::SELF] = "DT Call GTKClient";
+
+	en[StringID::GENERIC_SAVE] = "Save";
+
 	en[StringID::ERR_NOT_ONSCREEN] = "not on screen";
 	en[StringID::ERR_SOCKET] = "Couldn't establish socket";
 	en[StringID::ERR_THREAD_CREATE] = "Couldn't create thread: ";
@@ -71,20 +74,21 @@ R::R()
 	en[StringID::SODIUM_NOTREADABLE] = "sodium socket isn't useable for reading";
 	en[StringID::SODIUM_NOTWRITEABLE] = "sodium socket isn't useable for writing";
 
-	en[StringID::INITIAL_SETUP_TITLE] = "Initial Setup";
-	en[StringID::INITIAL_SETUP_PLACEHOLDER_ADDR] = "Server Address or Name";
-	en[StringID::INITIAL_SETUP_PLACEHOLDER_COMMAND] = "Command Port Number";
-	en[StringID::INITIAL_SETUP_PLACEHOLDER_MEDIA] = "Media Port Number";
-	en[StringID::INITIAL_SETUP_PLACEHOLDER_NAME] = "Username";
-	en[StringID::INITIAL_SETUP_LOGIN] = "Login";
-	en[StringID::INITIAL_SETUP_CHOOSE_SERVER_CERT] = "Choose Server Certificate";
-	en[StringID::INITIAL_SETUP_BAD_SERVER_CERT] = "Sodium certificate invalid";
-	en[StringID::INITIAL_SETUP_SERVER_CERT_OK] = "Server Sodium OK";
-	en[StringID::INITIAL_SETUP_CHOOSE_PRIVATE_KEY] = "Choose Your Private Key";
-	en[StringID::INITIAL_SETUP_PRIVATE_KEY_BAD] = "Private key invalid";
-	en[StringID::INITIAL_SETUP_PRIVATE_KEY_OK] = "Private Sodium OK";
-	en[StringID::INITIAL_SETUP_INCOMPLETE] = "All the required information hasn't been filled in yet";
-	en[StringID::INITIAL_SETUP_LOGIN_FAIL] = "Login failed";
+	en[StringID::SETTINGS_UI_TITLE_INITIAL_SETUP] = "Initial Setup";
+	en[StringID::SETTINGS_UI_TITLE_EDIT] = "Edit Settings";
+	en[StringID::SETTINGS_UI_PLACEHOLDER_ADDR] = "Server Address or Name";
+	en[StringID::SETTINGS_UI_PLACEHOLDER_COMMAND] = "Command Port Number";
+	en[StringID::SETTINGS_UI_PLACEHOLDER_MEDIA] = "Media Port Number";
+	en[StringID::SETTINGS_UI_PLACEHOLDER_NAME] = "Username";
+	en[StringID::SETTINGS_UI_LOGIN] = "Login";
+	en[StringID::SETTINGS_UI_CHOOSE_SERVER_CERT] = "Choose Server Certificate";
+	en[StringID::SETTINGS_UI_BAD_SERVER_CERT] = "Sodium certificate invalid";
+	en[StringID::SETTINGS_UI_SERVER_CERT_OK] = "Server Sodium OK";
+	en[StringID::SETTINGS_UI_CHOOSE_PRIVATE_KEY] = "Choose Your Private Key";
+	en[StringID::SETTINGS_UI_PRIVATE_KEY_BAD] = "Private key invalid";
+	en[StringID::SETTINGS_UI_PRIVATE_KEY_OK] = "Private Sodium OK";
+	en[StringID::SETTINGS_UI_INCOMPLETE] = "All the required information hasn't been filled in yet";
+	en[StringID::SETTINGS_UI_LOGIN_FAIL] = "Login failed";
 
 	en[StringID::MAIN_SKIP_TOHOME] = "Login information present, skipping to home";
 
@@ -104,7 +108,6 @@ R::R()
 	en[StringID::USER_HOME_CONTACTS_NOT_REGISTERED] = "Contact isn't registered: ";
 
 	en[StringID::EDIT_CONTACT_ENTRY_PLACEHOLDER] = "Enter a new nickname for ";
-	en[StringID::EDIT_CONTACT_SAVE] = "Save";
 
 	en[StringID::CALL_SCREEN_TITLE] = "DT Call";
 	en[StringID::CALL_SCREEN_STATUS_RINGING] = "Ringing";

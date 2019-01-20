@@ -38,7 +38,7 @@ contactInEdit(toEdit)
 	entry = GTK_ENTRY(gtk_builder_get_object(builder, "edit_contact_entry"));
 	gtk_entry_set_placeholder_text(entry, placeholder.c_str());
 	ok = GTK_BUTTON(gtk_builder_get_object(builder, "edit_contact_ok"));
-	gtk_button_set_label(ok, r->getString(R::StringID::EDIT_CONTACT_SAVE).c_str());
+	gtk_button_set_label(ok, r->getString(R::StringID::GENERIC_SAVE).c_str());
 	g_signal_connect(G_OBJECT(ok),"clicked", G_CALLBACK(onclick_edit_contact_save), this);
 
 	gtk_window_set_default_size(GTK_WINDOW(window), 400, 75);

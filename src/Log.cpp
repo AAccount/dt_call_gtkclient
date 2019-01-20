@@ -66,8 +66,8 @@ std::string Log::tagString() const
 		return "heartbeat";
 	case LOGIN:
 		return "login";
-	case INITIAL_SETUP:
-		return "initial setup";
+	case SETTINGS_UI:
+		return "settings ui";
 	case USER_HOME:
 		return "user home";
 	case CALL_SCREEN:

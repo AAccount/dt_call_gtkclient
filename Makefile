@@ -17,7 +17,7 @@ CXX = g++ -std=c++14
 GTKLIB = `pkg-config --cflags gtk+-3.0 --libs gtk+-3.0`
 TARGET = gtkclient
 
-OBJS = main.o utils.o settings.o Log.o SodiumSocket.o vars.o InitialSetup.o R.o LoginAsync.o UserHome.o CallScreen.o CmdListener.o CommandAccept.o CommandEnd.o Heartbeat.o CommandCall.o Opus.o EditContact.o
+OBJS = main.o utils.o settings.o Log.o SodiumSocket.o vars.o SettingsUI.o R.o LoginAsync.o UserHome.o CallScreen.o CmdListener.o CommandAccept.o CommandEnd.o Heartbeat.o CommandCall.o Opus.o EditContact.o
 DTOPERATORLIBS = libstringify.so libsodiumutils.so liblogger.so
 
 all: $(OBJS)
@@ -47,8 +47,8 @@ Log.o : src/Log.cpp src/Log.hpp
 Opus.o : src/codec/Opus.cpp src/codec/Opus.hpp
 	${CXX} ${CFLAGS} -c src/codec/Opus.cpp ${OPUS}
 
-InitialSetup.o : src/screens/InitialSetup.cpp src/screens/InitialSetup.hpp glade/initial_setup.glade
-	${CXX} ${CFLAGS} -c src/screens/InitialSetup.cpp $(GTKLIB)
+SettingsUI.o : src/screens/SettingsUI.cpp src/screens/SettingsUI.hpp glade/settings_ui.glade
+	${CXX} ${CFLAGS} -c src/screens/SettingsUI.cpp $(GTKLIB)
 
 UserHome.o : src/screens/UserHome.cpp src/screens/UserHome.hpp glade/user_home2.glade
 	${CXX} ${CFLAGS} -c src/screens/UserHome.cpp $(GTKLIB)

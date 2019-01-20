@@ -12,7 +12,6 @@
 #include <vector>
 #include <unordered_map>
 #include <gtk/gtk.h>
-#include "InitialSetup.hpp"
 #include "CallScreen.hpp"
 #include "EditContact.hpp"
 #include "../background/AsyncReceiver.hpp"
@@ -21,6 +20,7 @@
 #include "../Log.hpp"
 #include "../Logger.hpp"
 #include "../settings.hpp"
+#include "SettingsUI.hpp"
 
 class UserHome : public virtual AsyncReceiver
 {
