@@ -304,6 +304,7 @@ void UserHome::onclickContactRemove(GtkButton* button)
 	{
 		GtkBox* container = contactToContainer.at(actualContact);
 		gtk_widget_destroy((GtkWidget*)container);
+		contactToContainer.erase(actualContact);
 
 		GtkButton* contactButton = contactToButton.at(actualContact);
 		buttonToContact.erase(contactButton);
@@ -311,8 +312,7 @@ void UserHome::onclickContactRemove(GtkButton* button)
 		GtkButton* editButton = contactToEditButton.at(actualContact);
 		editButtonToContact.erase(editButton);
 		contactToEditButton.erase(actualContact);
-		GtkButton* removeButton = contactToRemoveButton.at(actualContact);
-		removeButtonToContact.erase(removeButton);
+		removeButtonToContact.erase(button);
 		contactToRemoveButton.erase(actualContact);
 	}
 	catch(std::out_of_range& e)
