@@ -143,8 +143,7 @@ void CallScreen::asyncResult(int result)
 	}
 	else if (result == Vars::Broadcast::CALL_END)
 	{
-		call_screen_quit();
-		Utils::runOnUiThread(&CallScreen::remove);
+		onclickEnd();
 	}
 }
 
@@ -152,9 +151,15 @@ void CallScreen::onclickEnd()
 {
 	stopRing();
 	Vars::ustate = Vars::UserState::NONE;
+
+	shutdown(Vars::mediaSocket, 2);
+	close(Vars::mediaSocket);
+	Vars::mediaSocket = -1;
+	call_screen_quit();
+
 	CommandEnd::execute();
-	asyncResult(Vars::Broadcast::CALL_END);
 	UserHome::getInstance()->asyncResult(Vars::Broadcast::USERHOME_UNLOCK);
+	Utils::runOnUiThread(&CallScreen::remove);
 }
 
 void CallScreen::onclickMute()
@@ -534,6 +539,10 @@ void* CallScreen::mediaDecodeHelp(void* context)
 void CallScreen::reconnectUDP()
 {
 pthread_mutex_lock(&deadUDPLock);
+	if(Vars::ustate == Vars::UserState::NONE)
+	{
+		return;
+	}
 
 	if(reconnectionAttempted)
 	{
@@ -549,7 +558,6 @@ pthread_mutex_lock(&deadUDPLock);
 			onclickEnd();
 		}
 	}
-
 pthread_mutex_unlock(&deadUDPLock);
 }
 
