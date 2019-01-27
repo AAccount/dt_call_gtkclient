@@ -583,7 +583,7 @@ void* CallScreen::ringThread(void* context)
 	const int DIVISIONS_RINGTONE = CallScreen::TONE_TIME*RINGTONE_DIVISION;
 	const int DIVISIONS_SILENCE = CallScreen::SILENCE_TIME*RINGTONE_DIVISION;
 	bool playRingtone = true;
-	int tenthsPlayed = 0;
+	int divisionsPlayed = 0;
 	for(int i=0; i<MAX_DIVISIONS; i++)
 	{
 		short* item = silence;
@@ -591,16 +591,16 @@ void* CallScreen::ringThread(void* context)
 		{
 			item = CallScreen::ringtone.get();
 		}
-		tenthsPlayed++;
+		divisionsPlayed++;
 
-		if(playRingtone && (tenthsPlayed == DIVISIONS_RINGTONE))
+		if(playRingtone && (divisionsPlayed == DIVISIONS_RINGTONE))
 		{
-			tenthsPlayed = 0;
+			divisionsPlayed = 0;
 			playRingtone = false;
 		}
-		else if(!playRingtone && (tenthsPlayed == DIVISIONS_RINGTONE))
+		else if(!playRingtone && (divisionsPlayed == DIVISIONS_RINGTONE))
 		{
-			tenthsPlayed = 0;
+			divisionsPlayed = 0;
 			playRingtone = true;
 		}
 
