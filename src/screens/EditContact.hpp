@@ -29,7 +29,7 @@ public:
 	void onclickQuit();
 
 	//required public for unique_ptr
-	EditContact(const std::string& toEdit);
+	explicit EditContact(const std::string& toEdit);
 	virtual ~EditContact();
 
 private:

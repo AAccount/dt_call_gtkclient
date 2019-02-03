@@ -30,7 +30,7 @@ public:
 	void onclickRemove();
 	void onclickQuit();
 
-	PublicKeyUser(const std::string& puser);
+	explicit PublicKeyUser(const std::string& puser);
 	virtual ~PublicKeyUser();
 private:
 
