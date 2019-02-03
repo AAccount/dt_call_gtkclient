@@ -15,6 +15,8 @@
 #include <memory>
 #include <cstdlib>
 #include <vector>
+#include <algorithm>
+
 #include <sodium.h>
 #include <stdlib.h>
 

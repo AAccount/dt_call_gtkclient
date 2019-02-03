@@ -132,10 +132,9 @@ void Settings::setString(SettingName setting, std::string& newValue)
 std::vector<std::string> Settings::getAllContacts() const
 {
 	std::vector<std::string> result;
-	for(auto contactEntry : contacts)
-	{
-		result.push_back(contactEntry.first);
-	}
+	result.resize(contacts.size());
+	std::transform(contacts.begin(), contacts.end(), result.begin(),
+			[](auto entry) -> std::string{return entry.first;});
 	return result;
 }
 
@@ -179,10 +178,9 @@ bool Settings::contactExists(const std::string& name) const
 std::vector<std::string> Settings::getAllRegisteredPublicKeys() const
 {
 	std::vector<std::string> result;
-	for(auto publicKey : publicKeys)
-	{
-		result.push_back(publicKey.first);
-	}
+	result.resize(publicKeys.size());
+	std::transform(publicKeys.begin(), publicKeys.end(), result.begin(),
+			[](auto entry) -> std::string{return entry.first;});
 	return result;
 }
 
