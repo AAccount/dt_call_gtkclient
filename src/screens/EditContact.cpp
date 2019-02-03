@@ -8,7 +8,7 @@
 #include "EditContact.hpp"
 
 BlockingQ<std::string> EditContact::editedContacts;
-std::unordered_map<std::string, EditContact*> EditContact::editWindows;
+std::unordered_map<std::string, std::unique_ptr<EditContact>> EditContact::editWindows;
 
 extern "C" void edit_contact_quit(GtkWidget* button, gpointer data)
 {
@@ -62,15 +62,12 @@ void EditContact::renderNew(const std::string& toEdit)
 		return;
 	}
 
-	EditContact* editWindow = new EditContact(toEdit);
-	editWindows[toEdit] = editWindow;
+	editWindows[toEdit] = std::make_unique<EditContact>(toEdit);
 }
 
 void EditContact::onclickQuit()
 {
-	EditContact* self = editWindows[contactInEdit];
 	editWindows.erase(contactInEdit);
-	delete(self);
 }
 
 void EditContact::onclickSave()
