@@ -120,7 +120,7 @@ namespace
 	{
 		AsyncReceiver* receiver = (AsyncReceiver*)context;
 		bool ok = loginFunction(receiver);
-		if(retry && !ok)
+		while(retry && !ok)
 		{
 			sleep(RETRY_DELAY);
 			ok = loginFunction(receiver);
