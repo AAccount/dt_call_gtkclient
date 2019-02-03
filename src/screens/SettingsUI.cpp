@@ -137,25 +137,9 @@ void SettingsUI::setupCertificate()
 	}
 
 	const std::string message = r->getString(R::StringID::SETTINGS_UI_CHOOSE_SERVER_CERT);
-	const std::string certPath = Utils::fileChooser(message, window);
+	const std::string error = r->getString(R::StringID::SETTINGS_UI_BAD_SERVER_CERT);
+	Utils::setupPublicKey(message, window, Log::TAG::SETTINGS_UI, error, Vars::serverCert);
 
-	if(certPath == "")
-	{
-		return;
-	}
-
-	const std::string certDump = Utils::dumpSmallFile(certPath);
-	const bool ok = SodiumUtils::checkSodiumPublic(certDump);
-	if(!ok)
-	{
-		const std::string error = r->getString(R::StringID::SETTINGS_UI_BAD_SERVER_CERT);
-		logger->insertLog(Log(Log::TAG::SETTINGS_UI, error, Log::TYPE::ERROR).toString());
-		Utils::showPopup(error, window);
-		return;
-	}
-	const std::string certStringified = certDump.substr(SodiumUtils::SODIUM_PUBLIC_HEADER().length(), crypto_box_PUBLICKEYBYTES*3);
-	Vars::serverCert = std::make_unique<unsigned char[]>(crypto_box_PUBLICKEYBYTES);
-	Stringify::destringify(certStringified, Vars::serverCert.get());
 	const std::string certOk = r->getString(R::StringID::SETTINGS_UI_SERVER_CERT_OK);
 	logger->insertLog(Log(Log::TAG::SETTINGS_UI, certOk, Log::TYPE::INFO).toString());
 	gtk_button_set_label(serverCert, certOk.c_str());

@@ -18,6 +18,7 @@
 #include <vector>
 #include <string>
 #include <stdexcept>
+#include <memory>
 #include <gtk/gtk.h>
 #include <time.h>
 #include <sodium.h>
@@ -27,6 +28,8 @@
 #include "Logger.hpp"
 #include "Log.hpp"
 #include "R.hpp"
+#include "sodium_utils.hpp"
+#include "stringify.hpp"
 
 namespace Utils
 {
@@ -41,6 +44,7 @@ namespace Utils
 	bool connectFD(int& fd, int type, const std::string& caddr, int cport, struct sockaddr_in* serv_addr);
 	void runOnUiThread(GSourceFunc func);
 	void runOnUiThread(GSourceFunc func, gpointer data);
+	void setupPublicKey(const std::string& title, GtkWindow* window, Log::TAG tag, const std::string& error, std::unique_ptr<unsigned char[]>& output);
 };
 
 #endif /* UTILS_HPP_ */

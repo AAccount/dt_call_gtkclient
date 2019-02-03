@@ -203,3 +203,28 @@ void Utils::runOnUiThread(GSourceFunc func, gpointer data)
 	g_source_attach(source, NULL);
 	g_source_unref(source);
 }
+
+void Utils::setupPublicKey(const std::string& title, GtkWindow* window, Log::TAG tag, const std::string& error, std::unique_ptr<unsigned char[]>& output)
+{
+	const std::string certPath = Utils::fileChooser(title, window);
+
+	if(certPath == "")
+	{
+		output = std::unique_ptr<unsigned char[]>(); //pointer to nothing
+		return;
+	}
+
+	const std::string certDump = Utils::dumpSmallFile(certPath);
+	const bool ok = SodiumUtils::checkSodiumPublic(certDump);
+	if(!ok)
+	{
+		Logger::getInstance("")->insertLog(Log(tag, error, Log::TYPE::ERROR).toString());
+		Utils::showPopup(error, window);
+		output = std::unique_ptr<unsigned char[]>(); //pointer to nothing
+		return;
+	}
+	const std::string certStringified = certDump.substr(SodiumUtils::SODIUM_PUBLIC_HEADER().length(), crypto_box_PUBLICKEYBYTES*3);
+	output = std::make_unique<unsigned char[]>(crypto_box_PUBLICKEYBYTES);
+	Stringify::destringify(certStringified, output.get());
+}
+

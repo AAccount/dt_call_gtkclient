@@ -52,9 +52,11 @@ public:
 	std::string getNickname(const std::string& name) const;
 	bool contactExists(const std::string& name) const;
 
+	std::vector<std::string> getAllRegisteredPublicKeys() const;
 	void modifyPublicKey(const std::string& name, std::unique_ptr<unsigned char[]>& publicKey);
 	void removePublicKey(const std::string& name);
 	void getPublicKey(const std::string& name, std::unique_ptr<unsigned char[]>& output) const;
+	std::string getPublicKeyString(const std::string& name) const;
 
 	void save() const;
 	void writeSodiumFile(SettingName setting) const;

@@ -176,6 +176,16 @@ bool Settings::contactExists(const std::string& name) const
 	return contacts.count(name) > 0;
 }
 
+std::vector<std::string> Settings::getAllRegisteredPublicKeys() const
+{
+	std::vector<std::string> result;
+	for(auto publicKey : publicKeys)
+	{
+		result.push_back(publicKey.first);
+	}
+	return result;
+}
+
 void Settings::modifyPublicKey(const std::string& name, std::unique_ptr<unsigned char[]>& publicKey)
 {
 	publicKeys[name] = Stringify::stringify(publicKey.get(), crypto_box_PUBLICKEYBYTES);
@@ -199,6 +209,19 @@ void Settings::getPublicKey(const std::string& name, std::unique_ptr<unsigned ch
 		output = std::unique_ptr<unsigned char[]>();
 	}
 }
+
+std::string Settings::getPublicKeyString(const std::string& name) const
+{
+	if(publicKeys.count(name) > 0)
+	{
+		return publicKeys.at(name);
+	}
+	else
+	{
+		return "";
+	}
+}
+
 
 void Settings::save() const
 {

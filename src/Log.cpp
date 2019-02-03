@@ -76,7 +76,11 @@ std::string Log::tagString() const
 		return "opus";
 	case UTILS:
 		return "utils";
+	case PUBLIC_KEY_OV:
+		return "public key overview";
+	case PUBLIC_KEYU:
+		return "public key user";
 	default:
-		return "";
+		return "(unknown tag): " + std::to_string(tag);
 	}
 }

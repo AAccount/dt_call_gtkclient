@@ -24,7 +24,9 @@ public:
 		USER_HOME,
 		CALL_SCREEN,
 		OPUS_CODEC,
-		UTILS
+		UTILS,
+		PUBLIC_KEY_OV,
+		PUBLIC_KEYU
 	} TAG;
 
 	TYPE getType() const;

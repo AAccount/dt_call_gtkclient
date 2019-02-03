@@ -14,6 +14,7 @@
 #include <gtk/gtk.h>
 #include "CallScreen.hpp"
 #include "EditContact.hpp"
+#include "PublicKeyOverview.hpp"
 #include "../background/AsyncReceiver.hpp"
 #include "../background/CommandCall.hpp"
 #include "../R.hpp"

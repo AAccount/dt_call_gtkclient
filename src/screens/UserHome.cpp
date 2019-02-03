@@ -244,13 +244,13 @@ void UserHome::renderContact(const std::string& name)
 	buttonToContact[contact] = name;
 	contactToButton[name] = contact;
 
-	GtkButton* edit = GTK_BUTTON(gtk_button_new_with_label(r->getString(R::StringID::USER_HOME_CONTACTS_EDIT).c_str()));
+	GtkButton* edit = GTK_BUTTON(gtk_button_new_with_label(r->getString(R::StringID::GENERIC_EDIT).c_str()));
 	g_signal_connect(G_OBJECT(edit),"clicked", G_CALLBACK(user_home_contact_edit), NULL);
 	gtk_box_pack_start(container, (GtkWidget*)edit, false, true, 0);
 	editButtonToContact[edit] = name;
 	contactToEditButton[name] = edit;
 
-	GtkButton* remove = GTK_BUTTON(gtk_button_new_with_label(r->getString(R::StringID::USER_HOME_CONTACTS_REMOVE).c_str()));
+	GtkButton* remove = GTK_BUTTON(gtk_button_new_with_label(r->getString(R::StringID::GENERIC_REMOVE).c_str()));
 	g_signal_connect(G_OBJECT(remove),"clicked", G_CALLBACK(user_home_contact_remove), NULL);
 	gtk_box_pack_start(container, (GtkWidget*)remove, false, true, 0);
 	removeButtonToContact[remove] = name;
@@ -357,7 +357,7 @@ extern "C" void onclick_menu_publickeys()
 
 	if(instance != NULL)
 	{
-		std::cerr << "clicked menu public keys\n";
+		Utils::runOnUiThread(&PublicKeyOverview::render);
 	}
 }
 

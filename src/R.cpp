@@ -55,6 +55,8 @@ R::R()
 	en[StringID::SELF] = "DT Call GTKClient";
 
 	en[StringID::GENERIC_SAVE] = "Save";
+	en[StringID::GENERIC_EDIT] = "Edit";
+	en[StringID::GENERIC_REMOVE] = "Remove";
 
 	en[StringID::ERR_NOT_ONSCREEN] = "not on screen";
 	en[StringID::ERR_SOCKET] = "Couldn't establish socket";
@@ -100,8 +102,6 @@ R::R()
 	en[StringID::USER_HOME_BUTTON_CONTACT] = "Add Contact";
 	en[StringID::USER_HOME_LABEL_CONTACTS] = "Contacts";
 	en[StringID::USER_HOME_CANT_DIAL] = "User is not available to call";
-	en[StringID::USER_HOME_CONTACTS_EDIT] = "Edit";
-	en[StringID::USER_HOME_CONTACTS_REMOVE] = "Remove";
 	en[StringID::USER_HOME_CONTACTS_NOENTRY] = "Contact button doesn't map to anyone";
 	en[StringID::USER_HOME_CONTACTS_EDIT_NOENTRY] = "Contact EDIT button doesn't map to anyone";
 	en[StringID::USER_HOME_CONTACTS_REMOVE_NOENTRY] = "Contact REMOVE button doesn't map to anyone ";
@@ -159,6 +159,14 @@ R::R()
 	en[StringID::SETTINGS_INTMIA] = "Int preference does not exist: ";
 	en[StringID::SETTINGS_BADINT] = "Int preference can't be converted to a string: ";
 	en[StringID::SETTINGS_STRINGMIA] = "String preference does not exist: ";
+
+	en[StringID::PUBLIC_KEY_OV_TITLE] = "Public Keys";
+	en[StringID::PUBLIC_KEY_OV_NOKEY] = " (No Public Key)";
+	en[StringID::PUBLIC_KEY_OV_MIA] = "User unknown??: ";
+
+	en[StringID::PUBLIC_KEYU_TITLE] = "'s Public Key";
+	en[StringID::PUBLIC_KEYU_EDIT_TITLE] = "New Public Key";
+	en[StringID::PUBLIC_KEYU_EDIT_ERROR] = "Error setting new public key";
 
 	en[StringID::CMDLISTENER_START] = "Command listener started";
 	en[StringID::CMDLISTENER_TOOMANY_SEGMENTS] = "command has too many segments: ";
