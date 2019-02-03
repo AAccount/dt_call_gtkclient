@@ -20,6 +20,8 @@ namespace
 
 	void sendReady();
 	void giveUp();
+	std::string censorIncomingCmd(const std::vector<std::string>& parsed);
+
 	void* serviceThread(void* context)
 	{
 		r = R::getInstance();
@@ -41,9 +43,8 @@ namespace
 			try
 			{
 				const std::string fromServer = Vars::commandSocket.readString();
-				const std::string fromServerCopy = fromServer;
-				logger->insertLog(Log(Log::TAG::CMD_LISTENER, fromServerCopy, Log::TYPE::INBOUND).toString());
 				const std::vector<std::string> respContents = Utils::parse((unsigned char*)fromServer.c_str());
+				logger->insertLog(Log(Log::TAG::CMD_LISTENER, censorIncomingCmd(respContents), Log::TYPE::INBOUND).toString());
 				if(respContents.size() > COMMAND_MAX_SEGMENTS)
 				{
 					logger->insertLog(Log(Log::TAG::CMD_LISTENER, r->getString(R::StringID::CMDLISTENER_TOOMANY_SEGMENTS) + std::to_string(respContents.size()), Log::TYPE::ERROR).toString());
@@ -127,9 +128,11 @@ namespace
 						SodiumUtils::sodiumEncrypt(true, Vars::voiceKey.get(), crypto_secretbox_KEYBYTES, Vars::privateKey.get(), yourPublic.get(), output, outputLength);
 						const std::string outputStringified = Stringify::stringify(output.get(), outputLength);
 
-						const std::string passthrough = std::to_string(Utils::now()) + "|passthrough|" + Vars::callWith + "|" + outputStringified + "|" + Vars::sessionKey;
+						const time_t now = Utils::now();
+						const std::string passthrough = std::to_string(now) + "|passthrough|" + Vars::callWith + "|" + outputStringified + "|" + Vars::sessionKey;
 						Vars::commandSocket.writeString(passthrough);
-						logger->insertLog(Log(Log::TAG::CMD_LISTENER, passthrough, Log::TYPE::OUTBOUND).toString());
+						const std::string loggedPassthrough = std::to_string(now) + "|passthrough|" + Vars::callWith + "|...|" + Vars::sessionKey;
+						logger->insertLog(Log(Log::TAG::CMD_LISTENER, loggedPassthrough, Log::TYPE::OUTBOUND).toString());
 						haveVoiceKey = true;
 					}
 
@@ -231,6 +234,38 @@ namespace
 		CommandEnd::execute();
 		CallScreen::getInstance()->asyncResult(Vars::Broadcast::CALL_END);
 	}
+
+	std::string censorIncomingCmd(const std::vector<std::string>& parsed)
+	{
+		if(parsed.size() < 1)
+		{
+			return "";
+		}
+
+		try
+		{
+			if(parsed.at(1) == "direct")
+			{//timestamp|direct|(encrypted aes key)|other_person
+				return parsed.at(0) + "|" + parsed.at(1) + "|...|" + parsed.at(3);
+			}
+			else
+			{
+				std::string result = "";
+				for(int i=0; i<parsed.size(); i++)
+				{
+					result = result + parsed.at(i) + "|";
+				}
+				result = result.substr(0, result.length()-1);
+				return result;
+			}
+		}
+		catch(std::out_of_range& e)
+		{
+			logger->insertLog(Log(Log::TAG::CMD_LISTENER, r->getString(R::StringID::CMDLISTENER_OORANGE), Log::TYPE::ERROR).toString());
+			return "";
+		}
+	}
+
 }
 
 void CmdListener::startService()
