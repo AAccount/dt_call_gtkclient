@@ -5,11 +5,6 @@ X11 = -lX11
 OPUS = -lopus
 PULSEAUDIO = -lpulse-simple -lpulse
 
-DTOPERATOR_LOCATION = -L.
-DTOPERATOR_SODIUM = -lsodiumutils
-DTOPERATOR_STRINGIFY = -lstringify
-DTOPERATOR_LOGGER = -llogger
-
 OPTCFLAGS = -flto -O2 -march=native -Werror -fPIE -D_FORTIFY_SOURCE=2
 CFLAGS = -g -Werror -fPIE
 LDFLAGS = -pie
@@ -17,17 +12,16 @@ CXX = g++ -std=c++14
 GTKLIB = `pkg-config --cflags gtk+-3.0 --libs gtk+-3.0`
 TARGET = gtkclient
 
-OBJS = main.o utils.o settings.o Log.o SodiumSocket.o vars.o SettingsUI.o R.o LoginAsync.o UserHome.o CallScreen.o CmdListener.o CommandAccept.o CommandEnd.o Heartbeat.o CommandCall.o Opus.o EditContact.o PublicKeyOverview.o PublicKeyUser.o
-DTOPERATORLIBS = libstringify.so libsodiumutils.so liblogger.so
+OBJS = main.o utils.o settings.o Log.o SodiumSocket.o vars.o SettingsUI.o R.o LoginAsync.o UserHome.o CallScreen.o CmdListener.o CommandAccept.o CommandEnd.o Heartbeat.o CommandCall.o Opus.o EditContact.o PublicKeyOverview.o PublicKeyUser.o sodium_utils.o Logger.o stringify.o
 
 all: $(OBJS)
-	$(CXX) -o $(TARGET) $(OBJS) $(LDFLAGS) $(GTKLIB) -export-dynamic ${DTOPERATOR_LOCATION} ${DTOPERATOR_SODIUM} ${DTOPERATOR_STRINGIFY} ${DTOPERATOR_LOGGER} ${X11} ${MATH} ${PTHREAD} ${SODIUM} ${OPUS} ${PULSEAUDIO}
+	$(CXX) -o $(TARGET) $(OBJS) $(LDFLAGS) $(GTKLIB) -export-dynamic ${X11} ${MATH} ${PTHREAD} ${SODIUM} ${OPUS} ${PULSEAUDIO}
     
 settings.o : src/settings.cpp src/settings.hpp
 	${CXX} ${CFLAGS} -c src/settings.cpp $(GTKLIB)
 	
 main.o: src/main.cpp
-	$(CXX) $(CFLAGS) -c src/main.cpp $(GTKLIB) ${MATH}
+	$(CXX) $(CFLAGS) -c src/main.cpp $(GTKLIB) ${MATH} ${PTHREAD}
 
 utils.o : src/utils.cpp src/utils.hpp
 	${CXX} ${CFLAGS} -c src/utils.cpp $(GTKLIB)
@@ -54,7 +48,7 @@ UserHome.o : src/screens/UserHome.cpp src/screens/UserHome.hpp glade/user_home2.
 	${CXX} ${CFLAGS} -c src/screens/UserHome.cpp $(GTKLIB)
 
 CallScreen.o : src/screens/CallScreen.cpp src/screens/CallScreen.hpp glade/call_screen.glade
-	${CXX} ${CFLAGS} -c src/screens/CallScreen.cpp $(GTKLIB) ${OPUS} ${PULSEAUDIO} ${MATH}
+	${CXX} ${CFLAGS} -c src/screens/CallScreen.cpp $(GTKLIB) ${OPUS} ${PULSEAUDIO} ${MATH} ${PTHREAD}
 	
 EditContact.o : src/screens/EditContact.cpp src/screens/EditContact.hpp glade/edit_contact.glade
 	${CXX} ${CFLAGS} -c src/screens/EditContact.cpp $(GTKLIB)
@@ -82,6 +76,15 @@ CommandCall.o : src/background/CommandCall.cpp src/background/CommandCall.hpp
 	
 Heartbeat.o : src/background/Heartbeat.cpp src/background/Heartbeat.hpp
 	${CXX} ${CFLAGS} -c src/background/Heartbeat.cpp $(PTHREAD) $(GTKLIB)
-	 
+
+Logger.o : src/Logger.cpp src/Logger.hpp src/BlockingQ.hpp
+	${CXX} ${CFLAGS} -c src/Logger.cpp ${PTHREAD}
+	
+sodium_utils.o : src/sodium_utils.cpp src/sodium_utils.hpp
+	${CXX} ${CFLAGS} -c src/sodium_utils.cpp ${SODIUM}
+
+stringify.o : src/stringify.cpp src/stringify.hpp
+	${CXX} ${CFLAGS} -c src/stringify.cpp
+	
 clean:
 	rm -f ${OBJS} $(TARGET)
