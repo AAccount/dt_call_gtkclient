@@ -77,7 +77,7 @@ logger(Logger::getInstance(""))
 	catch(std::string& e)
 	{
 		logger->insertLog(Log(Log::TAG::SODIUM_SOCKET, e, Log::TYPE::ERROR).toString());
-		throw e;
+		throw;
 	}
 	useable = true;
 }

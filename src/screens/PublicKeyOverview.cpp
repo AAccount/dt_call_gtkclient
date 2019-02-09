@@ -116,7 +116,7 @@ void PublicKeyOverview::asyncResult(int result)
 //static
 int PublicKeyOverview::updateButton(void* context)
 {
-	PublicKeyOverview* screen = (PublicKeyOverview*)context;
+	PublicKeyOverview* screen = static_cast<PublicKeyOverview*>(context);
 	const std::string user = screen->edits.pop();
 	const std::string display = screen->getButtonDisplay(user);
 	if(screen->userToButton.count(user) < 1)

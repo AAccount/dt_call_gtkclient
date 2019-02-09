@@ -224,7 +224,7 @@ namespace
 			catch(std::string& e)
 			{
 				giveUp();
-				throw e;
+				throw;
 			}
 		}
 	}

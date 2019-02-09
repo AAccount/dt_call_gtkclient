@@ -178,7 +178,8 @@ void CallScreen::onclickAccept()
 //static
 void* CallScreen::timeCounterHelp(void* context)
 {
-	return((CallScreen*)context)->timeCounter();
+	CallScreen* screen = static_cast<CallScreen*>(context);
+	return screen->timeCounter();
 }
 
 void* CallScreen::timeCounter(void)
@@ -262,7 +263,7 @@ void CallScreen::updateStats()
 
 int CallScreen::updateUi(void* context)
 {
-	CallScreen* screen = (CallScreen*)context;
+	CallScreen* screen = static_cast<CallScreen*>(context);
 	gtk_label_set_text(screen->time, screen->runningTime.c_str());
 	gtk_text_buffer_set_text(screen->statsBuffer, screen->currentStats.c_str(), -1);
 	gtk_text_view_set_buffer(screen->stats, screen->statsBuffer);
@@ -421,7 +422,8 @@ void* CallScreen::mediaEncode(void)
 
 void* CallScreen::mediaEncodeHelp(void* context)
 {
-	return((CallScreen*)context)->mediaEncode();
+	CallScreen* screen = static_cast<CallScreen*>(context);
+	return screen->mediaEncode();
 }
 
 void* CallScreen::mediaDecode(void)
@@ -476,7 +478,7 @@ void* CallScreen::mediaDecode(void)
 		std::unique_ptr<unsigned char[]> packetDecrypted;
 		int packetDecryptedLength = 0;
 		SodiumUtils::sodiumDecrypt(false, packetBuffer, receivedLength, Vars::voiceKey.get(), NULL, packetDecrypted, packetDecryptedLength);
-		if(packetDecryptedLength < 1)
+		if(packetDecryptedLength < sizeof(uint32_t)) //should have received at least the sequence number
 		{
 			const std::string error = localRes->getString(R::StringID::CALL_SCREEN_MEDIA_DEC_SODIUM_ERR);
 			localLogger->insertLog(Log(Log::TAG::CALL_SCREEN, error, Log::TYPE::ERROR).toString());
@@ -533,7 +535,8 @@ void* CallScreen::mediaDecode(void)
 
 void* CallScreen::mediaDecodeHelp(void* context)
 {
-	return((CallScreen*)context)->mediaDecode();
+	CallScreen* screen = static_cast<CallScreen*>(context);
+	return screen->mediaDecode();
 }
 
 void CallScreen::reconnectUDP()
@@ -564,7 +567,7 @@ pthread_mutex_unlock(&deadUDPLock);
 
 void* CallScreen::ringThread(void* context)
 {
-	CallScreen* screen = (CallScreen*)context;
+	CallScreen* screen = static_cast<CallScreen*>(context);
 
 	pa_sample_spec ss;
 	memset(&ss, 0, sizeof(pa_sample_spec));
@@ -584,24 +587,16 @@ void* CallScreen::ringThread(void* context)
 	const int DIVISIONS_SILENCE = CallScreen::SILENCE_TIME*RINGTONE_DIVISION;
 	bool playRingtone = true;
 	int divisionsPlayed = 0;
+	struct timespec divisionTime;
+	memset(&divisionTime, 0, sizeof(struct timespec));
+	divisionTime.tv_sec = 0;
+	divisionTime.tv_nsec = (int)(1000000000.0 / RINGTONE_DIVISION);
 	for(int i=0; i<MAX_DIVISIONS; i++)
 	{
 		short* item = silence;
 		if(playRingtone)
 		{
 			item = CallScreen::ringtone.get();
-		}
-		divisionsPlayed++;
-
-		if(playRingtone && (divisionsPlayed == DIVISIONS_RINGTONE))
-		{
-			divisionsPlayed = 0;
-			playRingtone = false;
-		}
-		else if(!playRingtone && (divisionsPlayed == DIVISIONS_RINGTONE))
-		{
-			divisionsPlayed = 0;
-			playRingtone = true;
 		}
 
 		pthread_mutex_lock(&screen->ringtoneLock);
@@ -613,7 +608,19 @@ void* CallScreen::ringThread(void* context)
 			int paWriteError = 0;
 			pa_simple_write(screen->ringtonePlayer, item, TOTAL_SAMPLES*sizeof(short), &paWriteError);
 		pthread_mutex_unlock(&screen->ringtoneLock);
-		usleep((int)(1000000.0/RINGTONE_DIVISION)); //don't flood the ringtone player with audio data. wait in realtime for it to play first
+		nanosleep(&divisionTime, NULL);
+		divisionsPlayed++;
+
+		if(playRingtone && (divisionsPlayed == DIVISIONS_RINGTONE))
+		{
+			divisionsPlayed = 0;
+			playRingtone = false;
+		}
+		else if(!playRingtone && (divisionsPlayed == DIVISIONS_SILENCE))
+		{
+			divisionsPlayed = 0;
+			playRingtone = true;
+		}
 	}
 	return NULL;
 }

@@ -118,7 +118,7 @@ namespace
 
 	void* loginThread(void* context)
 	{
-		AsyncReceiver* receiver = (AsyncReceiver*)context;
+		AsyncReceiver* receiver = static_cast<AsyncReceiver*>(context);
 		bool ok = loginFunction(receiver);
 		while(retry && !ok)
 		{

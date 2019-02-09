@@ -12,13 +12,13 @@ std::unordered_map<std::string, std::unique_ptr<EditContact>> EditContact::editW
 
 extern "C" void edit_contact_quit(GtkWidget* button, gpointer data)
 {
-	EditContact* screen = (EditContact*)data;
+	EditContact* screen = static_cast<EditContact*>(data);
 	screen->onclickQuit();
 }
 
 extern "C" void onclick_edit_contact_save(GtkWidget* button, gpointer data)
 {
-	EditContact* screen = (EditContact*)data;
+	EditContact* screen = static_cast<EditContact*>(data);
 	screen->onclickSave();
 }
 

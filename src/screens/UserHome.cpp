@@ -130,21 +130,21 @@ int UserHome::remove(void* a)
 
 int UserHome::lockDial(void* context)
 {
-	UserHome* screen = (UserHome*)context;
+	UserHome* screen = static_cast<UserHome*>(context);
 	gtk_widget_set_sensitive((GtkWidget*)(screen->dial), false);
 	return 0;
 }
 
 int UserHome::unlockDial(void* context)
 {
-	UserHome* screen = (UserHome*)context;
+	UserHome* screen = static_cast<UserHome*>(context);
 	gtk_widget_set_sensitive((GtkWidget*)(screen->dial), true);
 	return 0;
 }
 
 int UserHome::statusOnline(void* context)
 {
-	UserHome* screen = (UserHome*)context;
+	UserHome* screen = static_cast<UserHome*>(context);
 	const std::string text = screen->r->getString(R::StringID::USER_HOME_ONLINE);
 	gtk_label_set_text(screen->connectionStatus, text.c_str());
 	return 0;
@@ -152,7 +152,7 @@ int UserHome::statusOnline(void* context)
 
 int UserHome::statusOffline(void* context)
 {
-	UserHome* screen = (UserHome*)context;
+	UserHome* screen = static_cast<UserHome*>(context);
 	const std::string text = screen->r->getString(R::StringID::USER_HOME_OFFLINE);
 	gtk_label_set_text(screen->connectionStatus, text.c_str());
 	return 0;
@@ -160,7 +160,7 @@ int UserHome::statusOffline(void* context)
 
 int UserHome::changeContactButton(void* context)
 {
-	UserHome* screen = (UserHome*)context;
+	UserHome* screen = static_cast<UserHome*>(context);
 	const std::string contact = EditContact::editedContacts.pop();
 	const std::string newNickname = screen->settings->getNickname(contact);
 	if(screen->contactToButton.count(contact) < 1)

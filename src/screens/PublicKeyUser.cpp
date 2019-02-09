@@ -11,19 +11,19 @@ std::unordered_map<std::string, std::unique_ptr<PublicKeyUser>> PublicKeyUser::u
 
 extern "C" void public_key_user_quit(GtkWidget* button, gpointer data)
 {
-	PublicKeyUser* screen = (PublicKeyUser*)data;
+	PublicKeyUser* screen = static_cast<PublicKeyUser*>(data);
 	screen->onclickQuit();
 }
 
 extern "C" void onclick_public_key_user_edit(GtkWidget* button, gpointer data)
 {
-	PublicKeyUser* screen = (PublicKeyUser*)data;
+	PublicKeyUser* screen = static_cast<PublicKeyUser*>(data);
 	screen->onclickEdit();
 }
 
 extern "C" void onclick_public_key_user_remove(GtkWidget* button, gpointer data)
 {
-	PublicKeyUser* screen = (PublicKeyUser*)data;
+	PublicKeyUser* screen = static_cast<PublicKeyUser*>(data);
 	screen->onclickRemove();
 }
 
