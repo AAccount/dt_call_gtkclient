@@ -29,10 +29,7 @@ logger(Logger::getInstance(""))
 {
 	Settings* settings = Settings::getInstance();
 
-	//typical ui setup
-	GtkBuilder* builder;
-	builder = gtk_builder_new();
-	gtk_builder_add_from_file(builder, "glade/call_screen.glade", NULL);
+	GtkBuilder* builder = gtk_builder_new_from_resource("/gtkclient/call_screen.glade");
 	window = GTK_WINDOW(gtk_builder_get_object(builder, "call_screen_window"));
 	gtk_window_set_title(window, r->getString(R::StringID::CALL_SCREEN_TITLE).c_str());
 	status = GTK_LABEL(gtk_builder_get_object(builder, "call_screen_status"));

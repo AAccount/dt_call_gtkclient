@@ -29,5 +29,6 @@
 #include "background/LoginAsync.hpp"
 #include "screens/SettingsUI.hpp"
 #include "utils.hpp"
+#include "gresources.h"
 
 #endif /* SRC_MAIN_HPP_ */

@@ -32,9 +32,7 @@ user(puser),
 settings(Settings::getInstance()),
 r(R::getInstance())
 {
-	GtkBuilder* builder;
-	builder = gtk_builder_new();
-	gtk_builder_add_from_file(builder, "glade/public_keyu.glade", NULL);
+	GtkBuilder* builder = gtk_builder_new_from_resource("/gtkclient/public_keyu.glade");
 	window = GTK_WINDOW(gtk_builder_get_object(builder, "window_public_keyu"));
 	const std::string title = settings->getNickname(puser) + r->getString(R::StringID::PUBLIC_KEYU_TITLE);
 	gtk_window_set_title(window, title.c_str());

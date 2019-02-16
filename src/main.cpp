@@ -54,6 +54,8 @@ int main(int argc, char *argv[])
 	const bool gotServerCert = settings->getSodiumFile(Settings::SETTING_CERT);
 	const bool gotPrivateKey = settings->getSodiumFile(Settings::SETTING_PRIVATE_KEY);
 
+	g_resources_register(gresources_get_resource());
+
 	if(!Vars::serverAddress.empty() && Vars::commandPort != 0 && Vars::mediaPort != 0 && !Vars::username.empty()
 			&& gotServerCert && gotPrivateKey)
 	{

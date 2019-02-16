@@ -12,15 +12,26 @@ CXX = g++ -std=c++14
 GTKLIB = `pkg-config --cflags gtk+-3.0 --libs gtk+-3.0`
 TARGET = gtkclient
 
-OBJS = main.o utils.o settings.o Log.o SodiumSocket.o vars.o SettingsUI.o R.o LoginAsync.o UserHome.o CallScreen.o CmdListener.o CommandAccept.o CommandEnd.o Heartbeat.o CommandCall.o Opus.o EditContact.o PublicKeyOverview.o PublicKeyUser.o sodium_utils.o Logger.o stringify.o
+OBJS = main.o utils.o settings.o Log.o SodiumSocket.o vars.o SettingsUI.o R.o LoginAsync.o UserHome.o CallScreen.o CmdListener.o CommandAccept.o CommandEnd.o Heartbeat.o CommandCall.o Opus.o EditContact.o PublicKeyOverview.o PublicKeyUser.o sodium_utils.o Logger.o stringify.o gresources.o
+RESOURCES = src/gresources.c src/gresources.h
+#https://stackoverflow.com/questions/28855850/gtk-c-and-gtkbuilder-to-make-a-single-executable
 
-all: $(OBJS)
+all: ${OBJS} ${RESOURCES}
 	$(CXX) -o $(TARGET) $(OBJS) $(LDFLAGS) $(GTKLIB) -export-dynamic ${X11} ${MATH} ${PTHREAD} ${SODIUM} ${OPUS} ${PULSEAUDIO}
-    
+
+gresources.o: ${RESOURCES}
+	${CXX} ${CFLAGS} -c src/gresources.c ${GTKLIB} 
+
+src/gresources.c: glade/gresources.xml
+	$(shell cd glade; glib-compile-resources --target=../$@ --generate-source gresources.xml)
+
+src/gresources.h: glade/gresources.xml 
+	$(shell cd glade;  glib-compile-resources --target=../$@ --generate-header gresources.xml)
+	    
 settings.o : src/settings.cpp src/settings.hpp
 	${CXX} ${CFLAGS} -c src/settings.cpp $(GTKLIB)
 	
-main.o: src/main.cpp
+main.o: src/main.cpp ${RESOURCES}
 	$(CXX) $(CFLAGS) -c src/main.cpp $(GTKLIB) ${MATH} ${PTHREAD}
 
 utils.o : src/utils.cpp src/utils.hpp
@@ -41,22 +52,22 @@ Log.o : src/Log.cpp src/Log.hpp
 Opus.o : src/codec/Opus.cpp src/codec/Opus.hpp
 	${CXX} ${CFLAGS} -c src/codec/Opus.cpp ${OPUS}
 
-SettingsUI.o : src/screens/SettingsUI.cpp src/screens/SettingsUI.hpp glade/settings_ui.glade
+SettingsUI.o : src/screens/SettingsUI.cpp src/screens/SettingsUI.hpp glade/settings_ui.glade ${RESOURCES}
 	${CXX} ${CFLAGS} -c src/screens/SettingsUI.cpp $(GTKLIB)
 
-UserHome.o : src/screens/UserHome.cpp src/screens/UserHome.hpp glade/user_home2.glade
+UserHome.o : src/screens/UserHome.cpp src/screens/UserHome.hpp glade/user_home2.glade ${RESOURCES}
 	${CXX} ${CFLAGS} -c src/screens/UserHome.cpp $(GTKLIB)
 
-CallScreen.o : src/screens/CallScreen.cpp src/screens/CallScreen.hpp glade/call_screen.glade
+CallScreen.o : src/screens/CallScreen.cpp src/screens/CallScreen.hpp glade/call_screen.glade ${RESOURCES}
 	${CXX} ${CFLAGS} -c src/screens/CallScreen.cpp $(GTKLIB) ${OPUS} ${PULSEAUDIO} ${MATH} ${PTHREAD}
 	
-EditContact.o : src/screens/EditContact.cpp src/screens/EditContact.hpp glade/edit_contact.glade
+EditContact.o : src/screens/EditContact.cpp src/screens/EditContact.hpp glade/edit_contact.glade ${RESOURCES}
 	${CXX} ${CFLAGS} -c src/screens/EditContact.cpp $(GTKLIB)
 	
 PublicKeyOverview.o : src/screens/PublicKeyOverview.cpp src/screens/PublicKeyOverview.hpp
 	${CXX} ${CFLAGS} -c src/screens/PublicKeyOverview.cpp $(GTKLIB)
 
-PublicKeyUser.o : src/screens/PublicKeyUser.cpp src/screens/PublicKeyUser.hpp glade/public_keyu.glade
+PublicKeyUser.o : src/screens/PublicKeyUser.cpp src/screens/PublicKeyUser.hpp glade/public_keyu.glade ${RESOURCES}
 	${CXX} ${CFLAGS} -c src/screens/PublicKeyUser.cpp $(GTKLIB)
 
 LoginAsync.o : src/background/LoginAsync.cpp src/background/LoginAsync.hpp
@@ -87,4 +98,4 @@ stringify.o : src/stringify.cpp src/stringify.hpp
 	${CXX} ${CFLAGS} -c src/stringify.cpp
 	
 clean:
-	rm -f ${OBJS} $(TARGET)
+	rm -f ${OBJS} ${TARGET} ${RESOURCES}

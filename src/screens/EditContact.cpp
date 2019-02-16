@@ -29,9 +29,7 @@ contactInEdit(toEdit)
 {
 	const std::string placeholder = r->getString(R::StringID::EDIT_CONTACT_ENTRY_PLACEHOLDER) + contactInEdit;
 
-	GtkBuilder* builder;
-	builder = gtk_builder_new();
-	gtk_builder_add_from_file(builder, "glade/edit_contact.glade", NULL);
+	GtkBuilder* builder = gtk_builder_new_from_resource("/gtkclient/edit_contact.glade");
 	window = GTK_WINDOW(gtk_builder_get_object(builder, "edit_contact_window"));
 	gtk_window_set_title(window, placeholder.c_str());
 	g_signal_connect(G_OBJECT(window),"destroy", G_CALLBACK(edit_contact_quit), this);

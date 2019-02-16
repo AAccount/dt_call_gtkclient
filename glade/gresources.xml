@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+	<!--ABSOLUTELY necessary to group resources by prefix-->
+	<gresource prefix="/gtkclient">
+		<file preprocess="xml-stripblanks">call_screen.glade</file>
+		<file preprocess="xml-stripblanks">edit_contact.glade</file>
+		<file preprocess="xml-stripblanks">public_keyu.glade</file>
+		<file preprocess="xml-stripblanks">settings_ui.glade</file>
+		<file preprocess="xml-stripblanks">user_home2.glade</file>
+	</gresource>
+</gresources>

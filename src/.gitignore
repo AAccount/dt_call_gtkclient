@@ -1,3 +1,5 @@
 /sodium_utils.hpp
 /stringify.hpp
 /Logger.hpp
+/gresources.c
+/gresources.h

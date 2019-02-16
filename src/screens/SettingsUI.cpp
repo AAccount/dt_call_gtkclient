@@ -20,14 +20,11 @@ extern "C" void settings_ui_quit()
 	}
 }
 
-SettingsUI::SettingsUI()
+SettingsUI::SettingsUI() :
+r(R::getInstance()),
+logger(Logger::getInstance(""))
 {
-	GtkBuilder* builder;
-	r = R::getInstance();
-	logger = Logger::getInstance("");
-
-	builder = gtk_builder_new();
-	gtk_builder_add_from_file(builder, "glade/settings_ui.glade", NULL);
+	GtkBuilder* builder = gtk_builder_new_from_resource("/gtkclient/settings_ui.glade");
 	window = GTK_WINDOW(gtk_builder_get_object(builder, "window_settings_ui"));
 	addr = GTK_ENTRY(gtk_builder_get_object(builder, "id_settings_ui_addr"));
 	gtk_entry_set_placeholder_text(addr, r->getString(R::StringID::SETTINGS_UI_PLACEHOLDER_ADDR).c_str());

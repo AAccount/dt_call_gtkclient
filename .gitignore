@@ -28,3 +28,5 @@
 /SettingsUI.o
 /PublicKeyOverview.o
 /PublicKeyUser.o
+/gresources.o
+/Logger.o

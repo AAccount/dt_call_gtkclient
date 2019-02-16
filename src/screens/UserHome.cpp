@@ -45,10 +45,7 @@ contactToEditButton(std::unordered_map<std::string, GtkButton*>()),
 removeButtonToContact(std::unordered_map<GtkButton*, std::string>()),
 contactToRemoveButton(std::unordered_map<std::string, GtkButton*>())
 {
-
-	GtkBuilder* builder;
-	builder = gtk_builder_new();
-	gtk_builder_add_from_file(builder, "glade/user_home2.glade", NULL);
+	GtkBuilder* builder = gtk_builder_new_from_resource("/gtkclient/user_home2.glade");
 	window = GTK_WINDOW(gtk_builder_get_object(builder, "user_home_window"));
 	gtk_window_set_title(window, r->getString(R::StringID::USER_HOME_TITLE).c_str());
 	connectionStatus = GTK_LABEL(gtk_builder_get_object(builder, "user_home_connection"));
