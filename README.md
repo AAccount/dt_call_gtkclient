@@ -7,7 +7,7 @@ Desktop Linux GTK Client for **making encrypted calls** using my call operator
 All calls are **end to end encrypted** using libsoidum symmetric cryptography. The sodium symmetric key is single use per call and shared by sodium asymmetric cryptography. GTK Client does not rely on publicly accepted certificate authorities. Instead, it requires you to get a copy of the server's public key and supply it to GTK Client. This way you can guarantee the server you're connecting to is really the one you're expecting.
 
 
-GTK Client makes it possible to make phone calls over wired internet, removing wifi signal strength and wifi signal quality issues. It uses pulse audio for playing and recoding audio. It implements a very similar reconnect strategy to AClient, but has never been tested. A log is created each time it runs in /tmp/log {date and time}. **NEVER** sign in on AClient and GTK Client at the same time. They will constantly fight each other.
+GTK Client makes it possible to make phone calls over wired internet, removing wifi signal strength and wifi signal quality issues. It uses pulse audio for playing and recoding audio. It implements a very similar reconnect strategy to AClient, but has never been tested. All settings are stored in ~/.DTCallClient. Settings are all ascii readable. A log is created each time it runs in /tmp/log {date and time}. **NEVER** sign in on AClient and GTK Client at the same time. They will constantly fight each other.
 
 Desktop Linux doesn't seem to have equivalent battery saving stupidities such as: doze, classes randomly being disabled after a period of unuse, disabling of internet when the screen turns of. Therefore, no equivalent workaround has been implemented in GTK Client.
 
