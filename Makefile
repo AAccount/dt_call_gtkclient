@@ -14,7 +14,6 @@ TARGET = gtkclient
 
 OBJS = main.o utils.o settings.o Log.o SodiumSocket.o vars.o SettingsUI.o R.o LoginAsync.o UserHome.o CallScreen.o CmdListener.o CommandAccept.o CommandEnd.o Heartbeat.o CommandCall.o Opus.o EditContact.o PublicKeyOverview.o PublicKeyUser.o sodium_utils.o Logger.o stringify.o gresources.o
 RESOURCES = src/gresources.c src/gresources.h
-#https://stackoverflow.com/questions/28855850/gtk-c-and-gtkbuilder-to-make-a-single-executable
 
 all: ${OBJS} ${RESOURCES}
 	$(CXX) -o $(TARGET) $(OBJS) $(LDFLAGS) $(GTKLIB) -export-dynamic ${X11} ${MATH} ${PTHREAD} ${SODIUM} ${OPUS} ${PULSEAUDIO}

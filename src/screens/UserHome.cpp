@@ -87,9 +87,6 @@ contactToRemoveButton(std::unordered_map<std::string, GtkButton*>())
 
 UserHome::~UserHome()
 {
-	//this window is purposely going away, unhook it from the main quit function
-	g_signal_handler_disconnect(window, destroySignalID);
-
 	gtk_widget_destroy((GtkWidget*)window);
 	g_object_unref(window);
 }
