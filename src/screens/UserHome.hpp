@@ -36,6 +36,7 @@ public:
 	void onclickContact(GtkButton* button);
 	void onclickContactEdit(GtkButton* button);
 	void onclickContactRemove(GtkButton* button);
+	void onclickAbout();
 
 private:
 	static UserHome* instance;
@@ -51,6 +52,7 @@ private:
 	static int changeContactButton(void* context);
 
 	void renderContact(const std::string& name);
+
 	std::unordered_map<std::string, GtkBox*> contactToContainer;
 	std::unordered_map<GtkButton*, std::string> buttonToContact;
 	std::unordered_map<std::string, GtkButton*> contactToButton;

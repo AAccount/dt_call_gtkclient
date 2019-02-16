@@ -52,7 +52,9 @@ R::R()
   colors(std::unordered_map<ColorID, std::string>())
 
 {
-	en[StringID::SELF] = "DT Call GTKClient";
+	en[StringID::SELF] = "DT Call GTK Client";
+	en[StringID::VERSION] = "1.9";
+	en[StringID::COMMIT] = "{git commit id here}";
 
 	en[StringID::GENERIC_SAVE] = "Save";
 	en[StringID::GENERIC_EDIT] = "Edit";
@@ -96,7 +98,6 @@ R::R()
 
 	en[StringID::USER_HOME_ONLINE] = "Signed In";
 	en[StringID::USER_HOME_OFFLINE] = "Offline";
-	en[StringID::USER_HOME_TITLE] = "DT Call GTK3 Client";
 	en[StringID::USER_HOME_PLACEHOLDER_ENTRY] = "Choose someone to call";
 	en[StringID::USER_HOME_BUTTON_DIAL] = "Dial";
 	en[StringID::USER_HOME_BUTTON_CONTACT] = "Add Contact";

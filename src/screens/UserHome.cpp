@@ -47,7 +47,7 @@ contactToRemoveButton(std::unordered_map<std::string, GtkButton*>())
 {
 	GtkBuilder* builder = gtk_builder_new_from_resource("/gtkclient/user_home2.glade");
 	window = GTK_WINDOW(gtk_builder_get_object(builder, "user_home_window"));
-	gtk_window_set_title(window, r->getString(R::StringID::USER_HOME_TITLE).c_str());
+	gtk_window_set_title(window, r->getString(R::StringID::SELF).c_str());
 	connectionStatus = GTK_LABEL(gtk_builder_get_object(builder, "user_home_connection"));
 	entry = GTK_ENTRY(gtk_builder_get_object(builder, "user_home_entry"));
 	gtk_entry_set_placeholder_text(entry, r->getString(R::StringID::USER_HOME_PLACEHOLDER_ENTRY).c_str());
@@ -317,6 +317,16 @@ void UserHome::onclickContactRemove(GtkButton* button)
 
 }
 
+void UserHome::onclickAbout()
+{
+	GtkWidget* about = gtk_about_dialog_new();
+	gtk_about_dialog_set_program_name(GTK_ABOUT_DIALOG(about), r->getString(R::StringID::SELF).c_str());
+	const std::string vstring = r->getString(R::StringID::VERSION) + ":" + r->getString(R::StringID::COMMIT);
+	gtk_about_dialog_set_version(GTK_ABOUT_DIALOG(about), vstring.c_str());
+	gtk_dialog_run(GTK_DIALOG(about));
+	gtk_widget_destroy(about);
+}
+
 extern "C" void onclick_user_home_dial()
 {
 	UserHome* instance = UserHome::getInstance();
@@ -369,6 +379,6 @@ extern "C" void onclick_menu_about()
 	UserHome* instance = UserHome::getInstance();
 	if(instance != NULL)
 	{
-		std::cerr << "clicked menu about\n";
+		instance->onclickAbout();
 	}
 }
