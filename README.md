@@ -1,9 +1,8 @@
-# dt_call_gtkclient
+# Desktop Linux GTK Client for my complete VoIP Solution
 
-Desktop Linux GTK Client for my VoIP
+Desktop Linux GTK Client for **making encrypted calls** using my call operator 
 * [UNIX version](https://github.com/AAccount/dt_call_server)
-* (Unmaintained) [Windows version](https://github.com/AAccount/dt_call_server-windows-).
-
+* (Will not work with the windows call operator)
 
 All calls are **end to end encrypted** using libsoidum symmetric cryptography. The sodium symmetric key is single use per call and shared by sodium asymmetric cryptography. GTK Client does not rely on publicly accepted certificate authorities. Instead, it requires you to get a copy of the server's public key and supply it to GTK Client. This way you can guarantee the server you're connecting to is really the one you're expecting.
 
