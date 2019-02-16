@@ -3,3 +3,7 @@
 /Logger.hpp
 /gresources.c
 /gresources.h
+/BlockingQ.hpp
+/Logger.cpp
+/sodium_utils.cpp
+/stringify.cpp
