@@ -23,5 +23,9 @@ As with AClient, GTK Client was written with function over form. It's fairly ugl
 	* stringify.cpp + stringify.hpp
 * You will need to manually create /home/{You}/.DTCallClient
 
+## Screenshots
+![User Home + Call Screen + Public Key Managment](https://github.com/AAccount/dt_call_gtkclient/blob/master/user%20home%20%2B%20call%20screen%20%2B%20public%20keys.png)
+![User Home (with menu) + Settings](https://github.com/AAccount/dt_call_gtkclient/blob/master/user%20home%20menu%20%2B%20settings.png)
+
 ## Changelog
 **V 1.9:** initial version. Sync with AClient version number.
