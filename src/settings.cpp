@@ -306,6 +306,10 @@ bool Settings::getSodiumFile(SettingName setting) const
 		randombytes_buf((void*)privateKeyStringMemory, dump.length());
 		return true;
 	}
+	default:
+	{
+		return false;
+	}
 	}
 	return false;
 }

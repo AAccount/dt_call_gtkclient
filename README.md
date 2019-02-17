@@ -22,6 +22,8 @@ As with AClient, GTK Client was written with function over form. It's fairly ugl
 	* sodium_uitls.cpp + sodium_utils.hpp
 	* stringify.cpp + stringify.hpp
 * You will need to manually create /home/{You}/.DTCallClient
+* Disable [timer based recording](https://wiki.archlinux.org/index.php/PulseAudio/Troubleshooting#Disabling_timer-based_scheduling_(0/4)) for pulse audio. 
+  It causes unpredictable voice delays. 
 
 ## Screenshots
 ![User Home + Call Screen + Public Key Managment](https://github.com/AAccount/dt_call_gtkclient/blob/master/user%20home%20%2B%20call%20screen%20%2B%20public%20keys.png)

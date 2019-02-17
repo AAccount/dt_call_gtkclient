@@ -45,8 +45,7 @@ public:
 	void getTcpKeyCopy(std::unique_ptr<unsigned char[]>& output) const;
 
 private:
-	const static int DECRYPTION_BUFFER_SIZE = 2048;
-	const static int ENCRYPTION_BUFFER_SIZE = DECRYPTION_BUFFER_SIZE*2;
+	const static int READ_BUFFER_SIZE = 4096;
 
 	int socketFD;
 	unsigned char serverPublic[crypto_box_PUBLICKEYBYTES];

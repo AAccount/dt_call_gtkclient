@@ -52,7 +52,8 @@ namespace
 			}
 
 			const int challengeLength = loginChallengeContents[2].length() / 3;
-			unsigned char challengeUChars[challengeLength] = {};
+			std::unique_ptr<unsigned char[]> challengeUCharsArray = std::make_unique<unsigned char[]>(challengeLength);
+			unsigned char* challengeUChars = challengeUCharsArray.get();
 			Stringify::destringify(loginChallengeContents[2], challengeUChars);
 
 			int decryptedLength = 0;

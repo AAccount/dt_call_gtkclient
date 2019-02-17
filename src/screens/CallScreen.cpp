@@ -343,9 +343,12 @@ void* CallScreen::mediaEncode(void)
 	localLogger->insertLog(Log(Log::TAG::CALL_SCREEN, info, Log::TYPE::INFO).toString());
 
 	const int wavFrames = Opus::WAVFRAMESIZE;
-	unsigned char packetBuffer[Vars::MAX_UDP] = {};
-	short wavBuffer[wavFrames] = {};
-	unsigned char encodedBuffer[wavFrames] = {};
+	std::unique_ptr<unsigned char[]> packetBufferArray = std::make_unique<unsigned char[]>(Vars::MAX_UDP);
+	unsigned char* packetBuffer = packetBufferArray.get();
+	std::unique_ptr<short[]> wavBufferArray = std::make_unique<short[]>(wavFrames);
+	short* wavBuffer = wavBufferArray.get();
+	std::unique_ptr<unsigned char[]> encodedBufferArray = std::make_unique<unsigned char[]>(wavFrames);
+	unsigned char* encodedBuffer = encodedBufferArray.get();
 
 	while(Vars::ustate == Vars::UserState::INCALL)
 	{
@@ -450,9 +453,12 @@ void* CallScreen::mediaDecode(void)
 	localLogger->insertLog(Log(Log::TAG::CALL_SCREEN, info, Log::TYPE::INFO).toString());
 
 	const int wavFrames = Opus::WAVFRAMESIZE;
-	unsigned char encBuffer[wavFrames] = {};
-	short wavBuffer[wavFrames] = {};
-	unsigned char packetBuffer[Vars::MAX_UDP] = {};
+	std::unique_ptr<unsigned char[]> encBufferArray = std::make_unique<unsigned char[]>(wavFrames);
+	unsigned char* encBuffer = encBufferArray.get();
+	std::unique_ptr<short[]> wavBufferArray = std::make_unique<short[]>(wavFrames);
+	short* wavBuffer = wavBufferArray.get();
+	std::unique_ptr<unsigned char[]> packetBufferArray = std::make_unique<unsigned char[]>(Vars::MAX_UDP);
+	unsigned char* packetBuffer = packetBufferArray.get();
 
 	while(Vars::ustate == Vars::UserState::INCALL)
 	{
@@ -583,7 +589,8 @@ void* CallScreen::ringThread(void* context)
 	//write the ringtone 1/10th of a second at a time for 1.5s then 1s of silence.
 	//using this weird 1/10th of a second at a time scheme because pa_simple functions all block
 	const double TOTAL_SAMPLES = RINGTONE_SAMPLERATE/RINGTONE_DIVISION;
-	short silence[(int)TOTAL_SAMPLES] = {};
+	std::unique_ptr<short[]> silenceArray = std::make_unique<short[]>((int)TOTAL_SAMPLES);
+	short* silence = silenceArray.get();
 	const int MAX_DIVISIONS = CallScreen::INIT_TIMEOUT*RINGTONE_DIVISION;
 	const int DIVISIONS_RINGTONE = CallScreen::TONE_TIME*RINGTONE_DIVISION;
 	const int DIVISIONS_SILENCE = CallScreen::SILENCE_TIME*RINGTONE_DIVISION;

@@ -184,7 +184,7 @@ void UserHome::asyncResult(int result)
 	}
 	else if(result == Vars::Broadcast::CALL_TRY)
 	{
-		CallScreen::mode == CallScreen::Mode::DIALING;
+		CallScreen::mode = CallScreen::Mode::DIALING;
 		Utils::runOnUiThread(&CallScreen::render);
 	}
 	else if(result == Vars::Broadcast::USERHOME_UNLOCK)

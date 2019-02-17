@@ -18,12 +18,10 @@ logger(Logger::getInstance("/tmp/"))
 	memset(tcpKey, 0, crypto_secretbox_KEYBYTES);
 }
 
-SodiumSocket::SodiumSocket(const std::string& caddr, int cport, unsigned char cserverPublic[])
-:
+SodiumSocket::SodiumSocket(const std::string& caddr, int cport, unsigned char cserverPublic[]) :
 useable(false),
 r(R::getInstance()),
 logger(Logger::getInstance(""))
-
 {
 	memset(serverPublic, 0, crypto_box_PUBLICKEYBYTES);
 	memcpy(serverPublic, cserverPublic, crypto_box_PUBLICKEYBYTES);
@@ -52,8 +50,10 @@ logger(Logger::getInstance(""))
 			throw std::string(error);
 		}
 
-		unsigned char symmetricEncrypted[ENCRYPTION_BUFFER_SIZE] = {};
-		const int readAmount = read(socketFD, symmetricEncrypted, ENCRYPTION_BUFFER_SIZE);
+		std::unique_ptr<unsigned char[]> readBuffer = std::make_unique<unsigned char[]>(READ_BUFFER_SIZE);
+		unsigned char* symmetricEncrypted = readBuffer.get();
+		memset(symmetricEncrypted, 0, READ_BUFFER_SIZE);
+		const int readAmount = read(socketFD, symmetricEncrypted, READ_BUFFER_SIZE);
 		if(readAmount < 0)
 		{
 			const std::string error = r->getString(R::StringID::SODIUM_READ_TCP_SYMM);
@@ -125,8 +125,10 @@ int SodiumSocket::readBinary(std::unique_ptr<unsigned char[]>& output)
 		return 0;
 	}
 
-	unsigned char encrypted[ENCRYPTION_BUFFER_SIZE] = {};
-	const int amountRead = read(socketFD, encrypted, ENCRYPTION_BUFFER_SIZE);
+	std::unique_ptr<unsigned char[]> readBuffer = std::make_unique<unsigned char[]>(READ_BUFFER_SIZE);
+	unsigned char* encrypted = readBuffer.get();
+	memset(encrypted, 0, READ_BUFFER_SIZE);
+	const int amountRead = read(socketFD, encrypted, READ_BUFFER_SIZE);
 	if(amountRead < 1)
 	{
 		const std::string error = r->getString(R::StringID::SODIUM_READ);

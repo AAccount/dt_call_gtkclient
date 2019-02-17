@@ -152,7 +152,8 @@ namespace
 				{
 					const std::string setupString = respContents.at(2);
 					const int setupDesgringifiedLength = setupString.length() / 3;
-					unsigned char setup[setupDesgringifiedLength] = {};
+					std::unique_ptr<unsigned char[]> setupArray = std::make_unique<unsigned char[]>(setupDesgringifiedLength);
+					unsigned char* setup = setupArray.get();
 					Stringify::destringify(setupString, setup);
 					std::unique_ptr<unsigned char[]> callWithKey;
 					Settings::getInstance()->getPublicKey(Vars::callWith, callWithKey);
@@ -317,7 +318,8 @@ bool CmdListener::registerUDP()
 			continue;
 		}
 
-		unsigned char ackBuffer[Vars::MAX_UDP] = {};
+		std::unique_ptr<unsigned char[]> ackBufferArray = std::make_unique<unsigned char[]>(Vars::MAX_UDP);
+		unsigned char* ackBuffer = ackBufferArray.get();
 		struct sockaddr_in sender;
 		socklen_t senderLength = sizeof(struct sockaddr_in);
 		const int receivedLength = recvfrom(Vars::mediaSocket, ackBuffer, Vars::MAX_UDP, 0, (struct sockaddr*)&sender, &senderLength);
