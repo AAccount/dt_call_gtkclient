@@ -14,12 +14,12 @@ CallScreen::Mode CallScreen::mode;
 CallScreen* CallScreen::instance = NULL;
 std::unique_ptr<short[]> CallScreen::ringtone;
 
-extern "C" void call_screen_quit()
+extern "C" void onclick_call_screen_end()
 {
-	unsigned char* voiceKey = Vars::voiceKey.get();
-	if(voiceKey != NULL)
+	CallScreen* instance = CallScreen::getInstance();
+	if(instance != NULL)
 	{
-		randombytes_buf(voiceKey, crypto_box_SECRETKEYBYTES);
+		instance->onclickEnd();
 	}
 }
 
@@ -50,7 +50,7 @@ logger(Logger::getInstance(""))
 	{
 		gtk_widget_set_sensitive((GtkWidget*)buttonAccept, false);
 	}
-	g_signal_connect(G_OBJECT(window),"destroy", call_screen_quit, NULL);
+	g_signal_connect(G_OBJECT(window),"destroy", onclick_call_screen_end, NULL);
 	stats = GTK_TEXT_VIEW(gtk_builder_get_object(builder, "call_screen_stats"));
 
 	//setup the timer and stats display
@@ -152,7 +152,12 @@ void CallScreen::onclickEnd()
 	shutdown(Vars::mediaSocket, 2);
 	close(Vars::mediaSocket);
 	Vars::mediaSocket = -1;
-	call_screen_quit();
+
+	unsigned char* voiceKey = Vars::voiceKey.get();
+	if(voiceKey != NULL)
+	{
+		randombytes_buf(voiceKey, crypto_box_SECRETKEYBYTES);
+	}
 
 	CommandEnd::execute();
 	UserHome::getInstance()->asyncResult(Vars::Broadcast::USERHOME_UNLOCK);
@@ -643,14 +648,6 @@ void CallScreen::stopRing()
 			ringtonePlayer = NULL;
 			ringtoneDone = true;
 		pthread_mutex_unlock(&ringtoneLock);
-	}
-}
-extern "C" void onclick_call_screen_end()
-{
-	CallScreen* instance = CallScreen::getInstance();
-	if(instance != NULL)
-	{
-		instance->onclickEnd();
 	}
 }
 
