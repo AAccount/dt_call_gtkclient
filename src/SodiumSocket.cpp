@@ -42,7 +42,17 @@ logger(Logger::getInstance(""))
 			throw std::string(error);
 		}
 
-		const int writePublicErr = write(socketFD, tempPublic, crypto_box_PUBLICKEYBYTES);
+		const int encTempPublicLength = crypto_box_SEALBYTES + crypto_box_PUBLICKEYBYTES;
+		std::unique_ptr<unsigned char[]> encTempPublicArray = std::make_unique<unsigned char[]>(encTempPublicLength);
+		unsigned char* encTempPublic = encTempPublicArray.get();
+		const int sealed = crypto_box_seal(encTempPublic, tempPublic, crypto_box_PUBLICKEYBYTES, serverPublic);
+		if(sealed != 0)
+		{
+			const std::string error = r->getString(R::StringID::SODIUM_ENCRYPT_TEMP_PUBLIC);
+			logger->insertLog(Log(Log::TAG::SODIUM_SOCKET, error, Log::TYPE::ERROR).toString());
+			throw std::string(error);
+		}
+		const int writePublicErr = write(socketFD, encTempPublic, encTempPublicLength);
 		if(writePublicErr == -1)
 		{
 			const std::string error = r->getString(R::StringID::SODIUM_SEND_TEMP_PUBLIC);
