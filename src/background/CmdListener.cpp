@@ -302,7 +302,8 @@ bool CmdListener::registerUDP()
 	{
 		const std::string registration = std::to_string(Utils::now()) + "|" + Vars::sessionKey;
 		const int registrationLength = crypto_box_SEALBYTES + registration.length();
-		unsigned char sodiumSealedRegistration[registrationLength];
+		std::unique_ptr<unsigned char[]> sealedRegistrationArray = std::make_unique<unsigned char[]>(registrationLength);
+		unsigned char* sodiumSealedRegistration = sealedRegistrationArray.get();
 		const int sealed = crypto_box_seal(sodiumSealedRegistration, (unsigned char*)registration.c_str(), registration.length(), Vars::serverCert.get());
 		if(sealed != 0)
 		{

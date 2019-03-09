@@ -53,7 +53,7 @@ R::R()
 
 {
 	en[StringID::SELF] = "DT Call GTK Client";
-	en[StringID::VERSION] = "1.9";
+	en[StringID::VERSION] = "1.11";
 	en[StringID::COMMIT] = "{git commit id here}";
 
 	en[StringID::GENERIC_SAVE] = "Save";
@@ -70,6 +70,7 @@ R::R()
 	en[StringID::CONNECTFD_CONNECT_SYSCALL] = "connect system call failed, type: ";
 
 	en[StringID::SODIUM_DEFAULT_CONSTRUCTOR] = "Should not be using the default sodium socket constructor";
+	en[StringID::SODIUM_ENCRYPT_TEMP_PUBLIC] = "Cannot create sodium sealed box for temp public key";
 	en[StringID::SODIUM_SEND_TEMP_PUBLIC] = "Cannot send temp public key";
 	en[StringID::SODIUM_READ_TCP_SYMM] = "Cannot read tcp symmetric key";
 	en[StringID::SODIUM_DECRYPT_TCP_SYMM] = "Couldn't decrypt tcp symmetric key";
