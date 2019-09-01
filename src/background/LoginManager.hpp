@@ -27,18 +27,18 @@
 #include "../Log.hpp"
 #include "Heartbeat.hpp"
 
-class LoginAsync
+class LoginManager
 {
 public:
-	static LoginAsync* getInstance();
+	static LoginManager* getInstance();
 	void execute(AsyncReceiver* receiver, bool retry);
 	
 private:
-	static LoginAsync* instance;
+	static LoginManager* instance;
 	static bool heartbeatStarted;
 	
-	LoginAsync();
-	virtual ~LoginAsync();
+	LoginManager();
+	virtual ~LoginManager();
 	
 	const int RETRY_DELAY = 60;
 	const int LOGIN_MAX_SEGMENTS = 3;

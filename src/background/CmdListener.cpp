@@ -202,7 +202,7 @@ namespace
 				inputValid = false;
 				logger->insertLog(Log(Log::TAG::CMD_LISTENER, r->getString(R::StringID::CMDLISTENER_IOERROR), Log::TYPE::ERROR).toString());
 				Vars::commandSocket.get()->stop();
-				LoginAsync::getInstance()->execute(UserHome::getInstance(), true);
+				LoginManager::getInstance()->execute(UserHome::getInstance(), true);
 			}
 			catch(std::out_of_range& e)
 			{

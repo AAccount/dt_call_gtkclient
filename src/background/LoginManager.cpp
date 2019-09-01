@@ -7,19 +7,19 @@
 
 #include "LoginManager.hpp"
 
-LoginAsync* LoginAsync::instance;
-bool LoginAsync::heartbeatStarted = false;
+LoginManager* LoginManager::instance;
+bool LoginManager::heartbeatStarted = false;
 
-LoginAsync* LoginAsync::getInstance()
+LoginManager* LoginManager::getInstance()
 {
 	if(instance == NULL)
 	{
-		instance = new LoginAsync();
+		instance = new LoginManager();
 	}
 	return instance;
 }
 
-LoginAsync::LoginAsync() :
+LoginManager::LoginManager() :
 inUse(),
 running(false),
 r(R::getInstance()),
@@ -28,12 +28,12 @@ logger(Logger::getInstance())
 	
 }
 
-LoginAsync::~LoginAsync()
+LoginManager::~LoginManager()
 {
 	
 }
 
-void LoginAsync::execute(AsyncReceiver* receiver, bool pretry)
+void LoginManager::execute(AsyncReceiver* receiver, bool pretry)
 {	
 	//Only try to login if it isn't already being done.
 	{
@@ -56,7 +56,7 @@ void LoginAsync::execute(AsyncReceiver* receiver, bool pretry)
 			bool ok = loginFunction(receiver);
 			while(retry && !ok)
 			{
-				sleep(LoginAsync::RETRY_DELAY);
+				sleep(LoginManager::RETRY_DELAY);
 				ok = loginFunction(receiver);
 			}
 			{
@@ -74,7 +74,7 @@ void LoginAsync::execute(AsyncReceiver* receiver, bool pretry)
 	}
 }
 
-bool LoginAsync::loginFunction(AsyncReceiver* receiver)
+bool LoginManager::loginFunction(AsyncReceiver* receiver)
 {
 	try
 	{

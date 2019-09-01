@@ -26,7 +26,7 @@ ifeq ($(UNAME),FreeBSD)
 endif
 
 TARGET = gtkclient
-OBJS = main.o utils.o settings.o Log.o SodiumSocket.o vars.o SettingsUI.o R.o LoginAsync.o UserHome.o CallScreen.o CmdListener.o CommandAccept.o CommandEnd.o Heartbeat.o CommandCall.o Opus.o EditContact.o PublicKeyOverview.o PublicKeyUser.o sodium_utils.o Logger.o stringify.o gresources.o ServerUtils.o
+OBJS = main.o utils.o settings.o Log.o SodiumSocket.o vars.o SettingsUI.o R.o LoginManager.o UserHome.o CallScreen.o CmdListener.o CommandAccept.o CommandEnd.o Heartbeat.o CommandCall.o Opus.o EditContact.o PublicKeyOverview.o PublicKeyUser.o sodium_utils.o Logger.o stringify.o gresources.o ServerUtils.o
 RESOURCES = src/gresources.c src/gresources.h
 
 all: ${OBJS} ${RESOURCES}
@@ -83,8 +83,8 @@ PublicKeyOverview.o : src/screens/PublicKeyOverview.cpp src/screens/PublicKeyOve
 PublicKeyUser.o : src/screens/PublicKeyUser.cpp src/screens/PublicKeyUser.hpp glade/public_keyu.glade ${RESOURCES}
 	${CXX} ${CFLAGS} -c src/screens/PublicKeyUser.cpp ${GTKLIB} ${INC} 
 
-LoginAsync.o : src/background/LoginAsync.cpp src/background/LoginAsync.hpp
-	${CXX} ${CFLAGS} -c src/background/LoginAsync.cpp ${PTHREAD} ${GTKLIB} ${INC} 
+LoginManager.o : src/background/LoginManager.cpp src/background/LoginManager.hpp
+	${CXX} ${CFLAGS} -c src/background/LoginManager.cpp ${PTHREAD} ${GTKLIB} ${INC} 
 	
 CmdListener.o : src/background/CmdListener.cpp src/background/CmdListener.hpp
 	${CXX} ${CFLAGS} -c src/background/CmdListener.cpp ${PTHREAD} ${GTKLIB} ${INC} 

@@ -68,7 +68,7 @@ contactToRemoveButton(std::unordered_map<std::string, GtkButton*>())
 	if(Vars::sessionKey.empty())
 	{
 		gtk_label_set_text(connectionStatus, r->getString(R::StringID::USER_HOME_OFFLINE).c_str());
-		LoginAsync::getInstance()->execute(this, true);
+		LoginManager::getInstance()->execute(this, true);
 	}
 	else
 	{

@@ -29,7 +29,7 @@ void Heartbeat::startService()
 					const std::string error = r->getString(R::StringID::HEARTBEAT_FAIL) + e;
 					logger->insertLog(Log(Log::TAG::HEARTBEAT, error, Log::TYPE::ERROR).toString());
 					Vars::commandSocket.get()->stop();
-					LoginAsync::getInstance()->execute(UserHome::getInstance(), true);
+					LoginManager::getInstance()->execute(UserHome::getInstance(), true);
 					break;
 				}
 			}
