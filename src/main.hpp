@@ -26,7 +26,7 @@
 #include "Logger.hpp"
 #include "Log.hpp"
 #include "R.hpp"
-#include "background/LoginAsync.hpp"
+#include "background/LoginManager.hpp"
 #include "screens/SettingsUI.hpp"
 #include "utils.hpp"
 #include "gresources.h"

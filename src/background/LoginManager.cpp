@@ -5,7 +5,7 @@
  *      Author: Daniel
  */
 
-#include "LoginAsync.hpp"
+#include "LoginManager.hpp"
 
 LoginAsync* LoginAsync::instance;
 bool LoginAsync::heartbeatStarted = false;

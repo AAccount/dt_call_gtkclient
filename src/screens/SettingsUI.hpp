@@ -20,7 +20,7 @@
 #include "../stringify.hpp"
 #include "../R.hpp"
 #include "../background/AsyncReceiver.hpp"
-#include "../background/LoginAsync.hpp"
+#include "../background/LoginManager.hpp"
 #include "../settings.hpp"
 #include "../Logger.hpp"
 #include "../Log.hpp"

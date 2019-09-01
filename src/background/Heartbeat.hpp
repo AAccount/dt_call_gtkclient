@@ -14,7 +14,7 @@
 #include <string.h>
 #include <thread>
 #include "../vars.hpp"
-#include "LoginAsync.hpp"
+#include "LoginManager.hpp"
 #include "../Log.hpp"
 #include "../Logger.hpp"
 #include "../R.hpp"

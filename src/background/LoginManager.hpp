@@ -5,8 +5,8 @@
  *      Author: Daniel
  */
 
-#ifndef SRC_BACKGROUND_LOGINASYNC_HPP_
-#define SRC_BACKGROUND_LOGINASYNC_HPP_
+#ifndef SRC_BACKGROUND_LOGINMANAGER_HPP_
+#define SRC_BACKGROUND_LOGINMANAGER_HPP_
 #include <string>
 #include <vector>
 #include <memory>
