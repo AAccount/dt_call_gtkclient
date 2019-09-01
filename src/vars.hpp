@@ -40,7 +40,7 @@ public:
 	static UserState ustate;
 
 	//sockets
-	static SodiumSocket commandSocket;
+	static std::unique_ptr<SodiumSocket> commandSocket;
 	static int mediaSocket;
 	static std::string sessionKey;
 	static std::string callWith;

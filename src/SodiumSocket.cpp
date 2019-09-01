@@ -11,9 +11,8 @@ SodiumSocket::SodiumSocket() :
 socketFD(0),
 useable(false),
 r(R::getInstance()),
-logger(Logger::getInstance("/tmp/"))
+logger(nullptr)
 {
-	logger->insertLog(Log(Log::TAG::SODIUM_SOCKET, r->getString(R::StringID::SODIUM_DEFAULT_CONSTRUCTOR), Log::TYPE::ERROR).toString());
 	memset(serverPublic, 0, crypto_box_PUBLICKEYBYTES);
 	memset(tcpKey, 0, crypto_secretbox_KEYBYTES);
 }
@@ -21,7 +20,7 @@ logger(Logger::getInstance("/tmp/"))
 SodiumSocket::SodiumSocket(const std::string& caddr, int cport, unsigned char cserverPublic[]) :
 useable(false),
 r(R::getInstance()),
-logger(Logger::getInstance(""))
+logger(Logger::getInstance())
 {
 	memset(serverPublic, 0, crypto_box_PUBLICKEYBYTES);
 	memcpy(serverPublic, cserverPublic, crypto_box_PUBLICKEYBYTES);

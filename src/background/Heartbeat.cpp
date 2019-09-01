@@ -7,41 +7,38 @@
 
 #include "Heartbeat.hpp"
 
-namespace
-{
-	Logger* logger = Logger::getInstance("");
-	R* r = R::getInstance();
-	void* heartbeatThread(void* pointer)
-	{
-		const int TIMEOUT = 60*5;
-		const std::string ping = "D";
-		while(true)
-		{
-			try
-			{
-				Vars::commandSocket.writeString(ping);
-				logger->insertLog(Log(Log::TAG::HEARTBEAT, ping, Log::TYPE::OUTBOUND).toString());
-				sleep(TIMEOUT);
-			}
-			catch(std::string& e)
-			{
-				const std::string error = r->getString(R::StringID::HEARTBEAT_FAIL) + e;
-				logger->insertLog(Log(Log::TAG::HEARTBEAT, error, Log::TYPE::ERROR).toString());
-				Vars::commandSocket.stop();
-				LoginAsync::execute(UserHome::getInstance(), true);
-				break;
-			}
-		}
-		return 0;
-	}
-}
-
 void Heartbeat::startService()
 {
-	pthread_t thread;
-	if(pthread_create(&thread, NULL, heartbeatThread, NULL) != 0)
+	Logger* logger = Logger::getInstance();
+	R* r = R::getInstance();
+	try
 	{
-		const std::string error = r->getString(R::StringID::ERR_THREAD_CREATE) + std::to_string(errno) + ") " + std::string(strerror(errno));
+		std::thread asyncThread([logger, r] {
+			const int TIMEOUT = 60 * 5;
+			const std::string PING = "D";
+			while (true)
+			{
+				try
+				{
+					Vars::commandSocket.get()->writeString(PING);
+					logger->insertLog(Log(Log::TAG::HEARTBEAT, PING, Log::TYPE::OUTBOUND).toString());
+					sleep(TIMEOUT);
+				}
+				catch (std::string& e)
+				{
+					const std::string error = r->getString(R::StringID::HEARTBEAT_FAIL) + e;
+					logger->insertLog(Log(Log::TAG::HEARTBEAT, error, Log::TYPE::ERROR).toString());
+					Vars::commandSocket.get()->stop();
+					LoginAsync::getInstance()->execute(UserHome::getInstance(), true);
+					break;
+				}
+			}
+		});
+		asyncThread.detach();
+	}
+	catch (std::system_error& e)
+	{
+		const std::string error = r->getString(R::StringID::ERR_THREAD_CREATE) + std::string(e.what()) + ")";
 		logger->insertLog(Log(Log::TAG::HEARTBEAT, error, Log::TYPE::ERROR).toString());
 	}
 }

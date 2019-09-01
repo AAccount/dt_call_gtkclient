@@ -25,7 +25,7 @@ namespace
 	void* serviceThread(void* context)
 	{
 		r = R::getInstance();
-		logger = Logger::getInstance("");
+		logger = Logger::getInstance();
 
 		logger->insertLog(Log(Log::TAG::CMD_LISTENER, r->getString(R::StringID::CMDLISTENER_START), Log::TYPE::INFO).toString());
 		bool inputValid = true;
@@ -42,7 +42,7 @@ namespace
 
 			try
 			{
-				const std::string fromServer = Vars::commandSocket.readString();
+				const std::string fromServer = Vars::commandSocket.get()->readString();
 				const std::vector<std::string> respContents = Utils::parse((unsigned char*)fromServer.c_str());
 				logger->insertLog(Log(Log::TAG::CMD_LISTENER, censorIncomingCmd(respContents), Log::TYPE::INBOUND).toString());
 				if(respContents.size() > COMMAND_MAX_SEGMENTS)
@@ -130,7 +130,7 @@ namespace
 
 						const time_t now = Utils::now();
 						const std::string passthrough = std::to_string(now) + "|passthrough|" + Vars::callWith + "|" + outputStringified + "|" + Vars::sessionKey;
-						Vars::commandSocket.writeString(passthrough);
+						Vars::commandSocket.get()->writeString(passthrough);
 						const std::string loggedPassthrough = std::to_string(now) + "|passthrough|" + Vars::callWith + "|...|" + Vars::sessionKey;
 						logger->insertLog(Log(Log::TAG::CMD_LISTENER, loggedPassthrough, Log::TYPE::OUTBOUND).toString());
 						haveVoiceKey = true;
@@ -201,8 +201,8 @@ namespace
 			{
 				inputValid = false;
 				logger->insertLog(Log(Log::TAG::CMD_LISTENER, r->getString(R::StringID::CMDLISTENER_IOERROR), Log::TYPE::ERROR).toString());
-				Vars::commandSocket.stop();
-				LoginAsync::execute(UserHome::getInstance(), true);
+				Vars::commandSocket.get()->stop();
+				LoginAsync::getInstance()->execute(UserHome::getInstance(), true);
 			}
 			catch(std::out_of_range& e)
 			{
@@ -219,7 +219,7 @@ namespace
 			const std::string ready = std::to_string(Utils::now()) + "|ready|" + Vars::callWith + "|" + Vars::sessionKey;
 			try
 			{
-				Vars::commandSocket.writeString(ready);
+				Vars::commandSocket.get()->writeString(ready);
 				logger->insertLog(Log(Log::TAG::CMD_LISTENER, ready, Log::TYPE::OUTBOUND).toString());
 			}
 			catch(std::string& e)
@@ -332,7 +332,7 @@ bool CmdListener::registerUDP()
 
 		std::unique_ptr<unsigned char[]> decAck;
 		std::unique_ptr<unsigned char[]> tcpKey;
-		Vars::commandSocket.getTcpKeyCopy(tcpKey);
+		Vars::commandSocket.get()->getTcpKeyCopy(tcpKey);
 		int decAckLength = 0;
 		SodiumUtils::sodiumDecrypt(false, ackBuffer, receivedLength, tcpKey.get(), NULL, decAck, decAckLength);
 		if(decAckLength == 0)

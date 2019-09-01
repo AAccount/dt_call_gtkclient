@@ -12,7 +12,7 @@
 #include <string>
 #include <unistd.h>
 #include <string.h>
-#include <pthread.h>
+#include <thread>
 #include "../vars.hpp"
 #include "LoginAsync.hpp"
 #include "../Log.hpp"

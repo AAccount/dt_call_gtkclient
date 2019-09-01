@@ -10,8 +10,10 @@
 
 #include <string>
 #include <iostream>
+#include <thread>
+
 #include <string.h>
-#include <pthread.h>
+
 #include "AsyncReceiver.hpp"
 #include "../screens/UserHome.hpp"
 #include "../vars.hpp"

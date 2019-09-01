@@ -26,7 +26,7 @@ ifeq ($(UNAME),FreeBSD)
 endif
 
 TARGET = gtkclient
-OBJS = main.o utils.o settings.o Log.o SodiumSocket.o vars.o SettingsUI.o R.o LoginAsync.o UserHome.o CallScreen.o CmdListener.o CommandAccept.o CommandEnd.o Heartbeat.o CommandCall.o Opus.o EditContact.o PublicKeyOverview.o PublicKeyUser.o sodium_utils.o Logger.o stringify.o gresources.o
+OBJS = main.o utils.o settings.o Log.o SodiumSocket.o vars.o SettingsUI.o R.o LoginAsync.o UserHome.o CallScreen.o CmdListener.o CommandAccept.o CommandEnd.o Heartbeat.o CommandCall.o Opus.o EditContact.o PublicKeyOverview.o PublicKeyUser.o sodium_utils.o Logger.o stringify.o gresources.o ServerUtils.o
 RESOURCES = src/gresources.c src/gresources.h
 
 all: ${OBJS} ${RESOURCES}
@@ -109,6 +109,9 @@ sodium_utils.o : src/sodium_utils.cpp src/sodium_utils.hpp
 
 stringify.o : src/stringify.cpp src/stringify.hpp
 	${CXX} ${CFLAGS} -c src/stringify.cpp ${INC} 
+	
+ServerUtils.o : src/ServerUtils.cpp src/ServerUtils.hpp
+	${CXX} ${CFLAGS} -c src/ServerUtils.cpp ${INC}
 	
 clean:
 	rm -f ${OBJS} ${TARGET} ${RESOURCES}

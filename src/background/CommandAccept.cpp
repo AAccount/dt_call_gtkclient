@@ -7,35 +7,33 @@
 
 #include "CommandAccept.hpp"
 
-namespace
-{
-	Logger* logger = Logger::getInstance("");
-	R* r = R::getInstance();
-
-	void* callAcceptThread(void* pointer)
-	{
-		try
-		{
-			const std::string resp = std::to_string(Utils::now()) + "|accept|" + Vars::callWith + "|" + Vars::sessionKey;
-			logger->insertLog(Log(Log::TAG::CMD_ACCEPT, resp, Log::TYPE::OUTBOUND).toString());
-			Vars::commandSocket.writeString(resp);
-			UserHome::getInstance()->asyncResult(Vars::Broadcast::USERHOME_LOCK);
-		}
-		catch(std::string& e)
-		{
-			logger->insertLog(Log(Log::TAG::CMD_ACCEPT, e, Log::TYPE::ERROR).toString());
-		}
-		return 0;
-	}
-}
-
 void CommandAccept::execute()
 {
-	pthread_t thread;
-	if(pthread_create(&thread, NULL, callAcceptThread, NULL) != 0)
+	Logger* logger = Logger::getInstance();
+	R* r = R::getInstance();
+	
+	try
 	{
-		const std::string error = r->getString(R::StringID::ERR_THREAD_CREATE) + std::to_string(errno) + ") " + std::string(strerror(errno));
+		std::thread asyncThread([logger] {
+			try
+			{
+				const std::string resp = std::to_string(Utils::now()) + "|accept|" + Vars::callWith + "|" + Vars::sessionKey;
+				logger->insertLog(Log(Log::TAG::CMD_ACCEPT, resp, Log::TYPE::OUTBOUND).toString());
+				Vars::commandSocket.get()->writeString(resp);
+				UserHome::getInstance()->asyncResult(Vars::Broadcast::USERHOME_LOCK);
+			}
+			catch(std::string& e)
+			{
+				logger->insertLog(Log(Log::TAG::CMD_ACCEPT, e, Log::TYPE::ERROR).toString());
+			}
+		});
+		asyncThread.detach();
+	}
+	catch(std::system_error& e)
+	{
+		const std::string error = r->getString(R::StringID::ERR_THREAD_CREATE) + std::string(e.what()) + ")";
 		logger->insertLog(Log(Log::TAG::CMD_ACCEPT, error, Log::TYPE::ERROR).toString());
 	}
+
 }
 

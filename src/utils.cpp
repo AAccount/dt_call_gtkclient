@@ -144,7 +144,7 @@ void Utils::quit(unsigned char privateKey[], unsigned char voiceKey[])
 bool Utils::connectFD(int& fd, int type, const std::string& caddr, int cport, struct sockaddr_in* serv_addr)
 {
 	R* r = R::getInstance();
-	Logger* logger = Logger::getInstance("");
+	Logger* logger = Logger::getInstance();
 	std::string typeString = "";
 	if(type == SOCK_DGRAM)
 	{
@@ -218,7 +218,7 @@ void Utils::setupPublicKey(const std::string& title, GtkWindow* window, Log::TAG
 	const bool ok = SodiumUtils::checkSodiumPublic(certDump);
 	if(!ok)
 	{
-		Logger::getInstance("")->insertLog(Log(tag, error, Log::TYPE::ERROR).toString());
+		Logger::getInstance()->insertLog(Log(tag, error, Log::TYPE::ERROR).toString());
 		Utils::showPopup(error, window);
 		output = std::unique_ptr<unsigned char[]>(); //pointer to nothing
 		return;

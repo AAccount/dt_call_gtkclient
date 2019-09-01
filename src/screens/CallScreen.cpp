@@ -25,7 +25,7 @@ extern "C" void onclick_call_screen_end()
 
 CallScreen::CallScreen() :
 r(R::getInstance()),
-logger(Logger::getInstance(""))
+logger(Logger::getInstance())
 {
 	Settings* settings = Settings::getInstance();
 
@@ -323,7 +323,7 @@ void CallScreen::changeToCallMode()
 void* CallScreen::mediaEncode(void)
 {
 	//assuming pulse audio get microphone always works (unlike android audio record)
-	Logger* localLogger = Logger::getInstance("");
+	Logger* localLogger = Logger::getInstance();
 	R* localRes = R::getInstance();
 	localLogger->insertLog(Log(Log::TAG::CALL_SCREEN, localRes->getString(R::StringID::CALL_SCREEN_MEDIA_ENC_START), Log::TYPE::INFO).toString());
 
@@ -433,7 +433,7 @@ void* CallScreen::mediaEncodeHelp(void* context)
 
 void* CallScreen::mediaDecode(void)
 {
-	Logger* localLogger = Logger::getInstance("");
+	Logger* localLogger = Logger::getInstance();
 	R* localRes = R::getInstance();
 	localLogger->insertLog(Log(Log::TAG::CALL_SCREEN, localRes->getString(R::StringID::CALL_SCREEN_MEDIA_DEC_START), Log::TYPE::INFO).toString());
 

@@ -24,10 +24,10 @@ extern "C" void public_key_ov_quit()
 PublicKeyOverview::PublicKeyOverview() :
 settings(Settings::getInstance()),
 r(R::getInstance()),
-logger(Logger::getInstance("")),
+logger(Logger::getInstance()),
 buttonToUser(std::unordered_map<GtkButton*, std::string>()),
 userToButton(std::unordered_map<std::string, GtkButton*>()),
-edits(BlockingQ<std::string>())
+edits()
 {
 	window = GTK_WINDOW(gtk_window_new(GTK_WINDOW_TOPLEVEL));
 	gtk_window_set_title(window, r->getString(R::StringID::PUBLIC_KEY_OV_TITLE).c_str());

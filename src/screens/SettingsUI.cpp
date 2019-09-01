@@ -15,14 +15,14 @@ extern "C" void settings_ui_quit()
 {
 	if(SettingsUI::initialSetup)
 	{
-		Vars::commandSocket.stop();
+		Vars::commandSocket.get()->stop();
 		Utils::quit(Vars::privateKey.get(), Vars::voiceKey.get());
 	}
 }
 
 SettingsUI::SettingsUI() :
 r(R::getInstance()),
-logger(Logger::getInstance(""))
+logger(Logger::getInstance())
 {
 	GtkBuilder* builder = gtk_builder_new_from_resource("/gtkclient/settings_ui.glade");
 	window = GTK_WINDOW(gtk_builder_get_object(builder, "window_settings_ui"));
@@ -241,7 +241,7 @@ void SettingsUI::login()
 	if(!Vars::serverAddress.empty() && Vars::commandPort != 0 && Vars::mediaPort != 0 && gotServerCert
 			&& !Vars::username.empty() && gotPrivateKey)
 	{
-		LoginAsync::execute(this, false);
+		LoginAsync::getInstance()->execute(this, false);
 	}
 	else
 	{

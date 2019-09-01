@@ -12,15 +12,15 @@ namespace
 	const int STEREO2CH = 2;
 	const int ENCODE_BITRATE = 32000;
 
-	R* r = R::getInstance();
-	Logger* logger = Logger::getInstance("");
-
 	OpusEncoder* enc = NULL;
 	OpusDecoder* dec = NULL;
 }
 
 void Opus::init()
 {
+	R* r = R::getInstance();
+	Logger* logger = Logger::getInstance();
+	
 	if(enc != NULL)
 	{
 		opus_encoder_destroy(enc);

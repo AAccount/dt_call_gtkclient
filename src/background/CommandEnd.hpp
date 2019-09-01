@@ -1,5 +1,5 @@
 /*
- * CommandAccept.hpp
+ * CommandEnd.hpp
  *
  *  Created on: Dec 28, 2018
  *      Author: Daniel
@@ -11,7 +11,7 @@
 #include <string>
 #include <iostream>
 #include <string.h>
-#include <pthread.h>
+#include <thread>
 #include "AsyncReceiver.hpp"
 #include "../vars.hpp"
 #include "../utils.hpp"

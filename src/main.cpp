@@ -11,8 +11,8 @@
 
 int main(int argc, char *argv[])
 {
-	Logger* logger = Logger::getInstance("/tmp/"); //logs don't need to be kept forever like the server
-	LoginAsync::init();
+	Logger::setLogLocation("/tmp");
+	Logger* logger = Logger::getInstance(); //logs don't need to be kept forever like the server
 
 	XInitThreads(); //the magic required to open another window
 	gtk_init(&argc, &argv);

@@ -12,7 +12,7 @@ UserHome* UserHome::instance = NULL;
 
 extern "C" void user_home_quit()
 {
-	Vars::commandSocket.stop();
+	Vars::commandSocket.get()->stop();
 	Utils::quit(Vars::privateKey.get(), Vars::voiceKey.get());
 }
 
@@ -36,7 +36,7 @@ extern "C" void user_home_contact_remove(GtkWidget* button, gpointer data)
 UserHome::UserHome() :
 settings(Settings::getInstance()),
 r(R::getInstance()),
-logger(Logger::getInstance("")),
+logger(Logger::getInstance()),
 contactToContainer(std::unordered_map<std::string, GtkBox*>()),
 buttonToContact(std::unordered_map<GtkButton*, std::string>()),
 contactToButton(std::unordered_map<std::string, GtkButton*>()),
@@ -68,7 +68,7 @@ contactToRemoveButton(std::unordered_map<std::string, GtkButton*>())
 	if(Vars::sessionKey.empty())
 	{
 		gtk_label_set_text(connectionStatus, r->getString(R::StringID::USER_HOME_OFFLINE).c_str());
-		LoginAsync::execute(this, true);
+		LoginAsync::getInstance()->execute(this, true);
 	}
 	else
 	{

@@ -25,7 +25,7 @@ locationValues(std::unordered_map<FileLocation, std::string>()),
 settingsTable(std::unordered_map<std::string, std::string>()),
 contacts(std::unordered_map<std::string, std::string>()),
 publicKeys(std::unordered_map<std::string, std::string>()),
-logger(Logger::getInstance("")),
+logger(Logger::getInstance()),
 r(R::getInstance())
 {
 

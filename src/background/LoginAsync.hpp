@@ -10,8 +10,9 @@
 #include <string>
 #include <vector>
 #include <memory>
-#include <pthread.h>
 #include <time.h>
+#include <thread>
+#include <mutex>
 #include "AsyncReceiver.hpp"
 #include "../vars.hpp"
 #include "../utils.hpp"
@@ -26,10 +27,28 @@
 #include "../Log.hpp"
 #include "Heartbeat.hpp"
 
-namespace LoginAsync
+class LoginAsync
 {
-	void init();
+public:
+	static LoginAsync* getInstance();
 	void execute(AsyncReceiver* receiver, bool retry);
+	
+private:
+	static LoginAsync* instance;
+	static bool heartbeatStarted;
+	
+	LoginAsync();
+	virtual ~LoginAsync();
+	
+	const int RETRY_DELAY = 60;
+	const int LOGIN_MAX_SEGMENTS = 3;
+	
+	bool running;
+	std::mutex inUse;
+	R* r;
+	Logger* logger;
+	
+	bool loginFunction(AsyncReceiver* receiver);
 };
 
 #endif /* SRC_BACKGROUND_LOGINASYNC_HPP_ */
