@@ -12,7 +12,7 @@
 #include <string>
 #include <vector>
 #include <stdexcept>
-#include <pthread.h>
+#include <thread>
 #include <string.h>
 #include <time.h>
 #include <sodium.h>
@@ -28,10 +28,29 @@
 #include "../Log.hpp"
 #include "../R.hpp"
 
-namespace CmdListener
+class CmdListener
 {
-	void startService();
-	bool registerUDP();
+public:
+	static void startService();
+	static bool registerUDP();
+	
+private:
+	static CmdListener* instance;
+	CmdListener();
+	virtual ~CmdListener();
+	
+	R* r;
+	Logger* logger;
+	
+	const int COMMAND_MAX_SEGMENTS = 5;
+	bool isCallInitiator;
+	bool haveVoiceKey;
+	bool preparationsComplete;
+	
+	void startInternal();
+	void sendReady();
+	void giveUp();
+	std::string censorIncomingCmd(const std::vector<std::string>& parsed);
 };
 
 #endif /* SRC_BACKGROUND_CMDLISTENER_HPP_ */

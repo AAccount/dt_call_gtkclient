@@ -7,280 +7,293 @@
 
 #include "CmdListener.hpp"
 
-namespace
+CmdListener* CmdListener::instance;
+
+CmdListener::CmdListener() :
+isCallInitiator(false),
+haveVoiceKey(false),
+preparationsComplete(false),
+r(R::getInstance()),
+logger(Logger::getInstance())
 {
-	const int COMMAND_MAX_SEGMENTS = 5;
-	const int UDP_RETRIES = 10;
-	bool isCallInitiator = false;
-	bool haveVoiceKey = false;
-	bool preparationsComplete = false;
+	
+}
 
-	R* r;
-	Logger* logger;
+CmdListener::~CmdListener()
+{
+	
+}
 
-	void sendReady();
-	void giveUp();
-	std::string censorIncomingCmd(const std::vector<std::string>& parsed);
-
-	void* serviceThread(void* context)
+//static
+void CmdListener::startService()
+{
+	if(instance != NULL)
 	{
-		r = R::getInstance();
-		logger = Logger::getInstance();
+		delete instance;
+	}
+	instance = new CmdListener();
+	instance->startInternal();	
+}
 
-		logger->insertLog(Log(Log::TAG::CMD_LISTENER, r->getString(R::StringID::CMDLISTENER_START), Log::TYPE::INFO).toString());
-		bool inputValid = true;
-		while(inputValid)
-		{
-			//responses from the server command connection will always be in text format
-			//timestamp|available|other_person
-			//timestamp|incoming|trying_to_call
-			//timestamp|start|other_person
-			//timestamp|end|other_person
-			//timestamp|prepare|public key|other_person
-			//timestamp|direct|(encrypted aes key)|other_person
-			//timestamp|invalid
+void CmdListener::startInternal()
+{
+	try
+	{
+		std::thread serviceThread([this] {
 
-			try
+			logger->insertLog(Log(Log::TAG::CMD_LISTENER, r->getString(R::StringID::CMDLISTENER_START), Log::TYPE::INFO).toString());
+			bool inputValid = true;
+			while (inputValid)
 			{
-				const std::string fromServer = Vars::commandSocket.get()->readString();
-				const std::vector<std::string> respContents = Utils::parse((unsigned char*)fromServer.c_str());
-				logger->insertLog(Log(Log::TAG::CMD_LISTENER, censorIncomingCmd(respContents), Log::TYPE::INBOUND).toString());
-				if(respContents.size() > COMMAND_MAX_SEGMENTS)
-				{
-					logger->insertLog(Log(Log::TAG::CMD_LISTENER, r->getString(R::StringID::CMDLISTENER_TOOMANY_SEGMENTS) + std::to_string(respContents.size()), Log::TYPE::ERROR).toString());
-					continue;
-				}
+				//responses from the server command connection will always be in text format
+				//timestamp|available|other_person
+				//timestamp|incoming|trying_to_call
+				//timestamp|start|other_person
+				//timestamp|end|other_person
+				//timestamp|prepare|public key|other_person
+				//timestamp|direct|(encrypted aes key)|other_person
+				//timestamp|invalid
 
-				if(!Utils::validTS(respContents.at(0)))
+				try
 				{
-					logger->insertLog(Log(Log::TAG::CMD_LISTENER, r->getString(R::StringID::CMDLISTENER_BADTS), Log::TYPE::ERROR).toString());
-					continue;
-				}
-
-				const std::string command = respContents.at(1);
-				const std::string involved = respContents.at(respContents.size()-1);
-
-				if(command == "incoming")
-				{
-					Vars::ustate = Vars::UserState::INIT;
-					isCallInitiator = false;
-					haveVoiceKey = false;
-					preparationsComplete = false;
-					Vars::callWith = involved;
-
-					CallScreen::mode = CallScreen::Mode::RECEIVING;
-					Utils::runOnUiThread(&CallScreen::render);
-					continue;
-				}
-
-				if(!(involved == Vars::callWith))
-				{
-					const std::string error = r->getString(R::StringID::CMDLISTENER_WRONG_OTHER) + Vars::callWith+"/"+involved;
-					logger->insertLog(Log(Log::TAG::CMD_LISTENER, error, Log::TYPE::ERROR).toString());
-					continue;
-				}
-
-				if(command == "available")
-				{
-					Vars::ustate = Vars::UserState::INIT;
-					isCallInitiator = true;
-					preparationsComplete = false;
-					UserHome::getInstance()->asyncResult(Vars::Broadcast::CALL_TRY);
-					UserHome::getInstance()->asyncResult(Vars::Broadcast::USERHOME_LOCK);
-				}
-				else if(command == "prepare")
-				{
-					const std::string receivedKeyDump = respContents.at(2);
-					const std::string receivedKeyCore = receivedKeyDump.substr(SodiumUtils::SODIUM_PUBLIC_HEADER().length(), crypto_box_PUBLICKEYBYTES*3);
-					std::unique_ptr<unsigned char[]> receivedKey = std::make_unique<unsigned char[]>(crypto_box_PUBLICKEYBYTES);
-					Stringify::destringify(receivedKeyCore, receivedKey.get());
-					std::unique_ptr<unsigned char[]> expectedKey;
-					Settings::getInstance()->getPublicKey(Vars::callWith, expectedKey);
-					if(expectedKey.get() != NULL)
+					const std::string fromServer = Vars::commandSocket.get()->readString();
+							const std::vector<std::string> respContents = Utils::parse((unsigned char*) fromServer.c_str());
+							logger->insertLog(Log(Log::TAG::CMD_LISTENER, censorIncomingCmd(respContents), Log::TYPE::INBOUND).toString());
+					if (respContents.size() > COMMAND_MAX_SEGMENTS)
 					{
-						const int compare = memcmp(receivedKey.get(), expectedKey.get(), crypto_box_PUBLICKEYBYTES);
-						if(compare != 0)
+						logger->insertLog(Log(Log::TAG::CMD_LISTENER, r->getString(R::StringID::CMDLISTENER_TOOMANY_SEGMENTS) + std::to_string(respContents.size()), Log::TYPE::ERROR).toString());
+						continue;
+					}
+
+					if (!Utils::validTS(respContents.at(0)))
+					{
+						logger->insertLog(Log(Log::TAG::CMD_LISTENER, r->getString(R::StringID::CMDLISTENER_BADTS), Log::TYPE::ERROR).toString());
+						continue;
+					}
+
+					const std::string command = respContents.at(1);
+							const std::string involved = respContents.at(respContents.size() - 1);
+
+					if (command == "incoming")
+					{
+						Vars::ustate = Vars::UserState::INIT;
+								isCallInitiator = false;
+								haveVoiceKey = false;
+								preparationsComplete = false;
+								Vars::callWith = involved;
+
+								CallScreen::mode = CallScreen::Mode::RECEIVING;
+								Utils::runOnUiThread(&CallScreen::render);
+						continue;
+					}
+
+					if (!(involved == Vars::callWith))
+					{
+						const std::string error = r->getString(R::StringID::CMDLISTENER_WRONG_OTHER) + Vars::callWith + "/" + involved;
+								logger->insertLog(Log(Log::TAG::CMD_LISTENER, error, Log::TYPE::ERROR).toString());
+						continue;
+					}
+
+					if (command == "available")
+					{
+						Vars::ustate = Vars::UserState::INIT;
+								isCallInitiator = true;
+								preparationsComplete = false;
+								UserHome::getInstance()->asyncResult(Vars::Broadcast::CALL_TRY);
+								UserHome::getInstance()->asyncResult(Vars::Broadcast::USERHOME_LOCK);
+					}
+					else if (command == "prepare")
+					{
+						const std::string receivedKeyDump = respContents.at(2);
+								const std::string receivedKeyCore = receivedKeyDump.substr(SodiumUtils::SODIUM_PUBLIC_HEADER().length(), crypto_box_PUBLICKEYBYTES * 3);
+								std::unique_ptr<unsigned char[] > receivedKey = std::make_unique<unsigned char[]>(crypto_box_PUBLICKEYBYTES);
+								Stringify::destringify(receivedKeyCore, receivedKey.get());
+								std::unique_ptr<unsigned char[] > expectedKey;
+								Settings::getInstance()->getPublicKey(Vars::callWith, expectedKey);
+						if (expectedKey.get() != NULL)
 						{
-							const std::string expecting = Stringify::stringify(expectedKey.get(), crypto_box_PUBLICKEYBYTES);
-							const std::string got = Stringify::stringify(receivedKey.get(), crypto_box_PUBLICKEYBYTES);
-							const std::string error = r->getString(R::StringID::CMDLISTENER_PUBLICKEY_MISMATCH) + Vars::callWith + ") " + expecting + "/" + got;
-							logger->insertLog(Log(Log::TAG::CMD_LISTENER, error, Log::TYPE::ERROR).toString());
-							giveUp();
+							const int compare = memcmp(receivedKey.get(), expectedKey.get(), crypto_box_PUBLICKEYBYTES);
+							if (compare != 0)
+							{
+								const std::string expecting = Stringify::stringify(expectedKey.get(), crypto_box_PUBLICKEYBYTES);
+										const std::string got = Stringify::stringify(receivedKey.get(), crypto_box_PUBLICKEYBYTES);
+										const std::string error = r->getString(R::StringID::CMDLISTENER_PUBLICKEY_MISMATCH) + Vars::callWith + ") " + expecting + "/" + got;
+										logger->insertLog(Log(Log::TAG::CMD_LISTENER, error, Log::TYPE::ERROR).toString());
+										giveUp();
+								continue;
+							}
+						}
+						else
+						{
+							Settings::getInstance()->modifyPublicKey(Vars::callWith, receivedKey);
+									Settings::getInstance()->save();
+									expectedKey = std::make_unique<unsigned char[]>(crypto_box_PUBLICKEYBYTES);
+									memcpy(expectedKey.get(), receivedKey.get(), crypto_box_PUBLICKEYBYTES);
+						}
+
+						if (isCallInitiator)
+						{
+							Vars::voiceKey = std::make_unique<unsigned char[]>(crypto_secretbox_KEYBYTES);
+									randombytes_buf(Vars::voiceKey.get(), crypto_secretbox_KEYBYTES);
+									std::unique_ptr<unsigned char[] > yourPublic;
+									Settings::getInstance()->getPublicKey(Vars::callWith, yourPublic);
+									std::unique_ptr<unsigned char[] > output;
+									int outputLength;
+									SodiumUtils::sodiumEncrypt(true, Vars::voiceKey.get(), crypto_secretbox_KEYBYTES, Vars::privateKey.get(), yourPublic.get(), output, outputLength);
+									const std::string outputStringified = Stringify::stringify(output.get(), outputLength);
+
+									const time_t now = Utils::now();
+									const std::string passthrough = std::to_string(now) + "|passthrough|" + Vars::callWith + "|" + outputStringified + "|" + Vars::sessionKey;
+									Vars::commandSocket.get()->writeString(passthrough);
+									const std::string loggedPassthrough = std::to_string(now) + "|passthrough|" + Vars::callWith + "|...|" + Vars::sessionKey;
+									logger->insertLog(Log(Log::TAG::CMD_LISTENER, loggedPassthrough, Log::TYPE::OUTBOUND).toString());
+									haveVoiceKey = true;
+						}
+
+						const bool registeredUDP = CmdListener::registerUDP();
+						if (registeredUDP)
+						{
+							preparationsComplete = true;
+									sendReady();
+						}
+						else
+						{
+							logger->insertLog(Log(Log::TAG::CMD_LISTENER, r->getString(R::StringID::ERR_UDP_REGISTRATION_FAILED), Log::TYPE::ERROR).toString());
+									giveUp();
+						}
+					}
+					else if (command == "direct")
+					{
+						const std::string setupString = respContents.at(2);
+								const int setupDesgringifiedLength = setupString.length() / 3;
+								std::unique_ptr<unsigned char[] > setupArray = std::make_unique<unsigned char[]>(setupDesgringifiedLength);
+								unsigned char* setup = setupArray.get();
+								Stringify::destringify(setupString, setup);
+								std::unique_ptr<unsigned char[] > callWithKey;
+								Settings::getInstance()->getPublicKey(Vars::callWith, callWithKey);
+								std::unique_ptr<unsigned char[] > voiceKeyDecrypted;
+								int voiceKeyDecLength = 0;
+								SodiumUtils::sodiumDecrypt(true, setup, setupDesgringifiedLength, Vars::privateKey.get(), callWithKey.get(), Vars::voiceKey, voiceKeyDecLength);
+
+						if (voiceKeyDecLength != 0)
+						{
+							haveVoiceKey = true;
+									sendReady();
+						}
+						else
+						{
+							logger->insertLog(Log(Log::TAG::CMD_LISTENER, r->getString(R::StringID::CMDLISTENER_PASSTHROUGH_FAIL), Log::TYPE::ERROR).toString());
+									giveUp();
 							continue;
 						}
 					}
-					else
+					else if (command == "start")
 					{
-						Settings::getInstance()->modifyPublicKey(Vars::callWith, receivedKey);
-						Settings::getInstance()->save();
-						expectedKey = std::make_unique<unsigned char[]>(crypto_box_PUBLICKEYBYTES);
-						memcpy(expectedKey.get(), receivedKey.get(), crypto_box_PUBLICKEYBYTES);
+						Vars::ustate = Vars::UserState::INCALL;
+								CallScreen::getInstance()->asyncResult(Vars::Broadcast::CALL_START);
 					}
 
-					if(isCallInitiator)
+					else if (command == "end")
 					{
-						Vars::voiceKey = std::make_unique<unsigned char[]>(crypto_secretbox_KEYBYTES);
-						randombytes_buf(Vars::voiceKey.get(), crypto_secretbox_KEYBYTES);
-						std::unique_ptr<unsigned char[]> yourPublic;
-						Settings::getInstance()->getPublicKey(Vars::callWith, yourPublic);
-						std::unique_ptr<unsigned char[]> output;
-						int outputLength;
-						SodiumUtils::sodiumEncrypt(true, Vars::voiceKey.get(), crypto_secretbox_KEYBYTES, Vars::privateKey.get(), yourPublic.get(), output, outputLength);
-						const std::string outputStringified = Stringify::stringify(output.get(), outputLength);
+						Vars::UserState oldState = Vars::ustate;
+								Vars::ustate = Vars::UserState::NONE;
+								Vars::callWith = "";
 
-						const time_t now = Utils::now();
-						const std::string passthrough = std::to_string(now) + "|passthrough|" + Vars::callWith + "|" + outputStringified + "|" + Vars::sessionKey;
-						Vars::commandSocket.get()->writeString(passthrough);
-						const std::string loggedPassthrough = std::to_string(now) + "|passthrough|" + Vars::callWith + "|...|" + Vars::sessionKey;
-						logger->insertLog(Log(Log::TAG::CMD_LISTENER, loggedPassthrough, Log::TYPE::OUTBOUND).toString());
-						haveVoiceKey = true;
+						if (oldState == Vars::UserState::NONE)
+						{//won't be in the phone call screen yet. tell user home the call can't be made
+							UserHome::getInstance()->asyncResult(Vars::Broadcast::CALL_END);
+						}
+						else //INIT or INCALL
+						{
+							UserHome::getInstance()->asyncResult(Vars::Broadcast::USERHOME_UNLOCK);
+									CallScreen::getInstance()->asyncResult(Vars::Broadcast::CALL_END);
+						}
 					}
 
-					const bool registeredUDP = CmdListener::registerUDP();
-					if(registeredUDP)
-					{
-						preparationsComplete = true;
-						sendReady();
-					}
-					else
-					{
-						logger->insertLog(Log(Log::TAG::CMD_LISTENER, r->getString(R::StringID::ERR_UDP_REGISTRATION_FAILED), Log::TYPE::ERROR).toString());
-						giveUp();
-					}
 				}
-				else if(command == "direct")
+				catch (std::string& e)
 				{
-					const std::string setupString = respContents.at(2);
-					const int setupDesgringifiedLength = setupString.length() / 3;
-					std::unique_ptr<unsigned char[]> setupArray = std::make_unique<unsigned char[]>(setupDesgringifiedLength);
-					unsigned char* setup = setupArray.get();
-					Stringify::destringify(setupString, setup);
-					std::unique_ptr<unsigned char[]> callWithKey;
-					Settings::getInstance()->getPublicKey(Vars::callWith, callWithKey);
-					std::unique_ptr<unsigned char[]> voiceKeyDecrypted;
-					int voiceKeyDecLength = 0;
-					SodiumUtils::sodiumDecrypt(true, setup, setupDesgringifiedLength, Vars::privateKey.get(), callWithKey.get(), Vars::voiceKey, voiceKeyDecLength);
-
-					if(voiceKeyDecLength != 0)
-					{
-						haveVoiceKey = true;
-						sendReady();
-					}
-					else
-					{
-						logger->insertLog(Log(Log::TAG::CMD_LISTENER, r->getString(R::StringID::CMDLISTENER_PASSTHROUGH_FAIL), Log::TYPE::ERROR).toString());
-						giveUp();
-						continue;
-					}
+					inputValid = false;
+							logger->insertLog(Log(Log::TAG::CMD_LISTENER, r->getString(R::StringID::CMDLISTENER_IOERROR), Log::TYPE::ERROR).toString());
+							Vars::commandSocket.get()->stop();
+							LoginManager::getInstance()->execute(UserHome::getInstance(), true);
 				}
-				else if(command == "start")
+				catch (std::out_of_range& e)
 				{
-					Vars::ustate = Vars::UserState::INCALL;
-					CallScreen::getInstance()->asyncResult(Vars::Broadcast::CALL_START);
+					logger->insertLog(Log(Log::TAG::CMD_LISTENER, r->getString(R::StringID::CMDLISTENER_OORANGE), Log::TYPE::ERROR).toString());
 				}
-
-				else if(command == "end")
-				{
-					Vars::UserState oldState = Vars::ustate;
-					Vars::ustate = Vars::UserState::NONE;
-					Vars::callWith = "";
-
-					if(oldState == Vars::UserState::NONE)
-					{//won't be in the phone call screen yet. tell user home the call can't be made
-						UserHome::getInstance()->asyncResult(Vars::Broadcast::CALL_END);
-					}
-					else //INIT or INCALL
-					{
-						UserHome::getInstance()->asyncResult(Vars::Broadcast::USERHOME_UNLOCK);
-						CallScreen::getInstance()->asyncResult(Vars::Broadcast::CALL_END);
-					}
-				}
-
 			}
-			catch(std::string& e)
-			{
-				inputValid = false;
-				logger->insertLog(Log(Log::TAG::CMD_LISTENER, r->getString(R::StringID::CMDLISTENER_IOERROR), Log::TYPE::ERROR).toString());
-				Vars::commandSocket.get()->stop();
-				LoginManager::getInstance()->execute(UserHome::getInstance(), true);
-			}
-			catch(std::out_of_range& e)
-			{
-				logger->insertLog(Log(Log::TAG::CMD_LISTENER, r->getString(R::StringID::CMDLISTENER_OORANGE), Log::TYPE::ERROR).toString());
-			}
-		}
-		return NULL;
+		});
+		serviceThread.join();
 	}
-
-	void sendReady()
+	catch(std::system_error& e)
 	{
-		if(haveVoiceKey && preparationsComplete)
-		{
-			const std::string ready = std::to_string(Utils::now()) + "|ready|" + Vars::callWith + "|" + Vars::sessionKey;
-			try
-			{
-				Vars::commandSocket.get()->writeString(ready);
-				logger->insertLog(Log(Log::TAG::CMD_LISTENER, ready, Log::TYPE::OUTBOUND).toString());
-			}
-			catch(std::string& e)
-			{
-				giveUp();
-				throw;
-			}
-		}
-	}
-
-	void giveUp()
-	{
-		CommandEnd::execute();
-		CallScreen::getInstance()->asyncResult(Vars::Broadcast::CALL_END);
-	}
-
-	std::string censorIncomingCmd(const std::vector<std::string>& parsed)
-	{
-		if(parsed.size() < 1)
-		{
-			return "";
-		}
-
-		try
-		{
-			if(parsed.at(1) == "direct")
-			{//timestamp|direct|(encrypted aes key)|other_person
-				return parsed.at(0) + "|" + parsed.at(1) + "|...|" + parsed.at(3);
-			}
-			else
-			{
-				std::string result = "";
-				for(int i=0; i<parsed.size(); i++)
-				{
-					result = result + parsed.at(i) + "|";
-				}
-				result = result.substr(0, result.length()-1);
-				return result;
-			}
-		}
-		catch(std::out_of_range& e)
-		{
-			logger->insertLog(Log(Log::TAG::CMD_LISTENER, r->getString(R::StringID::CMDLISTENER_OORANGE), Log::TYPE::ERROR).toString());
-			return "";
-		}
-	}
-
-}
-
-void CmdListener::startService()
-{
-	pthread_t thread;
-	if(pthread_create(&thread, NULL, serviceThread, NULL) != 0)
-	{
-		const std::string error = r->getString(R::StringID::ERR_THREAD_CREATE) + std::to_string(errno) + ") " + std::string(strerror(errno));
+		const std::string error = r->getString(R::StringID::ERR_THREAD_CREATE) + std::string(e.what()) + ")";
 		logger->insertLog(Log(Log::TAG::CMD_LISTENER, error, Log::TYPE::ERROR).toString());
 	}
 }
 
+void CmdListener::sendReady()
+{
+	if (haveVoiceKey && preparationsComplete)
+	{
+		const std::string ready = std::to_string(Utils::now()) + "|ready|" + Vars::callWith + "|" + Vars::sessionKey;
+		try
+		{
+			Vars::commandSocket.get()->writeString(ready);
+			logger->insertLog(Log(Log::TAG::CMD_LISTENER, ready, Log::TYPE::OUTBOUND).toString());
+		}
+		catch (std::string& e)
+		{
+			giveUp();
+			throw;
+		}
+	}
+}
+
+void CmdListener::giveUp()
+{
+	CommandEnd::execute();
+	CallScreen::getInstance()->asyncResult(Vars::Broadcast::CALL_END);
+}
+
+std::string CmdListener::censorIncomingCmd(const std::vector<std::string>& parsed)
+{
+	if (parsed.size() < 1)
+	{
+		return "";
+	}
+
+	try
+	{
+		if (parsed.at(1) == "direct")
+		{//timestamp|direct|(encrypted aes key)|other_person
+			return parsed.at(0) + "|" + parsed.at(1) + "|...|" + parsed.at(3);
+		}
+		else
+		{
+			std::string result = "";
+			for (int i = 0; i < parsed.size(); i++)
+			{
+				result = result + parsed.at(i) + "|";
+			}
+			result = result.substr(0, result.length() - 1);
+			return result;
+		}
+	}
+	catch (std::out_of_range& e)
+	{
+		logger->insertLog(Log(Log::TAG::CMD_LISTENER, r->getString(R::StringID::CMDLISTENER_OORANGE), Log::TYPE::ERROR).toString());
+		return "";
+	}
+}
+
+//static
 bool CmdListener::registerUDP()
 {
+	R* r = R::getInstance();
+	Logger* logger = Logger::getInstance();
+	
 	bool udpConnected = Utils::connectFD(Vars::mediaSocket, SOCK_DGRAM, Vars::serverAddress, Vars::mediaPort, &Vars::mediaPortAddrIn);
 	if(!udpConnected)
 	{
@@ -297,6 +310,7 @@ bool CmdListener::registerUDP()
 		logger->insertLog(Log(Log::TAG::CMD_LISTENER, error, Log::TYPE::ERROR).toString());
 	}
 
+	const int UDP_RETRIES = 10;
 	int retries = UDP_RETRIES;
 	while(retries > 0)
 	{
