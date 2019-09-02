@@ -82,6 +82,7 @@ private:
 	std::atomic<bool> ringtoneDone;
 	void ring();
 	std::thread ringThread;
+	bool ringThreadAlive;
 	void stopRing();
 
 	void changeToCallMode();

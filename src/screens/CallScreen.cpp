@@ -46,7 +46,8 @@ r(R::getInstance()),
 logger(Logger::getInstance()),
 ringtoneDone(false),
 encodeThreadAlive(false),
-decodeThreadAlive(false)
+decodeThreadAlive(false),
+ringThreadAlive(false)
 {
 	Settings* settings = Settings::getInstance();
 
@@ -635,8 +636,8 @@ void CallScreen::ring()
 				}
 			}
 			pa_simple_free(ringtonePlayer);
-			ringtonePlayer = NULL;
 		});
+		ringThreadAlive = true;
 	}
 	catch(std::system_error& e)
 	{
@@ -648,8 +649,9 @@ void CallScreen::ring()
 void CallScreen::stopRing()
 {
 	ringtoneDone = true;
-	if(ringtonePlayer != NULL) //only call join once
+	if(ringThreadAlive) //only call join once
 	{
 		ringThread.join();
+		ringThreadAlive = false;
 	}
 }
