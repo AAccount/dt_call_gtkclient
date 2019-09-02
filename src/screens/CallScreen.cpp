@@ -23,9 +23,30 @@ extern "C" void onclick_call_screen_end()
 	}
 }
 
+extern "C" void onclick_call_screen_mute()
+{
+	CallScreen* instance = CallScreen::getInstance();
+	if(instance != NULL)
+	{
+		instance->onclickMute();
+	}
+}
+
+extern "C" void onclick_call_screen_accept()
+{
+	CallScreen* instance = CallScreen::getInstance();
+	if(instance != NULL)
+	{
+		instance->onclickAccept();
+	}
+}
+
 CallScreen::CallScreen() :
 r(R::getInstance()),
-logger(Logger::getInstance())
+logger(Logger::getInstance()),
+ringtoneDone(false),
+encodeThreadAlive(false),
+decodeThreadAlive(false)
 {
 	Settings* settings = Settings::getInstance();
 
@@ -50,12 +71,11 @@ logger(Logger::getInstance())
 	{
 		gtk_widget_set_sensitive((GtkWidget*)buttonAccept, false);
 	}
-	g_signal_connect(G_OBJECT(window),"destroy", onclick_call_screen_end, NULL);
+	destroyHandleID = g_signal_connect(G_OBJECT(window),"destroy", onclick_call_screen_end, NULL);
 	stats = GTK_TEXT_VIEW(gtk_builder_get_object(builder, "call_screen_stats"));
 
 	//setup the timer and stats display
 	min = sec = 0;
-	pthread_mutex_init(&rxTSLock, NULL);
 	timeBuilder = std::stringstream();
 	statBuilder = std::stringstream();
 	garbage = rxtotal = txtotal = rxSeq = txSeq = skipped = oorange = 0;
@@ -68,16 +88,18 @@ logger(Logger::getInstance())
 	skippedLabel = r->getString(R::StringID::CALL_SCREEN_STAT_SKIP);
 	oorangeLabel = r->getString(R::StringID::CALL_SCREEN_STAT_RANGE);
 	statsBuffer = gtk_text_buffer_new(NULL);
-	pthread_t timerThread;
-	if(pthread_create(&timerThread, NULL, &CallScreen::timeCounterHelp, this) != 0)
+	try
 	{
-		const std::string error = "timerThread " + r->getString(R::StringID::ERR_THREAD_CREATE) + std::to_string(errno) + ") " + std::string(strerror(errno));
+		timeCounterThread = std::thread(&CallScreen::timeCounter, this);
+	}
+	catch(std::system_error& e)
+	{
+		const std::string error = "timerThread " + r->getString(R::StringID::ERR_THREAD_CREATE) + std::string(e.what()) + ")";
 		logger->insertLog(Log(Log::TAG::CALL_SCREEN, error, Log::TYPE::ERROR).toString());
 	}
 
 	//other setup
 	muted = muteStatusNew = false;
-	pthread_mutex_init(&deadUDPLock, NULL);
 	reconnectionAttempted = false;
 	memset(&lastReceivedTimestamp, 0, sizeof(struct timeval));
 
@@ -86,9 +108,6 @@ logger(Logger::getInstance())
 	gtk_builder_connect_signals(builder, NULL);
 	g_object_unref(builder);
 
-	pthread_mutex_init(&ringtoneLock, NULL);
-	ringtonePlayer = NULL;
-	ringtoneDone = false;
 	ring();
 
 	onScreen = true;
@@ -96,6 +115,8 @@ logger(Logger::getInstance())
 
 CallScreen::~CallScreen()
 {
+	timeCounterThread.join();
+	
 	gtk_widget_destroy((GtkWidget*)window);
 	g_object_unref(window);
 	g_object_unref(statsBuffer);
@@ -159,8 +180,20 @@ void CallScreen::onclickEnd()
 		randombytes_buf(voiceKey, crypto_box_SECRETKEYBYTES);
 	}
 
+	if(encodeThreadAlive)
+	{
+		encodeThread.join();
+		encodeThreadAlive = false;
+	}
+	if(decodeThreadAlive)
+	{
+		decodeThread.join();
+		decodeThreadAlive = false;
+	}
+	
 	CommandEnd::execute();
 	UserHome::getInstance()->asyncResult(Vars::Broadcast::USERHOME_UNLOCK);
+	g_signal_handler_disconnect(G_OBJECT(window), destroyHandleID); //onclick call end is actually ran again after the window is gone unless you tell it not to
 	Utils::runOnUiThread(&CallScreen::remove);
 }
 
@@ -177,14 +210,7 @@ void CallScreen::onclickAccept()
 	CommandAccept::execute();
 }
 
-//static
-void* CallScreen::timeCounterHelp(void* context)
-{
-	CallScreen* screen = static_cast<CallScreen*>(context);
-	return screen->timeCounter();
-}
-
-void* CallScreen::timeCounter(void)
+void CallScreen::timeCounter()
 {//this function is run on the UI thread: started form the constructor (which was called by the ui thread).
 	const int A_SECOND = 1;
 	while(Vars::ustate != Vars::UserState::NONE)
@@ -198,22 +224,19 @@ void* CallScreen::timeCounter(void)
 
 		if(Vars::ustate == Vars::UserState::INCALL)
 		{
-			pthread_mutex_lock(&rxTSLock);
+			std::unique_lock<std::mutex> receivedTimestampLock(receivedTimestampMutex);
+			const int ASECOND_AS_US = 1000000;
+			struct timeval now;
+			memset(&now, 0, sizeof(struct timeval));
+			gettimeofday(&now, NULL);
+			const int btw = now.tv_usec - lastReceivedTimestamp.tv_usec;
+			if(btw > ASECOND_AS_US && Vars::mediaSocket != -1)
 			{
-				const int ASECOND_AS_US = 1000000;
-				struct timeval now;
-				memset(&now, 0, sizeof(struct timeval));
-				gettimeofday(&now, NULL);
-				const int btw = now.tv_usec - lastReceivedTimestamp.tv_usec;
-				if(btw > ASECOND_AS_US && Vars::mediaSocket != -1)
-				{
-					logger->insertLog(Log(Log::TAG::CALL_SCREEN, r->getString(R::StringID::CALL_SCREEN_LAST_UDP_FOREVER), Log::TYPE::ERROR).toString());
-					shutdown(Vars::mediaSocket, 2);
-					close(Vars::mediaSocket);
-					Vars::mediaSocket = -1;
-				}
-			}
-			pthread_mutex_unlock(&rxTSLock);
+				logger->insertLog(Log(Log::TAG::CALL_SCREEN, r->getString(R::StringID::CALL_SCREEN_LAST_UDP_FOREVER), Log::TYPE::ERROR).toString());
+				shutdown(Vars::mediaSocket, 2);
+				close(Vars::mediaSocket);
+				Vars::mediaSocket = -1;
+			}	
 		}
 
 		updateStats();
@@ -223,7 +246,6 @@ void* CallScreen::timeCounter(void)
 		}
 		sleep(A_SECOND);
 	}
-	return 0;
 }
 
 void CallScreen::updateTime()
@@ -304,28 +326,35 @@ void CallScreen::changeToCallMode()
 	stopRing();
 
 	Opus::init();
-	pthread_t mediaEncodeThread;
-	if(pthread_create(&mediaEncodeThread, NULL, &CallScreen::mediaEncodeHelp, this) != 0)
+	try
 	{
-		const std::string error = "mediaEncodeThread " + r->getString(R::StringID::ERR_THREAD_CREATE) + std::to_string(errno) + ") " + std::string(strerror(errno));
+		encodeThread = std::thread(&CallScreen::mediaEncode, this);
+		encodeThreadAlive = true;
+	}
+	catch(std::system_error& e)
+	{
+		const std::string error = "mediaEncodeThread " + r->getString(R::StringID::ERR_THREAD_CREATE) + std::string(e.what()) + ")";
 		logger->insertLog(Log(Log::TAG::CALL_SCREEN, error, Log::TYPE::ERROR).toString());
 		onclickEnd();
 	}
-	pthread_t mediaDecodeThread;
-	if(pthread_create(&mediaDecodeThread, NULL, &CallScreen::mediaDecodeHelp, this) != 0)
+	
+	try
 	{
-		const std::string error = "mediaDecodeThread " + r->getString(R::StringID::ERR_THREAD_CREATE) + std::to_string(errno) + ") " + std::string(strerror(errno));
+		decodeThread = std::thread(&CallScreen::mediaDecode, this);
+		decodeThreadAlive = true;
+	}
+	catch(std::system_error& e)
+	{
+		const std::string error = "mediaDecodeThread " + r->getString(R::StringID::ERR_THREAD_CREATE) + std::string(e.what()) + ")";
 		logger->insertLog(Log(Log::TAG::CALL_SCREEN, error, Log::TYPE::ERROR).toString());
 		onclickEnd();
 	}
 }
 
-void* CallScreen::mediaEncode(void)
+void CallScreen::mediaEncode()
 {
 	//assuming pulse audio get microphone always works (unlike android audio record)
-	Logger* localLogger = Logger::getInstance();
-	R* localRes = R::getInstance();
-	localLogger->insertLog(Log(Log::TAG::CALL_SCREEN, localRes->getString(R::StringID::CALL_SCREEN_MEDIA_ENC_START), Log::TYPE::INFO).toString());
+	logger->insertLog(Log(Log::TAG::CALL_SCREEN, r->getString(R::StringID::CALL_SCREEN_MEDIA_ENC_START), Log::TYPE::INFO).toString());
 
 	//setup pulse audio as the voice recorder
 	pa_simple* wavRecorder = NULL;
@@ -334,13 +363,13 @@ void* CallScreen::mediaEncode(void)
 	ss.format = PA_SAMPLE_S16LE;
 	ss.channels = 2;
 	ss.rate = Opus::SAMPLERATE;
-	const std::string self = localRes->getString(R::StringID::SELF);
-	const std::string description = localRes->getString(R::StringID::CALL_SCREEN_MEDIA_ENC_DESC);
+	const std::string self = r->getString(R::StringID::SELF);
+	const std::string description = r->getString(R::StringID::CALL_SCREEN_MEDIA_ENC_DESC);
 	wavRecorder = pa_simple_new(NULL, self.c_str(), PA_STREAM_RECORD, NULL, description.c_str(), &ss, NULL, NULL, NULL);
 	int latencyErr;
 	pa_usec_t latency = pa_simple_get_latency(wavRecorder, &latencyErr);
-	const std::string info = localRes->getString(R::StringID::CALL_SCREEN_MEDIA_ENC_LATENCY) + std::to_string(latency);
-	localLogger->insertLog(Log(Log::TAG::CALL_SCREEN, info, Log::TYPE::INFO).toString());
+	const std::string info = r->getString(R::StringID::CALL_SCREEN_MEDIA_ENC_LATENCY) + std::to_string(latency);
+	logger->insertLog(Log(Log::TAG::CALL_SCREEN, info, Log::TYPE::INFO).toString());
 
 	const int wavFrames = Opus::WAVFRAMESIZE;
 	std::unique_ptr<unsigned char[]> packetBufferArray = std::make_unique<unsigned char[]>(Vars::MAX_UDP);
@@ -354,10 +383,10 @@ void* CallScreen::mediaEncode(void)
 	{
 		if(muteStatusNew)
 		{
-			std::string text = localRes->getString(R::StringID::CALL_SCREEN_BUTTON_MUTE);
+			std::string text = r->getString(R::StringID::CALL_SCREEN_BUTTON_MUTE);
 			if(muted)
 			{
-				text = localRes->getString(R::StringID::CALL_SCREEN_BUTTON_MUTE_UNMUTE);
+				text = r->getString(R::StringID::CALL_SCREEN_BUTTON_MUTE_UNMUTE);
 			}
 			gtk_button_set_label(buttonMute, text.c_str());
 			muteStatusNew = false;
@@ -368,8 +397,8 @@ void* CallScreen::mediaEncode(void)
 		const int paread = pa_simple_read(wavRecorder, wavBuffer, wavFrames*sizeof(short), &paReadError);
 		if(paread != 0 )
 		{
-			const std::string error = localRes->getString(R::StringID::CALL_SCREEN_MEDIA_ENC_PA_ERR) + std::to_string(paReadError);
-			localLogger->insertLog(Log(Log::TAG::CALL_SCREEN, error, Log::TYPE::ERROR).toString());
+			const std::string error = r->getString(R::StringID::CALL_SCREEN_MEDIA_ENC_PA_ERR) + std::to_string(paReadError);
+			logger->insertLog(Log(Log::TAG::CALL_SCREEN, error, Log::TYPE::ERROR).toString());
 			continue;
 		}
 
@@ -383,8 +412,8 @@ void* CallScreen::mediaEncode(void)
 		const int encodeLength = Opus::encode(wavBuffer, wavFrames, encodedBuffer, wavFrames);
 		if(encodeLength < 1)
 		{
-			const std::string error = localRes->getString(R::StringID::CALL_SCREEN_MEDIA_ENC_OPUS_ERR) + std::to_string(encodeLength);
-			localLogger->insertLog(Log(Log::TAG::CALL_SCREEN, error, Log::TYPE::ERROR).toString());
+			const std::string error = r->getString(R::StringID::CALL_SCREEN_MEDIA_ENC_OPUS_ERR) + std::to_string(encodeLength);
+			logger->insertLog(Log(Log::TAG::CALL_SCREEN, error, Log::TYPE::ERROR).toString());
 			continue;
 		}
 
@@ -398,16 +427,16 @@ void* CallScreen::mediaEncode(void)
 		SodiumUtils::sodiumEncrypt(false, packetBuffer, sizeof(uint32_t)+encodeLength, Vars::voiceKey.get(), NULL, packetEncrypted, packetEncryptedLength);
 		if(packetEncryptedLength < 1)
 		{
-			const std::string error = localRes->getString(R::StringID::CALL_SCREEN_MEDIA_ENC_SODIUM_ERR);
-			localLogger->insertLog(Log(Log::TAG::CALL_SCREEN, error, Log::TYPE::ERROR).toString());
+			const std::string error = r->getString(R::StringID::CALL_SCREEN_MEDIA_ENC_SODIUM_ERR);
+			logger->insertLog(Log(Log::TAG::CALL_SCREEN, error, Log::TYPE::ERROR).toString());
 			continue;
 		}
 
 		const int sent = sendto(Vars::mediaSocket, packetEncrypted.get(), packetEncryptedLength, 0, (struct sockaddr*)&Vars::mediaPortAddrIn, sizeof(struct sockaddr_in));
 		if(sent < 0)
 		{
-			const std::string error = localRes->getString(R::StringID::CALL_SCREEN_MEDIA_ENC_NETWORK_ERR);
-			localLogger->insertLog(Log(Log::TAG::CALL_SCREEN, error, Log::TYPE::ERROR).toString());
+			const std::string error = r->getString(R::StringID::CALL_SCREEN_MEDIA_ENC_NETWORK_ERR);
+			logger->insertLog(Log(Log::TAG::CALL_SCREEN, error, Log::TYPE::ERROR).toString());
 			reconnectUDP();
 			continue;
 		}
@@ -421,21 +450,14 @@ void* CallScreen::mediaEncode(void)
 	randombytes_buf(encodedBuffer, wavFrames);
 	Opus::closeEncoder();
 	pa_simple_free(wavRecorder);
-	localLogger->insertLog(Log(Log::TAG::CALL_SCREEN, localRes->getString(R::StringID::CALL_SCREEN_MEDIA_ENC_STOP), Log::TYPE::INFO).toString());
-	return 0;
+	logger->insertLog(Log(Log::TAG::CALL_SCREEN, r->getString(R::StringID::CALL_SCREEN_MEDIA_ENC_STOP), Log::TYPE::INFO).toString());
 }
 
-void* CallScreen::mediaEncodeHelp(void* context)
-{
-	CallScreen* screen = static_cast<CallScreen*>(context);
-	return screen->mediaEncode();
-}
 
-void* CallScreen::mediaDecode(void)
+
+void CallScreen::mediaDecode()
 {
-	Logger* localLogger = Logger::getInstance();
-	R* localRes = R::getInstance();
-	localLogger->insertLog(Log(Log::TAG::CALL_SCREEN, localRes->getString(R::StringID::CALL_SCREEN_MEDIA_DEC_START), Log::TYPE::INFO).toString());
+	logger->insertLog(Log(Log::TAG::CALL_SCREEN, r->getString(R::StringID::CALL_SCREEN_MEDIA_DEC_START), Log::TYPE::INFO).toString());
 
 	//setup pulse audio for voice playback
 	pa_simple* wavPlayer = NULL;
@@ -444,13 +466,13 @@ void* CallScreen::mediaDecode(void)
 	ss.format = PA_SAMPLE_S16LE;
 	ss.channels = 2;
 	ss.rate = Opus::SAMPLERATE;
-	const std::string self = localRes->getString(R::StringID::SELF);
-	const std::string description = localRes->getString(R::StringID::CALL_SCREEN_MEDIA_DEC_DESC);
+	const std::string self = r->getString(R::StringID::SELF);
+	const std::string description = r->getString(R::StringID::CALL_SCREEN_MEDIA_DEC_DESC);
 	wavPlayer = pa_simple_new(NULL, self.c_str(), PA_STREAM_PLAYBACK, NULL, description.c_str(), &ss, NULL, NULL, NULL);
 	int latencyErr;
 	pa_usec_t latency = pa_simple_get_latency(wavPlayer, &latencyErr);
-	const std::string info = localRes->getString(R::StringID::CALL_SCREEN_MEDIA_DEC_LATENCY) + std::to_string(latency);
-	localLogger->insertLog(Log(Log::TAG::CALL_SCREEN, info, Log::TYPE::INFO).toString());
+	const std::string info = r->getString(R::StringID::CALL_SCREEN_MEDIA_DEC_LATENCY) + std::to_string(latency);
+	logger->insertLog(Log(Log::TAG::CALL_SCREEN, info, Log::TYPE::INFO).toString());
 
 	const int wavFrames = Opus::WAVFRAMESIZE;
 	std::unique_ptr<unsigned char[]> encBufferArray = std::make_unique<unsigned char[]>(wavFrames);
@@ -469,18 +491,17 @@ void* CallScreen::mediaDecode(void)
 		const int receivedLength = recvfrom(Vars::mediaSocket, packetBuffer, Vars::MAX_UDP, 0, (struct sockaddr*)&sender, &senderLength);
 		if(receivedLength < 0)
 		{
-			const std::string error = localRes->getString(R::StringID::CALL_SCREEN_MEDIA_DEC_NETWORK_ERR);
-			localLogger->insertLog(Log(Log::TAG::CALL_SCREEN, error, Log::TYPE::ERROR).toString());
+			const std::string error = r->getString(R::StringID::CALL_SCREEN_MEDIA_DEC_NETWORK_ERR);
+			logger->insertLog(Log(Log::TAG::CALL_SCREEN, error, Log::TYPE::ERROR).toString());
 			reconnectUDP();
 			continue;
 		}
 		else
 		{
-			pthread_mutex_lock(&rxTSLock);
 			{
+				std::unique_lock<std::mutex>(receivedTimestampMutex);
 				gettimeofday(&lastReceivedTimestamp, NULL);
 			}
-			pthread_mutex_unlock(&rxTSLock);
 			rxtotal = rxtotal + receivedLength + HEADERS;
 		}
 		std::unique_ptr<unsigned char[]> packetDecrypted;
@@ -488,8 +509,8 @@ void* CallScreen::mediaDecode(void)
 		SodiumUtils::sodiumDecrypt(false, packetBuffer, receivedLength, Vars::voiceKey.get(), NULL, packetDecrypted, packetDecryptedLength);
 		if(packetDecryptedLength < sizeof(uint32_t)) //should have received at least the sequence number
 		{
-			const std::string error = localRes->getString(R::StringID::CALL_SCREEN_MEDIA_DEC_SODIUM_ERR);
-			localLogger->insertLog(Log(Log::TAG::CALL_SCREEN, error, Log::TYPE::ERROR).toString());
+			const std::string error = r->getString(R::StringID::CALL_SCREEN_MEDIA_DEC_SODIUM_ERR);
+			logger->insertLog(Log(Log::TAG::CALL_SCREEN, error, Log::TYPE::ERROR).toString());
 			continue;
 		}
 
@@ -517,8 +538,8 @@ void* CallScreen::mediaDecode(void)
 		const int frames = Opus::decode(encBuffer, opusLength, wavBuffer, wavFrames);
 		if(frames < 1)
 		{
-			const std::string error = localRes->getString(R::StringID::CALL_SCREEN_MEDIA_DEC_OPUS_ERR) + std::to_string(frames);
-			localLogger->insertLog(Log(Log::TAG::CALL_SCREEN, error, Log::TYPE::ERROR).toString());
+			const std::string error = r->getString(R::StringID::CALL_SCREEN_MEDIA_DEC_OPUS_ERR) + std::to_string(frames);
+			logger->insertLog(Log(Log::TAG::CALL_SCREEN, error, Log::TYPE::ERROR).toString());
 			randombytes_buf(packetDecrypted.get(), packetDecryptedLength);
 			continue;
 		}
@@ -526,8 +547,8 @@ void* CallScreen::mediaDecode(void)
 		const int paWrite = pa_simple_write(wavPlayer, wavBuffer, frames*sizeof(short), &paWriteError);
 		if(paWrite != 0 )
 		{
-			const std::string error = localRes->getString(R::StringID::CALL_SCREEN_MEDIA_DEC_PA_ERR) + std::to_string(paWriteError);
-			localLogger->insertLog(Log(Log::TAG::CALL_SCREEN, error, Log::TYPE::ERROR).toString());
+			const std::string error = r->getString(R::StringID::CALL_SCREEN_MEDIA_DEC_PA_ERR) + std::to_string(paWriteError);
+			logger->insertLog(Log(Log::TAG::CALL_SCREEN, error, Log::TYPE::ERROR).toString());
 		}
 		randombytes_buf(packetDecrypted.get(), packetDecryptedLength);
 	}
@@ -537,19 +558,12 @@ void* CallScreen::mediaDecode(void)
 	randombytes_buf(wavBuffer, wavFrames*sizeof(short));
 	pa_simple_free(wavPlayer);
 	Opus::closeDecoder();
-	localLogger->insertLog(Log(Log::TAG::CALL_SCREEN, localRes->getString(R::StringID::CALL_SCREEN_MEDIA_DEC_STOP), Log::TYPE::INFO).toString());
-	return 0;
-}
-
-void* CallScreen::mediaDecodeHelp(void* context)
-{
-	CallScreen* screen = static_cast<CallScreen*>(context);
-	return screen->mediaDecode();
+	logger->insertLog(Log(Log::TAG::CALL_SCREEN, r->getString(R::StringID::CALL_SCREEN_MEDIA_DEC_STOP), Log::TYPE::INFO).toString());
 }
 
 void CallScreen::reconnectUDP()
 {
-pthread_mutex_lock(&deadUDPLock);
+	std::unique_lock<std::mutex> deadUDPLock(deadUDPMutex);
 	if(Vars::ustate == Vars::UserState::NONE)
 	{
 		return;
@@ -565,113 +579,77 @@ pthread_mutex_lock(&deadUDPLock);
 		reconnectionAttempted = true;
 		if(!reconnected)
 		{
-			pthread_mutex_unlock(&deadUDPLock);
 			onclickEnd();
 		}
 	}
-pthread_mutex_unlock(&deadUDPLock);
-}
-
-
-void* CallScreen::ringThread(void* context)
-{
-	CallScreen* screen = static_cast<CallScreen*>(context);
-
-	pa_sample_spec ss;
-	memset(&ss, 0, sizeof(pa_sample_spec));
-	ss.format = PA_SAMPLE_S16LE;
-	ss.channels = 1;
-	ss.rate = RINGTONE_SAMPLERATE;
-	const std::string self = screen->r->getString(R::StringID::SELF);
-	const std::string description = screen->r->getString(R::StringID::CALL_SCREEN_MEDIA_RINGTONE_DESC);
-	screen->ringtonePlayer = pa_simple_new(NULL, self.c_str(), PA_STREAM_PLAYBACK, NULL, description.c_str(), &ss, NULL, NULL, NULL);
-
-	//write the ringtone 1/10th of a second at a time for 1.5s then 1s of silence.
-	//using this weird 1/10th of a second at a time scheme because pa_simple functions all block
-	const double TOTAL_SAMPLES = RINGTONE_SAMPLERATE/RINGTONE_DIVISION;
-	std::unique_ptr<short[]> silenceArray = std::make_unique<short[]>((int)TOTAL_SAMPLES);
-	short* silence = silenceArray.get();
-	const int MAX_DIVISIONS = CallScreen::INIT_TIMEOUT*RINGTONE_DIVISION;
-	const int DIVISIONS_RINGTONE = CallScreen::TONE_TIME*RINGTONE_DIVISION;
-	const int DIVISIONS_SILENCE = CallScreen::SILENCE_TIME*RINGTONE_DIVISION;
-	bool playRingtone = true;
-	int divisionsPlayed = 0;
-	struct timespec divisionTime;
-	memset(&divisionTime, 0, sizeof(struct timespec));
-	divisionTime.tv_sec = 0;
-	divisionTime.tv_nsec = (int)(1000000000.0 / RINGTONE_DIVISION);
-	for(int i=0; i<MAX_DIVISIONS; i++)
-	{
-		short* item = silence;
-		if(playRingtone)
-		{
-			item = CallScreen::ringtone.get();
-		}
-
-		pthread_mutex_lock(&screen->ringtoneLock);
-			if(screen->ringtoneDone)
-			{
-				pthread_mutex_unlock(&screen->ringtoneLock);
-				return NULL;
-			}
-			int paWriteError = 0;
-			pa_simple_write(screen->ringtonePlayer, item, TOTAL_SAMPLES*sizeof(short), &paWriteError);
-		pthread_mutex_unlock(&screen->ringtoneLock);
-		nanosleep(&divisionTime, NULL);
-		divisionsPlayed++;
-
-		if(playRingtone && (divisionsPlayed == DIVISIONS_RINGTONE))
-		{
-			divisionsPlayed = 0;
-			playRingtone = false;
-		}
-		else if(!playRingtone && (divisionsPlayed == DIVISIONS_SILENCE))
-		{
-			divisionsPlayed = 0;
-			playRingtone = true;
-		}
-	}
-	return NULL;
 }
 
 void CallScreen::ring()
 {
-	pthread_t ringThread;
-	if(pthread_create(&ringThread, NULL, &CallScreen::ringThread, this) != 0)
+	try
 	{
-		const std::string error = "ringThread " + r->getString(R::StringID::ERR_THREAD_CREATE) + std::to_string(errno) + ") " + std::string(strerror(errno));
+		ringThread = std::thread([this] {
+			pa_sample_spec ss;
+			memset(&ss, 0, sizeof (pa_sample_spec));
+			ss.format = PA_SAMPLE_S16LE;
+			ss.channels = 1;
+			ss.rate = RINGTONE_SAMPLERATE;
+			const std::string self = r->getString(R::StringID::SELF);
+			const std::string description = r->getString(R::StringID::CALL_SCREEN_MEDIA_RINGTONE_DESC);
+			ringtonePlayer = pa_simple_new(NULL, self.c_str(), PA_STREAM_PLAYBACK, NULL, description.c_str(), &ss, NULL, NULL, NULL);
+
+			//write the ringtone 1/10th of a second at a time for 1.5s then 1s of silence.
+			//using this weird 1/10th of a second at a time scheme because pa_simple functions all block
+			const double TOTAL_SAMPLES = RINGTONE_SAMPLERATE / RINGTONE_DIVISION;
+			std::unique_ptr<short[] > silenceArray = std::make_unique<short[]>((int) TOTAL_SAMPLES);
+			const int DIVISIONS_RINGTONE = TONE_TIME*RINGTONE_DIVISION;
+			const int DIVISIONS_SILENCE = SILENCE_TIME*RINGTONE_DIVISION;
+			bool playRingtone = true;
+			int divisionsPlayed = 0;
+			struct timespec divisionTime;
+			memset(&divisionTime, 0, sizeof (struct timespec));
+			divisionTime.tv_sec = 0;
+			divisionTime.tv_nsec = (int) (1000000000.0 / RINGTONE_DIVISION);
+			while(!ringtoneDone)
+			{
+				short* item = silenceArray.get();;
+				if (playRingtone)
+				{
+					item = ringtone.get();
+				}
+
+				int paWriteError = 0;
+				pa_simple_write(ringtonePlayer, item, TOTAL_SAMPLES * sizeof(short), &paWriteError);
+				nanosleep(&divisionTime, NULL);
+				divisionsPlayed++;
+
+				if (playRingtone && (divisionsPlayed == DIVISIONS_RINGTONE))
+				{
+					divisionsPlayed = 0;
+					playRingtone = false;
+				}
+				else if (!playRingtone && (divisionsPlayed == DIVISIONS_SILENCE))
+				{
+					divisionsPlayed = 0;
+					playRingtone = true;
+				}
+			}
+			pa_simple_free(ringtonePlayer);
+			ringtonePlayer = NULL;
+		});
+	}
+	catch(std::system_error& e)
+	{
+		const std::string error = "ringThread " + r->getString(R::StringID::ERR_THREAD_CREATE) + std::string(e.what()) + ")";
 		logger->insertLog(Log(Log::TAG::CALL_SCREEN, error, Log::TYPE::ERROR).toString());
 	}
 }
 
 void CallScreen::stopRing()
 {
-	if(ringtonePlayer != NULL)
+	ringtoneDone = true;
+	if(ringtonePlayer != NULL) //only call join once
 	{
-		pthread_mutex_lock(&ringtoneLock);
-			int error = 0;
-			pa_simple_flush(ringtonePlayer, &error);
-			pa_simple_free(ringtonePlayer);
-			ringtonePlayer = NULL;
-			ringtoneDone = true;
-		pthread_mutex_unlock(&ringtoneLock);
-	}
-}
-
-extern "C" void onclick_call_screen_mute()
-{
-	CallScreen* instance = CallScreen::getInstance();
-	if(instance != NULL)
-	{
-		instance->onclickMute();
-	}
-}
-
-extern "C" void onclick_call_screen_accept()
-{
-	CallScreen* instance = CallScreen::getInstance();
-	if(instance != NULL)
-	{
-		instance->onclickAccept();
+		ringThread.join();
 	}
 }

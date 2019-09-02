@@ -10,7 +10,6 @@
 
 #include <gtk/gtk.h>
 #include <iostream>
-#include <pthread.h>
 #include <memory>
 
 #include <unistd.h>

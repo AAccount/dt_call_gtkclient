@@ -12,9 +12,11 @@
 #include <iostream>
 #include <sstream>
 #include <memory>
+#include <thread>
+#include <mutex>
+#include <atomic>
 
 #include <sodium.h>
-#include <pthread.h>
 #include <gtk/gtk.h>
 #include <pulse/simple.h>
 #include <sys/time.h>
@@ -40,7 +42,7 @@ public:
 	static int render(void* a);
 	static int remove(void* a);
 	static CallScreen* getInstance();
-
+	
 	void asyncResult(int result) override;
 	void onclickEnd();
 	void onclickMute();
@@ -60,9 +62,9 @@ private:
 
 	const static int HEADERS = 52;
 	int min, sec;
-	pthread_mutex_t rxTSLock;
-	void* timeCounter(void);
-	static void* timeCounterHelp(void* context);
+	std::mutex receivedTimestampMutex;
+	std::thread timeCounterThread;
+	void timeCounter();
 	struct timeval lastReceivedTimestamp;
 	void updateTime();
 	void updateStats();
@@ -77,20 +79,21 @@ private:
 
 	const static int INIT_TIMEOUT = 30;
 	pa_simple* ringtonePlayer = NULL;
-	pthread_mutex_t ringtoneLock;
-	bool ringtoneDone;
+	std::atomic<bool> ringtoneDone;
 	void ring();
-	static void* ringThread(void* context);
+	std::thread ringThread;
 	void stopRing();
 
 	void changeToCallMode();
 	bool muted, muteStatusNew;
-	pthread_mutex_t deadUDPLock;
+	std::mutex deadUDPMutex;
 	bool reconnectionAttempted;
-	void* mediaEncode(void);
-	static void* mediaEncodeHelp(void* context);
-	void* mediaDecode(void);
-	static void* mediaDecodeHelp(void* context);
+	std::thread encodeThread;
+	void mediaEncode();
+	bool encodeThreadAlive;
+	std::thread decodeThread;
+	void mediaDecode();
+	bool decodeThreadAlive;
 	void reconnectUDP();
 	const static int OORANGE_LIMIT = 100;
 
@@ -106,6 +109,7 @@ private:
 	GtkButton* buttonEnd;
 	GtkButton* buttonMute;
 	GtkButton* buttonAccept;
+	gulong destroyHandleID;
 };
 
 #endif /* SRC_SCREENS_CALLSCREEN_HPP_ */
