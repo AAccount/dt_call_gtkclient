@@ -12,8 +12,8 @@ UserHome* UserHome::instance = NULL;
 
 extern "C" void user_home_quit()
 {
-	Vars::commandSocket.get()->stop();
-	Utils::quit(Vars::privateKey.get(), Vars::voiceKey.get());
+	UserHome* screen = UserHome::getInstance();
+	screen->onclickQuit();
 }
 
 extern "C" void user_home_contact_button(GtkWidget* button, gpointer data)
@@ -58,7 +58,7 @@ contactToRemoveButton(std::unordered_map<std::string, GtkButton*>())
 	contactList = GTK_BOX(gtk_builder_get_object(builder, "user_home_contact_list"));
 	contactsLabel = GTK_LABEL(gtk_builder_get_object(builder, "user_home_label_contacts"));
 	gtk_label_set_text(contactsLabel, r->getString(R::StringID::USER_HOME_LABEL_CONTACTS).c_str());
-	destroySignalID = g_signal_connect(G_OBJECT(window),"destroy", user_home_quit, NULL);
+	destroyHandleID = g_signal_connect(G_OBJECT(window),"destroy", user_home_quit, NULL);
 
 	gtk_window_set_default_size(GTK_WINDOW(window), 400, 250);
 	gtk_builder_connect_signals(builder, NULL);
@@ -199,6 +199,14 @@ void UserHome::asyncResult(int result)
 	{
 		Utils::runOnUiThread(&UserHome::changeContactButton, this);
 	}
+}
+
+void UserHome::onclickQuit()
+{
+	g_signal_handler_disconnect(G_OBJECT(window), destroyHandleID); //onclick call end is actually ran again after the window is gone unless you tell it not to
+	Vars::isExiting = true;
+	Vars::commandSocket.get()->stop();
+	Utils::quit(Vars::privateKey.get(), Vars::voiceKey.get());
 }
 
 void UserHome::onclickDial()

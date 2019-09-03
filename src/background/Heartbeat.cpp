@@ -20,6 +20,10 @@ void Heartbeat::startService()
 			{
 				try
 				{
+					if(Vars::isExiting)
+					{
+						break;
+					}
 					Vars::commandSocket.get()->writeString(PING);
 					logger->insertLog(Log(Log::TAG::HEARTBEAT, PING, Log::TYPE::OUTBOUND).toString());
 					sleep(TIMEOUT);

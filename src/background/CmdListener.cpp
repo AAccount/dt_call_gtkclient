@@ -215,7 +215,10 @@ void CmdListener::startInternal()
 				{
 					inputValid = false;
 					logger->insertLog(Log(Log::TAG::CMD_LISTENER, r->getString(R::StringID::CMDLISTENER_IOERROR), Log::TYPE::ERROR).toString());
-					Vars::commandSocket.get()->stop();
+					if(!Vars::isExiting)
+					{
+						Vars::commandSocket.get()->stop();
+					}
 					LoginManager::getInstance()->execute(UserHome::getInstance(), true);
 				}
 				catch (std::out_of_range& e)

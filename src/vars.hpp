@@ -11,6 +11,7 @@
 #include <gtk/gtk.h>
 #include <string>
 #include <memory>
+#include <atomic>
 
 #include <sys/socket.h>
 
@@ -45,6 +46,9 @@ public:
 	static std::string sessionKey;
 	static std::string callWith;
 	static std::unique_ptr<unsigned char[]> voiceKey;
+	
+	//for the services that r/w sockets: heartbeat, cmdlistener, don't do it when the program is exiting.
+	static std::atomic<bool> isExiting;
 };
 
 #endif /* SRC_VARS_HPP_ */

@@ -37,6 +37,7 @@ public:
 	void onclickContactEdit(GtkButton* button);
 	void onclickContactRemove(GtkButton* button);
 	void onclickAbout();
+	void onclickQuit();
 
 private:
 	static UserHome* instance;
@@ -71,7 +72,7 @@ private:
 	GtkLabel* contactsLabel;
 	GtkButton* addContact;
 	GtkBox* contactList;
-	gulong destroySignalID;
+	gulong destroyHandleID;
 };
 
 #endif /* SRC_SCREENS_USERHOME_HPP_ */

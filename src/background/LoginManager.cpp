@@ -56,7 +56,7 @@ void LoginManager::execute(AsyncReceiver* receiver, bool pretry)
 			bool ok = loginFunction(receiver);
 			while(retry && !ok)
 			{
-				sleep(LoginManager::RETRY_DELAY);
+				sleep(RETRY_DELAY);
 				ok = loginFunction(receiver);
 			}
 			{

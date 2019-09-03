@@ -23,6 +23,8 @@ std::string Vars::sessionKey = "";
 std::string Vars::callWith = "";
 std::unique_ptr<unsigned char[]> Vars::voiceKey;
 
+std::atomic<bool> Vars::isExiting(false);
+
 Vars::Vars()
 {
 }
