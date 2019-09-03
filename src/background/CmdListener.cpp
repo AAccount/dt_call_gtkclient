@@ -213,12 +213,13 @@ void CmdListener::startInternal()
 				}
 				catch (std::string& e)
 				{
-					inputValid = false;
-					logger->insertLog(Log(Log::TAG::CMD_LISTENER, r->getString(R::StringID::CMDLISTENER_IOERROR), Log::TYPE::ERROR).toString());
-					if(!Vars::isExiting)
+					if(Vars::isExiting)
 					{
-						Vars::commandSocket.get()->stop();
+						return;
 					}
+					inputValid = false;
+					Vars::commandSocket.get()->stop();
+					logger->insertLog(Log(Log::TAG::CMD_LISTENER, r->getString(R::StringID::CMDLISTENER_IOERROR), Log::TYPE::ERROR).toString());
 					LoginManager::getInstance()->execute(UserHome::getInstance(), true);
 				}
 				catch (std::out_of_range& e)
