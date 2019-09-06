@@ -32,10 +32,12 @@ AsyncCentral::AsyncCentral()
 		while(!Vars::isExiting)
 		{
 			const int broadcastCode = requests.pop();
-			std::unique_lock<std::mutex> receiversLock(receiversMutex);
-			for(AsyncReceiver& receiver : receivers)
 			{
-				receiver.asyncResult(broadcastCode);
+				std::unique_lock<std::mutex> receiversLock(receiversMutex);
+				for(AsyncReceiver& receiver : receivers)
+				{
+					receiver.asyncResult(broadcastCode);
+				}
 			}
 		}
 	});
