@@ -1,0 +1,64 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+/* 
+ * File:   AsyncCentral.cpp
+ * Author: Daniel
+ * 
+ * Created on September 3, 2019, 11:37 PM
+ */
+
+#include "AsyncCentral.hpp"
+
+//static
+AsyncCentral* AsyncCentral::instance;
+
+//static
+AsyncCentral* AsyncCentral::getInstance()
+{
+	if(instance == nullptr)
+	{
+		instance = new AsyncCentral();
+	}
+	return instance;
+}
+
+AsyncCentral::AsyncCentral()
+{
+	centralThread = std::thread([this] {
+		while(!Vars::isExiting)
+		{
+			const int broadcastCode = requests.pop();
+			std::unique_lock<std::mutex> receiversLock(receiversMutex);
+			for(AsyncReceiver& receiver : receivers)
+			{
+				receiver.asyncResult(broadcastCode);
+			}
+		}
+	});
+	centralThread.detach();
+}
+
+AsyncCentral::~AsyncCentral()
+{
+}
+
+void AsyncCentral::registerReceiver(AsyncReceiver& receiver)
+{
+	std::unique_lock<std::mutex>receiversLock(receiversMutex);
+	receivers.insert(receiver);
+}
+
+void AsyncCentral::removeReceiver(AsyncReceiver& receiver)
+{
+	std::unique_lock<std::mutex>receiversLock(receiversMutex);
+	receivers.erase(receiver);
+}
+
+void AsyncCentral::broadcast(int code)
+{
+	requests.push(code);
+}

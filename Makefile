@@ -26,7 +26,7 @@ ifeq ($(UNAME),FreeBSD)
 endif
 
 TARGET = gtkclient
-OBJS = main.o utils.o settings.o Log.o SodiumSocket.o vars.o SettingsUI.o R.o LoginManager.o UserHome.o CallScreen.o CmdListener.o CommandAccept.o CommandEnd.o Heartbeat.o CommandCall.o Opus.o EditContact.o PublicKeyOverview.o PublicKeyUser.o sodium_utils.o Logger.o stringify.o gresources.o ServerUtils.o
+OBJS = main.o utils.o settings.o Log.o SodiumSocket.o vars.o SettingsUI.o R.o LoginManager.o UserHome.o CallScreen.o CmdListener.o CommandAccept.o CommandEnd.o Heartbeat.o CommandCall.o Opus.o EditContact.o PublicKeyOverview.o PublicKeyUser.o sodium_utils.o Logger.o stringify.o gresources.o ServerUtils.o AsyncCentral.o
 RESOURCES = src/gresources.c src/gresources.h
 
 all: ${OBJS} ${RESOURCES}
@@ -64,6 +64,9 @@ Log.o : src/Log.cpp src/Log.hpp
 
 Opus.o : src/codec/Opus.cpp src/codec/Opus.hpp
 	${CXX} ${CFLAGS} -c src/codec/Opus.cpp ${OPUS} ${INC} 
+
+AsyncCentral.o : src/background/AsyncCentral.cpp src/background/AsyncCentral.hpp
+	${CXX} ${CFLAGS} -c src/background/AsyncCentral.cpp ${GTKLIB} ${INC} 
 
 SettingsUI.o : src/screens/SettingsUI.cpp src/screens/SettingsUI.hpp glade/settings_ui.glade ${RESOURCES}
 	${CXX} ${CFLAGS} -c src/screens/SettingsUI.cpp ${GTKLIB} ${INC} 
