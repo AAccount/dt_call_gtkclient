@@ -111,11 +111,13 @@ ringThreadAlive(false)
 
 	ring();
 
+	AsyncCentral::getInstance()->registerReceiver(this);
 	onScreen = true;
 }
 
 CallScreen::~CallScreen()
 {
+	AsyncCentral::getInstance()->removeReceiver(this)
 	timeCounterThread.join();
 	
 	gtk_widget_destroy((GtkWidget*)window);

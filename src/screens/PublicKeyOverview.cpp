@@ -53,10 +53,13 @@ edits()
 		buttonToUser[button] = user;
 		userToButton[user] = button;
 	}
+	
+	AsyncCentral::getInstance()->registerReceiver(this);
 }
 
 PublicKeyOverview::~PublicKeyOverview()
 {
+	AsyncCentral::getInstance()->removeReceiver(this);
 	gtk_widget_destroy((GtkWidget*)window);
 }
 

@@ -83,10 +83,14 @@ logger(Logger::getInstance())
 		gtk_button_set_label(privateKey, privateOk.c_str());
 		gotPrivateKey = true;
 	}
+	
+	AsyncCentral::getInstance()->registerReceiver(this);
 }
 
 SettingsUI::~SettingsUI()
 {
+	AsyncCentral::getInstance()->removeReceiver(this);
+	
 	//this window is purposely going away, unhook it from the main quit function
 	g_signal_handler_disconnect(window, destroySignalID);
 

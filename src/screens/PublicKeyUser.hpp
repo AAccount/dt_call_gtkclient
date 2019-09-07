@@ -20,6 +20,7 @@
 #include "../stringify.hpp"
 #include "../stringify.hpp"
 #include "PublicKeyOverview.hpp"
+#include "../background/AsyncCentral.hpp"
 
 class PublicKeyUser
 {

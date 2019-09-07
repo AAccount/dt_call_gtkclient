@@ -25,6 +25,7 @@
 #include "../Logger.hpp"
 #include "../Log.hpp"
 #include "UserHome.hpp"
+#include "../background/AsyncCentral.hpp"
 
 class SettingsUI : public virtual AsyncReceiver
 {

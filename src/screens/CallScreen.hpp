@@ -26,6 +26,7 @@
 #include "../background/CommandEnd.hpp"
 #include "../background/CommandAccept.hpp"
 #include "../background/CmdListener.hpp"
+#include "../background/AsyncCentral.hpp"
 #include "../R.hpp"
 #include "../Log.hpp"
 #include "../Logger.hpp"

@@ -82,11 +82,13 @@ contactToRemoveButton(std::unordered_map<std::string, GtkButton*>())
 	}
 
 	onScreen = true;
+	AsyncCentral::getInstance()->registerReceiver(this->a);
 	Utils::runOnUiThread(&SettingsUI::remove);
 }
 
 UserHome::~UserHome()
 {
+	AsyncCentral::getInstance()->removeReceiver(this);
 	gtk_widget_destroy((GtkWidget*)window);
 	g_object_unref(window);
 }

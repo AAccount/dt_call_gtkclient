@@ -97,8 +97,8 @@ void PublicKeyUser::onclickEdit()
 		if(ovScreen != NULL)
 		{
 			ovScreen->pushEdit(user);
-			ovScreen->asyncResult(Vars::Broadcast::PUBLIC_KEYOV_EDIT);
 		}
+		AsyncCentral::getInstance->broadcast(Vars::Broadcast::PUBLIC_KEYOV_EDIT);
 
 		const std::string keyDump = Stringify::stringify(newkey.get(), crypto_box_PUBLICKEYBYTES);
 		gtk_text_buffer_set_text(dumpBuffer, keyDump.c_str(), -1);
@@ -114,8 +114,8 @@ void PublicKeyUser::onclickRemove()
 	if(ovScreen != NULL)
 	{
 		ovScreen->pushEdit(user);
-		ovScreen->asyncResult(Vars::Broadcast::PUBLIC_KEYOV_EDIT);
 	}
+	AsyncCentral::getInstance->broadcast(Vars::Broadcast::PUBLIC_KEYOV_EDIT);
 	const std::string nokey = r->getString(R::StringID::PUBLIC_KEY_OV_NOKEY) + "\n";
 	gtk_text_buffer_set_text(dumpBuffer, nokey.c_str(), -1);
 	gtk_text_view_set_buffer(dump, dumpBuffer);

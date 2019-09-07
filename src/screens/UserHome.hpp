@@ -16,6 +16,7 @@
 #include "EditContact.hpp"
 #include "PublicKeyOverview.hpp"
 #include "../background/AsyncReceiver.hpp"
+#include "../background/AsyncCentral.hpp"
 #include "../background/CommandCall.hpp"
 #include "../R.hpp"
 #include "../Log.hpp"

@@ -22,6 +22,7 @@
 #include "../BlockingQ.hpp"
 #include "../vars.hpp"
 #include "../background/AsyncReceiver.hpp"
+#include "../background/AsyncCentral.hpp"
 
 class PublicKeyOverview : public virtual AsyncReceiver
 {
