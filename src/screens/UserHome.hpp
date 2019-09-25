@@ -31,7 +31,7 @@ public:
 	static int remove(void* a);
 	static UserHome* getInstance();
 
-	void asyncResult(int result, std::string& info) override;
+	void asyncResult(int result, const std::string& info) override;
 	void onclickDial();
 	void onclickNewContact();
 	void onclickContact(GtkButton* button);

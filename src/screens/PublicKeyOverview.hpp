@@ -30,7 +30,7 @@ public:
 	static int render(void* a);
 	static int remove(void* a);
 	static PublicKeyOverview* getInstance();
-	void asyncResult(int result, std::string& info) override;
+	void asyncResult(int result, const std::string& info) override;
 	void onclick(GtkButton* button);
 
 private:
@@ -46,6 +46,7 @@ private:
 	std::unordered_set<std::string> users;
 	std::unordered_map<GtkButton*, std::string> buttonToUser;
 	std::unordered_map<std::string, GtkButton*> userToButton;
+	BlockingQ<std::string> edits;
 
 	Logger* logger;
 	R* r;

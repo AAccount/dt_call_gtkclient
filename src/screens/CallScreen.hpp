@@ -44,7 +44,7 @@ public:
 	static int remove(void* a);
 	static CallScreen* getInstance();
 	
-	void asyncResult(int result, std::string& info) override;
+	void asyncResult(int result, const std::string& info) override;
 	void onclickEnd();
 	void onclickMute();
 	void onclickAccept();

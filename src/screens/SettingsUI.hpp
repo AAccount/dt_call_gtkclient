@@ -39,7 +39,7 @@ public:
 	void setupCertificate();
 	void nextFunction();
 	void setupPrivateKey();
-	void asyncResult(int result, std::string& info) override;
+	void asyncResult(int result, const std::string& info) override;
 
 private:
 	SettingsUI();

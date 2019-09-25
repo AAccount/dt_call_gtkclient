@@ -14,7 +14,7 @@ class AsyncReceiver
 {
 public:
 	virtual ~AsyncReceiver(){};
-	virtual void asyncResult(int result, std::string& info) = 0;
+	virtual void asyncResult(int result, const std::string& info) = 0;
 };
 
 #endif /* SRC_BACKGROUND_ASYNCRECEIVER_HPP_ */

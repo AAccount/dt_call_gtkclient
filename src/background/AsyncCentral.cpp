@@ -63,7 +63,7 @@ void AsyncCentral::broadcast(int code)
 	codes.push(std::pair<int, std::string>(code, ""));
 }
 
-void AsyncCentral::broadcast(int code, std::string& info)
+void AsyncCentral::broadcast(int code, const std::string& info)
 {
 	codes.push(std::pair<int, std::string>(code, info));
 }

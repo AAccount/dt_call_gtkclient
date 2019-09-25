@@ -23,7 +23,7 @@ public:
 	void registerReceiver(AsyncReceiver* receiver);
 	void removeReceiver(AsyncReceiver* receiver);
 	void broadcast(int code);
-	void broadcast(int code, std::string& info);
+	void broadcast(int code, const std::string& info);
 	
 private:
 	static AsyncCentral* instance;

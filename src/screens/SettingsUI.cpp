@@ -263,7 +263,7 @@ void SettingsUI::saveSettings()
 	settings->save();
 }
 
-void SettingsUI::asyncResult(int result, std::string& info)
+void SettingsUI::asyncResult(int result, const std::string& info)
 {
 	if(result == Vars::Broadcast::LOGIN_OK)
 	{

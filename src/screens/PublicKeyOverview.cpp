@@ -108,10 +108,11 @@ void PublicKeyOverview::onclick(GtkButton* button)
 }
 
 
-void PublicKeyOverview::asyncResult(int result, std::string& info)
+void PublicKeyOverview::asyncResult(int result, const std::string& info)
 {
 	if(result == Vars::Broadcast::PUBLIC_KEYOV_EDIT)
 	{
+		edits.push(info);
 		Utils::runOnUiThread(&PublicKeyOverview::updateButton, this);
 	}
 }
