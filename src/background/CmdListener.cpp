@@ -14,7 +14,8 @@ isCallInitiator(false),
 haveVoiceKey(false),
 preparationsComplete(false),
 r(R::getInstance()),
-logger(Logger::getInstance())
+logger(Logger::getInstance()),
+asyncCentral(AsyncCentral::getInstance())
 {
 	
 }
@@ -99,8 +100,8 @@ void CmdListener::startInternal()
 						Vars::ustate = Vars::UserState::INIT;
 						isCallInitiator = true;
 						preparationsComplete = false;
-						UserHome::getInstance()->asyncResult(Vars::Broadcast::CALL_TRY);
-						UserHome::getInstance()->asyncResult(Vars::Broadcast::USERHOME_LOCK);
+						asyncCentral->broadcast(Vars::Broadcast::CALL_TRY);
+						asyncCentral->broadcast(Vars::Broadcast::USERHOME_LOCK);
 					}
 					else if (command == "prepare")
 					{
@@ -190,7 +191,7 @@ void CmdListener::startInternal()
 					else if (command == "start")
 					{
 						Vars::ustate = Vars::UserState::INCALL;
-						CallScreen::getInstance()->asyncResult(Vars::Broadcast::CALL_START);
+						asyncCentral->broadcast(Vars::Broadcast::CALL_START);
 					}
 
 					else if (command == "end")
@@ -201,12 +202,12 @@ void CmdListener::startInternal()
 
 						if (oldState == Vars::UserState::NONE)
 						{//won't be in the phone call screen yet. tell user home the call can't be made
-							UserHome::getInstance()->asyncResult(Vars::Broadcast::CALL_END);
+							asyncCentral->broadcast(Vars::Broadcast::CALL_END);
 						}
 						else //INIT or INCALL
 						{
-							UserHome::getInstance()->asyncResult(Vars::Broadcast::USERHOME_UNLOCK);
-							CallScreen::getInstance()->asyncResult(Vars::Broadcast::CALL_END);
+							asyncCentral->broadcast(Vars::Broadcast::USERHOME_UNLOCK);
+							asyncCentral->broadcast(Vars::Broadcast::CALL_END);
 						}
 					}
 
@@ -220,7 +221,7 @@ void CmdListener::startInternal()
 					inputValid = false;
 					Vars::commandSocket.get()->stop();
 					logger->insertLog(Log(Log::TAG::CMD_LISTENER, r->getString(R::StringID::CMDLISTENER_IOERROR), Log::TYPE::ERROR).toString());
-					LoginManager::getInstance()->execute(UserHome::getInstance(), true);
+					LoginManager::getInstance()->execute(true);
 				}
 				catch (std::out_of_range& e)
 				{
@@ -258,7 +259,7 @@ void CmdListener::sendReady()
 void CmdListener::giveUp()
 {
 	CommandEnd::execute();
-	CallScreen::getInstance()->asyncResult(Vars::Broadcast::CALL_END);
+	asyncCentral->broadcast(Vars::Broadcast::CALL_END);
 }
 
 std::string CmdListener::censorIncomingCmd(const std::vector<std::string>& parsed)

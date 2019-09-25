@@ -13,7 +13,7 @@
 #include <time.h>
 #include <thread>
 #include <mutex>
-#include "AsyncReceiver.hpp"
+#include "AsyncCentral.hpp"
 #include "../vars.hpp"
 #include "../utils.hpp"
 #include "../stringify.hpp"
@@ -22,7 +22,6 @@
 #include "../stringify.hpp"
 #include "../settings.hpp"
 #include "CmdListener.hpp"
-#include "../screens/CallScreen.hpp"
 #include "../Logger.hpp"
 #include "../Log.hpp"
 #include "Heartbeat.hpp"
@@ -31,7 +30,7 @@ class LoginManager
 {
 public:
 	static LoginManager* getInstance();
-	void execute(AsyncReceiver* receiver, bool retry);
+	void execute(bool retry);
 	
 private:
 	static LoginManager* instance;
@@ -47,8 +46,9 @@ private:
 	std::mutex inUse;
 	R* r;
 	Logger* logger;
+	AsyncCentral* asyncCentral;
 	
-	bool loginFunction(AsyncReceiver* receiver);
+	bool loginFunction();
 };
 
 #endif /* SRC_BACKGROUND_LOGINASYNC_HPP_ */

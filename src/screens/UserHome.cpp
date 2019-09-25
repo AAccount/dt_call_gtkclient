@@ -68,7 +68,7 @@ contactToRemoveButton(std::unordered_map<std::string, GtkButton*>())
 	if(Vars::sessionKey.empty())
 	{
 		gtk_label_set_text(connectionStatus, r->getString(R::StringID::USER_HOME_OFFLINE).c_str());
-		LoginManager::getInstance()->execute(this, true);
+		LoginManager::getInstance()->execute(this);
 	}
 	else
 	{
@@ -82,7 +82,7 @@ contactToRemoveButton(std::unordered_map<std::string, GtkButton*>())
 	}
 
 	onScreen = true;
-	AsyncCentral::getInstance()->registerReceiver(this->a);
+	AsyncCentral::getInstance()->registerReceiver(this);
 	Utils::runOnUiThread(&SettingsUI::remove);
 }
 

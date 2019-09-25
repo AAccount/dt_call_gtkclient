@@ -19,11 +19,12 @@
 #include <sys/socket.h>
 #include "../vars.hpp"
 #include "../utils.hpp"
-#include "../screens/UserHome.hpp"
 #include "../sodium_utils.hpp"
 #include "../settings.hpp"
 #include "../screens/CallScreen.hpp"
+#include "LoginManager.hpp"
 #include "CommandEnd.hpp"
+#include "AsyncCentral.hpp"
 #include "../Logger.hpp"
 #include "../Log.hpp"
 #include "../R.hpp"
@@ -41,6 +42,7 @@ private:
 	
 	R* r;
 	Logger* logger;
+	AsyncCentral* asyncCentral;
 	
 	const int COMMAND_MAX_SEGMENTS = 5;
 	bool isCallInitiator;

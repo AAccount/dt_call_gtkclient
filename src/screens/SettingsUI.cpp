@@ -245,7 +245,7 @@ void SettingsUI::login()
 	if(!Vars::serverAddress.empty() && Vars::commandPort != 0 && Vars::mediaPort != 0 && gotServerCert
 			&& !Vars::username.empty() && gotPrivateKey)
 	{
-		LoginManager::getInstance()->execute(this, false);
+		LoginManager::getInstance()->execute(false);
 	}
 	else
 	{

@@ -117,7 +117,7 @@ ringThreadAlive(false)
 
 CallScreen::~CallScreen()
 {
-	AsyncCentral::getInstance()->removeReceiver(this)
+	AsyncCentral::getInstance()->removeReceiver(this);
 	timeCounterThread.join();
 	
 	gtk_widget_destroy((GtkWidget*)window);
@@ -195,7 +195,7 @@ void CallScreen::onclickEnd()
 	}
 	
 	CommandEnd::execute();
-	UserHome::getInstance()->asyncResult(Vars::Broadcast::USERHOME_UNLOCK);
+	AsyncCentral::getInstance()->broadcast(Vars::Broadcast::USERHOME_UNLOCK);
 	g_signal_handler_disconnect(G_OBJECT(window), destroyHandleID); //onclick call end is actually ran again after the window is gone unless you tell it not to
 	Utils::runOnUiThread(&CallScreen::remove);
 }

@@ -20,7 +20,7 @@ void CommandAccept::execute()
 				const std::string resp = std::to_string(Utils::now()) + "|accept|" + Vars::callWith + "|" + Vars::sessionKey;
 				logger->insertLog(Log(Log::TAG::CMD_ACCEPT, resp, Log::TYPE::OUTBOUND).toString());
 				Vars::commandSocket.get()->writeString(resp);
-				UserHome::getInstance()->asyncResult(Vars::Broadcast::USERHOME_LOCK);
+				AsyncCentral::getInstance()->broadcast(Vars::Broadcast::USERHOME_LOCK);
 			}
 			catch(std::string& e)
 			{

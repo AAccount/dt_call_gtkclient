@@ -7,6 +7,7 @@
 
 #ifndef SRC_BACKGROUND_ASYNCRECEIVER_HPP_
 #define SRC_BACKGROUND_ASYNCRECEIVER_HPP_
+
 class AsyncReceiver
 {
 public:

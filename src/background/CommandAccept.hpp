@@ -14,8 +14,7 @@
 
 #include <string.h>
 
-#include "AsyncReceiver.hpp"
-#include "../screens/UserHome.hpp"
+#include "AsyncCentral.hpp"
 #include "../vars.hpp"
 #include "../utils.hpp"
 #include "../SodiumSocket.hpp"

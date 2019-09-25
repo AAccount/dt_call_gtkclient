@@ -32,12 +32,10 @@ AsyncCentral::AsyncCentral()
 		while(!Vars::isExiting)
 		{
 			const int broadcastCode = requests.pop();
+			std::unique_lock<std::mutex> receiversLock(receiversMutex);
+			for(AsyncReceiver* receiver : receivers)
 			{
-				std::unique_lock<std::mutex> receiversLock(receiversMutex);
-				for(AsyncReceiver& receiver : receivers)
-				{
-					receiver.asyncResult(broadcastCode);
-				}
+				receiver->asyncResult(broadcastCode);
 			}
 		}
 	});
@@ -48,13 +46,13 @@ AsyncCentral::~AsyncCentral()
 {
 }
 
-void AsyncCentral::registerReceiver(AsyncReceiver& receiver)
+void AsyncCentral::registerReceiver(AsyncReceiver* receiver)
 {
 	std::unique_lock<std::mutex>receiversLock(receiversMutex);
 	receivers.insert(receiver);
 }
 
-void AsyncCentral::removeReceiver(AsyncReceiver& receiver)
+void AsyncCentral::removeReceiver(AsyncReceiver* receiver)
 {
 	std::unique_lock<std::mutex>receiversLock(receiversMutex);
 	receivers.erase(receiver);

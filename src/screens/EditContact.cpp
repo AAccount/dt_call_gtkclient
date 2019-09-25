@@ -79,7 +79,7 @@ void EditContact::onclickSave()
 	settings->save();
 
 	editedContacts.push(contactInEdit);
-	AsyncCentral::getInstance->broadcast(Vars::Broadcast::USERHOME_CONTACTEDITED);
+	AsyncCentral::getInstance()->broadcast(Vars::Broadcast::USERHOME_CONTACTEDITED);
 
 	onclickQuit();
 }
