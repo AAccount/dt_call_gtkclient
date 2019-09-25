@@ -93,11 +93,6 @@ void PublicKeyUser::onclickEdit()
 	{
 		settings->modifyPublicKey(user, newkey);
 		settings->save();
-//		PublicKeyOverview* ovScreen = PublicKeyOverview::getInstance();
-//		if(ovScreen != NULL)
-//		{
-//			ovScreen->pushEdit(user);
-//		}
 		AsyncCentral::getInstance()->broadcast(Vars::Broadcast::PUBLIC_KEYOV_EDIT, user);
 
 		const std::string keyDump = Stringify::stringify(newkey.get(), crypto_box_PUBLICKEYBYTES);
