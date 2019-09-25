@@ -8,11 +8,13 @@
 #ifndef SRC_BACKGROUND_ASYNCRECEIVER_HPP_
 #define SRC_BACKGROUND_ASYNCRECEIVER_HPP_
 
+#include <string>
+
 class AsyncReceiver
 {
 public:
 	virtual ~AsyncReceiver(){};
-	virtual void asyncResult(int result) = 0;
+	virtual void asyncResult(int result, std::string& info) = 0;
 };
 
 #endif /* SRC_BACKGROUND_ASYNCRECEIVER_HPP_ */

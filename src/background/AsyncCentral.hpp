@@ -23,6 +23,7 @@ public:
 	void registerReceiver(AsyncReceiver* receiver);
 	void removeReceiver(AsyncReceiver* receiver);
 	void broadcast(int code);
+	void broadcast(int code, std::string& info);
 	
 private:
 	static AsyncCentral* instance;
@@ -32,7 +33,7 @@ private:
 	virtual ~AsyncCentral();
 	
 	std::unordered_set<AsyncReceiver*> receivers;
-	BlockingQ<int> requests;
+	BlockingQ<std::pair<int, std::string>> codes;
 	std::mutex receiversMutex;
 	std::thread centralThread;
 };

@@ -170,7 +170,7 @@ int UserHome::changeContactButton(void* context)
 	return 0;
 }
 
-void UserHome::asyncResult(int result)
+void UserHome::asyncResult(int result, std::string& info)
 {
 	if(result == Vars::Broadcast::LOGIN_OK)
 	{

@@ -31,11 +31,11 @@ AsyncCentral::AsyncCentral()
 	centralThread = std::thread([this] {
 		while(!Vars::isExiting)
 		{
-			const int broadcastCode = requests.pop();
+			std::pair<int, std::string> item = codes.pop();
 			std::unique_lock<std::mutex> receiversLock(receiversMutex);
 			for(AsyncReceiver* receiver : receivers)
 			{
-				receiver->asyncResult(broadcastCode);
+				receiver->asyncResult(item.first, item.second);
 			}
 		}
 	});
@@ -60,5 +60,10 @@ void AsyncCentral::removeReceiver(AsyncReceiver* receiver)
 
 void AsyncCentral::broadcast(int code)
 {
-	requests.push(code);
+	codes.push(std::pair<int, std::string>(code, ""));
+}
+
+void AsyncCentral::broadcast(int code, std::string& info)
+{
+	codes.push(std::pair<int, std::string>(code, info));
 }

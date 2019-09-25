@@ -108,7 +108,7 @@ void PublicKeyOverview::onclick(GtkButton* button)
 }
 
 
-void PublicKeyOverview::asyncResult(int result)
+void PublicKeyOverview::asyncResult(int result, std::string& info)
 {
 	if(result == Vars::Broadcast::PUBLIC_KEYOV_EDIT)
 	{
@@ -144,9 +144,4 @@ std::string PublicKeyOverview::getButtonDisplay(const std::string& user)
 		display = display + r->getString(R::StringID::PUBLIC_KEY_OV_NOKEY);
 	}
 	return display;
-}
-
-void PublicKeyOverview::pushEdit(const std::string& edit)
-{
-	edits.push(edit);
 }

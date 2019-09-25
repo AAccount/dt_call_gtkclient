@@ -155,7 +155,7 @@ int CallScreen::remove(void* a)
 	return 0;
 }
 
-void CallScreen::asyncResult(int result)
+void CallScreen::asyncResult(int result, std::string& info)
 {
 	if(result == Vars::Broadcast::CALL_START)
 	{
