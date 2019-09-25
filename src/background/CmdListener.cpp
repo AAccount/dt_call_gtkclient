@@ -229,7 +229,7 @@ void CmdListener::startInternal()
 				}
 			}
 		});
-		serviceThread.join();
+		serviceThread.detach();
 	}
 	catch(std::system_error& e)
 	{
