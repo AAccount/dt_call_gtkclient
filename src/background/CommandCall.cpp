@@ -16,8 +16,9 @@ void CommandCall::execute()
 		std::thread asyncThread([logger] {
 			try
 			{
-				const std::string resp = std::to_string(Utils::now()) + "|call|" + Vars::callWith + "|" + Vars::sessionKey;
-				logger->insertLog(Log(Log::TAG::CMD_CALL, resp, Log::TYPE::OUTBOUND).toString());
+				const std::string respBase = std::to_string(Utils::now()) + "|call|" + Vars::callWith + "|";
+				const std::string resp = respBase + Vars::sessionKey;
+				logger->insertLog(Log(Log::TAG::CMD_CALL, respBase+"...", Log::TYPE::OUTBOUND).toString());
 				Vars::commandSocket.get()->writeString(resp);
 			}
 			catch (std::string& e)

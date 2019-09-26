@@ -144,10 +144,10 @@ void CmdListener::startInternal()
 							const std::string outputStringified = Stringify::stringify(output.get(), outputLength);
 
 							const time_t now = Utils::now();
-							const std::string passthrough = std::to_string(now) + "|passthrough|" + Vars::callWith + "|" + outputStringified + "|" + Vars::sessionKey;
+							const std::string passthroughBase = std::to_string(now) + "|passthrough|" + Vars::callWith;
+							const std::string passthrough = passthroughBase + "|" + outputStringified + "|" + Vars::sessionKey;
 							Vars::commandSocket.get()->writeString(passthrough);
-							const std::string loggedPassthrough = std::to_string(now) + "|passthrough|" + Vars::callWith + "|...|" + Vars::sessionKey;
-							logger->insertLog(Log(Log::TAG::CMD_LISTENER, loggedPassthrough, Log::TYPE::OUTBOUND).toString());
+							logger->insertLog(Log(Log::TAG::CMD_LISTENER, passthroughBase+"|...|...", Log::TYPE::OUTBOUND).toString());
 							haveVoiceKey = true;
 						}
 
@@ -242,11 +242,12 @@ void CmdListener::sendReady()
 {
 	if (haveVoiceKey && preparationsComplete)
 	{
-		const std::string ready = std::to_string(Utils::now()) + "|ready|" + Vars::callWith + "|" + Vars::sessionKey;
+		const std::string readyBase = std::to_string(Utils::now()) + "|ready|" + Vars::callWith + "|";
+		const std::string ready = readyBase + Vars::sessionKey;
 		try
 		{
 			Vars::commandSocket.get()->writeString(ready);
-			logger->insertLog(Log(Log::TAG::CMD_LISTENER, ready, Log::TYPE::OUTBOUND).toString());
+			logger->insertLog(Log(Log::TAG::CMD_LISTENER, readyBase+"...", Log::TYPE::OUTBOUND).toString());
 		}
 		catch (std::string& e)
 		{

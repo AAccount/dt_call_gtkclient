@@ -17,8 +17,9 @@ void CommandAccept::execute()
 		std::thread asyncThread([logger] {
 			try
 			{
-				const std::string resp = std::to_string(Utils::now()) + "|accept|" + Vars::callWith + "|" + Vars::sessionKey;
-				logger->insertLog(Log(Log::TAG::CMD_ACCEPT, resp, Log::TYPE::OUTBOUND).toString());
+				const std::string respBase = std::to_string(Utils::now()) + "|accept|" + Vars::callWith + "|";
+				const std::string resp = respBase + Vars::sessionKey;
+				logger->insertLog(Log(Log::TAG::CMD_ACCEPT, respBase+"...", Log::TYPE::OUTBOUND).toString());
 				Vars::commandSocket.get()->writeString(resp);
 				AsyncCentral::getInstance()->broadcast(Vars::Broadcast::USERHOME_LOCK);
 			}
