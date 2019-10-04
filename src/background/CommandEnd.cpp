@@ -18,7 +18,7 @@ void CommandEnd::execute()
 			{
 				const std::string respBase = std::to_string(Utils::now()) + "|end|" + Vars::callWith + "|";
 				const std::string resp = respBase + Vars::sessionKey;
-				logger->insertLog(Log(Log::TAG::CMD_END, resp+"...", Log::TYPE::OUTBOUND).toString());
+				logger->insertLog(Log(Log::TAG::CMD_END, respBase+"...", Log::TYPE::OUTBOUND).toString());
 				Vars::commandSocket.get()->writeString(resp);
 			}
 			catch (std::string& e)
