@@ -23,8 +23,7 @@
 
 #include "../codec/Opus.hpp"
 #include "../background/AsyncReceiver.hpp"
-#include "../background/CommandEnd.hpp"
-#include "../background/CommandAccept.hpp"
+#include "../background/OperatorCommand.hpp"
 #include "../background/CmdListener.hpp"
 #include "../background/AsyncCentral.hpp"
 #include "../R.hpp"

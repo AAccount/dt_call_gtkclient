@@ -150,7 +150,9 @@ public:
 		HEARTBEAT_FAIL,
 
 		OPUS_INIT_DECERR,
-		OPUS_INIT_ENCERR
+		OPUS_INIT_ENCERR,
+			
+		OPERATOR_COMMAND_BAD
 	} StringID;
 
 	typedef enum

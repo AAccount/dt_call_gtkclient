@@ -194,7 +194,7 @@ void CallScreen::onclickEnd()
 		decodeThreadAlive = false;
 	}
 	
-	CommandEnd::execute();
+	OperatorCommand::execute(OperatorCommand::OperatorCommand::END);
 	AsyncCentral::getInstance()->broadcast(Vars::Broadcast::USERHOME_UNLOCK);
 	g_signal_handler_disconnect(G_OBJECT(window), destroyHandleID); //onclick call end is actually ran again after the window is gone unless you tell it not to
 	Utils::runOnUiThread(&CallScreen::remove);
@@ -210,7 +210,7 @@ void CallScreen::onclickMute()
 
 void CallScreen::onclickAccept()
 {
-	CommandAccept::execute();
+	OperatorCommand::execute(OperatorCommand::OperatorCommand::ACCEPT);
 }
 
 void CallScreen::timeCounter()
@@ -221,7 +221,7 @@ void CallScreen::timeCounter()
 		updateTime();
 		if((Vars::ustate == Vars::UserState::INIT) && (sec == INIT_TIMEOUT))
 		{
-			CommandEnd::execute();
+			OperatorCommand::execute(OperatorCommand::OperatorCommand::END);
 			onclickEnd();
 		}
 

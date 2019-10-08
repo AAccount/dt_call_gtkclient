@@ -220,7 +220,7 @@ void UserHome::onclickDial()
 	}
 
 	Vars::callWith = who;
-	CommandCall::execute();
+	OperatorCommand::execute(OperatorCommand::OperatorCommand::CALL);
 }
 
 void UserHome::onclickNewContact()

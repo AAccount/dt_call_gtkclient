@@ -186,6 +186,8 @@ R::R()
 
 	en[StringID::OPUS_INIT_DECERR] = "decoder create failed: ";
 	en[StringID::OPUS_INIT_ENCERR] = "encoder create failed: ";
+	
+	en[StringID::OPERATOR_COMMAND_BAD] = "Bad operator command (does not exist): ";
 
 	colors[ColorID::GREEN] = "<span style=\"background-color: rgba(73,D2,16,1)\">%s</span>";
 	colors[ColorID::RED] = "<span style=\"background color: rgba(EF,29,29,1)\">%s</span>";

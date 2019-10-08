@@ -5,8 +5,8 @@
  *      Author: Daniel
  */
 
-#ifndef SRC_BACKGROUND_COMMANDACCEPT_HPP_
-#define SRC_BACKGROUND_COMMANDACCEPT_HPP_
+#ifndef SRC_BACKGROUND_OPERATORCOMMAND_HPP_
+#define SRC_BACKGROUND_OPERATORCOMMAND_HPP_
 
 #include <string>
 #include <iostream>
@@ -22,9 +22,10 @@
 #include "../Logger.hpp"
 #include "../R.hpp"
 
-namespace CommandAccept
+namespace OperatorCommand
 {
-	void execute();
+	typedef enum {ACCEPT, CALL, END} OperatorCommand;
+	void execute(OperatorCommand which);
 };
 
-#endif /* SRC_BACKGROUND_COMMANDACCEPT_HPP_ */
+#endif /* SRC_BACKGROUND_OPERATORCOMMAND_HPP_ */

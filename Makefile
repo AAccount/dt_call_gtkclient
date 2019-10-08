@@ -26,7 +26,7 @@ ifeq ($(UNAME),FreeBSD)
 endif
 
 TARGET = gtkclient
-OBJS = main.o utils.o settings.o Log.o SodiumSocket.o vars.o SettingsUI.o R.o LoginManager.o UserHome.o CallScreen.o CmdListener.o CommandAccept.o CommandEnd.o Heartbeat.o CommandCall.o Opus.o EditContact.o PublicKeyOverview.o PublicKeyUser.o sodium_utils.o Logger.o stringify.o gresources.o ServerUtils.o AsyncCentral.o
+OBJS = main.o utils.o settings.o Log.o SodiumSocket.o vars.o SettingsUI.o R.o LoginManager.o UserHome.o CallScreen.o CmdListener.o OperatorCommand.o Heartbeat.o Opus.o EditContact.o PublicKeyOverview.o PublicKeyUser.o sodium_utils.o Logger.o stringify.o gresources.o ServerUtils.o AsyncCentral.o
 RESOURCES = src/gresources.c src/gresources.h
 
 all: ${OBJS} ${RESOURCES}
@@ -92,14 +92,8 @@ LoginManager.o : src/background/LoginManager.cpp src/background/LoginManager.hpp
 CmdListener.o : src/background/CmdListener.cpp src/background/CmdListener.hpp
 	${CXX} ${CFLAGS} -c src/background/CmdListener.cpp ${PTHREAD} ${GTKLIB} ${INC} 
 
-CommandAccept.o : src/background/CommandAccept.cpp src/background/CommandAccept.hpp
-	${CXX} ${CFLAGS} -c src/background/CommandAccept.cpp ${PTHREAD} ${GTKLIB} ${INC} 
-	
-CommandEnd.o : src/background/CommandEnd.cpp src/background/CommandEnd.hpp
-	${CXX} ${CFLAGS} -c src/background/CommandEnd.cpp ${PTHREAD} ${GTKLIB} ${INC} 
-	
-CommandCall.o : src/background/CommandCall.cpp src/background/CommandCall.hpp
-	${CXX} ${CFLAGS} -c src/background/CommandCall.cpp ${PTHREAD} ${GTKLIB} ${INC} 
+OperatorCommand.o : src/background/OperatorCommand.cpp src/background/OperatorCommand.hpp
+	${CXX} ${CFLAGS} -c src/background/OperatorCommand.cpp ${PTHREAD} ${GTKLIB} ${INC} 
 	
 Heartbeat.o : src/background/Heartbeat.cpp src/background/Heartbeat.hpp
 	${CXX} ${CFLAGS} -c src/background/Heartbeat.cpp ${PTHREAD} ${GTKLIB} ${INC} 

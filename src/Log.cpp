@@ -56,12 +56,8 @@ std::string Log::tagString() const
 		return "sodium socket";
 	case CMD_LISTENER:
 		return "command listener";
-	case CMD_ACCEPT:
-		return "accept command";
-	case CMD_CALL:
-		return "call command";
-	case CMD_END:
-		return "call end command";
+	case OPERATOR_COMMAND:
+		return "operator command";
 	case HEARTBEAT:
 		return "heartbeat";
 	case LOGIN:

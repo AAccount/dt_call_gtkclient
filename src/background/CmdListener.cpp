@@ -259,7 +259,7 @@ void CmdListener::sendReady()
 
 void CmdListener::giveUp()
 {
-	CommandEnd::execute();
+	OperatorCommand::execute(OperatorCommand::OperatorCommand::END);
 	asyncCentral->broadcast(Vars::Broadcast::CALL_END);
 }
 
