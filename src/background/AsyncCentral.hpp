@@ -35,7 +35,6 @@ private:
 	std::unordered_set<AsyncReceiver*> receivers;
 	BlockingQ<std::pair<int, std::string>> codes;
 	std::mutex receiversMutex;
-	std::thread centralThread;
 };
 
 #endif /* ASYNCCENTRAL_HPP */

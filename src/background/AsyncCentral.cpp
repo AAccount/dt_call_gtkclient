@@ -28,7 +28,7 @@ AsyncCentral* AsyncCentral::getInstance()
 
 AsyncCentral::AsyncCentral()
 {
-	centralThread = std::thread([this] {
+	std::thread centralThread = std::thread([this] {
 		while(!Vars::isExiting)
 		{
 			std::pair<int, std::string> item = codes.pop();
