@@ -77,7 +77,7 @@ private:
 	std::string currentStats, runningTime;
 	static int updateUi(void* context);
 
-	const static int INIT_TIMEOUT = 30;
+	const static int INIT_TIMEOUT = 20;
 	pa_simple* ringtonePlayer = NULL;
 	std::atomic<bool> ringtoneDone;
 	void ring();
