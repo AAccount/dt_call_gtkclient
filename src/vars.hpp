@@ -49,6 +49,8 @@ public:
 	
 	//for the services that r/w sockets: heartbeat, cmdlistener, don't do it when the program is exiting.
 	static std::atomic<bool> isExiting;
+	
+	static bool callEndIntentForCallScreen;
 };
 
 #endif /* SRC_VARS_HPP_ */

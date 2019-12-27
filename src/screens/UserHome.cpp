@@ -182,10 +182,18 @@ void UserHome::asyncResult(int result, const std::string& info)
 	}
 	else if(result == Vars::Broadcast::CALL_END)
 	{
-		Utils::showPopup(r->getString(R::StringID::USER_HOME_CANT_DIAL), window);
+		if(Vars::callEndIntentForCallScreen)
+		{
+			Vars::callEndIntentForCallScreen = false;
+		}
+		else
+		{
+			Utils::showPopup(r->getString(R::StringID::USER_HOME_CANT_DIAL), window);
+		}
 	}
 	else if(result == Vars::Broadcast::CALL_TRY)
 	{
+		Vars::callEndIntentForCallScreen = true;
 		CallScreen::mode = CallScreen::Mode::DIALING;
 		Utils::runOnUiThread(&CallScreen::render);
 	}

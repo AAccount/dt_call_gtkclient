@@ -24,7 +24,7 @@ std::string Vars::callWith = "";
 std::unique_ptr<unsigned char[]> Vars::voiceKey;
 
 std::atomic<bool> Vars::isExiting(false);
-
+bool Vars::callEndIntentForCallScreen = false;
 Vars::Vars()
 {
 }
