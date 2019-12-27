@@ -106,8 +106,11 @@ logger(Logger::getInstance())
 
 CallScreen::~CallScreen()
 {
-	SoundEffects::getInstance()->stopRing(); //have to be sure the ringtone will be stopped when the screen goes away
+	Vars::ustate = Vars::UserState::NONE;
+	SoundEffects::getInstance()->stopRing();
+	Voice::getInstance()->stop();
 	
+	AsyncCentral::getInstance()->broadcast(Vars::Broadcast::USERHOME_UNLOCK);
 	AsyncCentral::getInstance()->removeReceiver(this);
 	timeCounterThread.join();
 	
@@ -155,7 +158,7 @@ void CallScreen::asyncResult(int result, const std::string& info)
 	}
 	else if(result == Vars::Broadcast::CALL_END)
 	{
-		onclickEnd();
+		Utils::runOnUiThread(&CallScreen::remove);
 	}
 	else if(result == Vars::Broadcast::MIC_MUTE)
 	{
@@ -170,13 +173,8 @@ void CallScreen::asyncResult(int result, const std::string& info)
 }
 
 void CallScreen::onclickEnd()
-{
-	Vars::ustate = Vars::UserState::NONE;
-	SoundEffects::getInstance()->stopRing();
-	Voice::getInstance()->stop();
-	
+{	
 	OperatorCommand::execute(OperatorCommand::OperatorCommand::END);
-	AsyncCentral::getInstance()->broadcast(Vars::Broadcast::USERHOME_UNLOCK);
 	g_signal_handler_disconnect(G_OBJECT(window), destroyHandleID); //onclick call end is actually ran again after the window is gone unless you tell it not to
 	Utils::runOnUiThread(&CallScreen::remove);
 }
