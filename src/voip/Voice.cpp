@@ -83,6 +83,14 @@ void Voice::start()
 
 void Voice::stop()
 {
+	Vars::ustate = Vars::UserState::NONE;
+	if(Vars::mediaSocket != -1)
+	{
+		shutdown(Vars::mediaSocket, 2);
+		close(Vars::mediaSocket);
+	}
+	Vars::mediaSocket = -1;
+	
 	if(receiveMonitorAlive)
 	{
 		receiveMonitorThread.join();
@@ -104,13 +112,6 @@ void Voice::stop()
 	{
 		randombytes_buf(voiceKey, crypto_box_SECRETKEYBYTES);
 	}
-	
-	if(Vars::mediaSocket != -1)
-	{
-		shutdown(Vars::mediaSocket, 2);
-		close(Vars::mediaSocket);
-	}
-	Vars::mediaSocket = -1;
 	
 	mute = false,
 	garbage = 0; rxtotal = 0; txtotal = 0; rxSeq = 0; txSeq = 0; skipped = 0; oorange = 0;
