@@ -196,19 +196,10 @@ void CmdListener::startInternal()
 
 					else if (command == "end")
 					{
-						Vars::UserState oldState = Vars::ustate;
 						Vars::ustate = Vars::UserState::NONE;
 						Vars::callWith = "";
-
-						if (oldState == Vars::UserState::NONE)
-						{//won't be in the phone call screen yet. tell user home the call can't be made
-							asyncCentral->broadcast(Vars::Broadcast::CALL_END);
-						}
-						else //INIT or INCALL
-						{
-							asyncCentral->broadcast(Vars::Broadcast::USERHOME_UNLOCK);
-							asyncCentral->broadcast(Vars::Broadcast::CALL_END);
-						}
+						asyncCentral->broadcast(Vars::Broadcast::USERHOME_UNLOCK);
+						asyncCentral->broadcast(Vars::Broadcast::CALL_END);
 					}
 
 				}
