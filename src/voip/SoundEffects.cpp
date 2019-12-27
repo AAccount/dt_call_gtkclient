@@ -105,6 +105,7 @@ void SoundEffects::ring()
 
 void SoundEffects::stopRing()
 {
+	std::unique_lock<std::mutex> stopLock(stopRequestMutex);
 	ringtoneDone = true;
 	if(ringThreadAlive) //only call join once
 	{

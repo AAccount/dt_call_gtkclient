@@ -51,6 +51,8 @@ private:
 	std::thread ringThread;
 	bool ringThreadAlive;
 	
+	std::mutex stopRequestMutex;
+	
 	Logger* logger;
 	R* r;
 };
