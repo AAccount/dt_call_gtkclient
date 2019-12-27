@@ -76,6 +76,10 @@ std::string Log::tagString() const
 		return "public key overview";
 	case PUBLIC_KEYU:
 		return "public key user";
+	case VOIP_VOICE:
+		return "voip voice";
+	case VOIP_SOUND_EFFECTS:
+		return "voip sound effects";
 	default:
 		return "(unknown tag): " + std::to_string(tag);
 	}

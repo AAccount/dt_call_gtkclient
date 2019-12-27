@@ -24,7 +24,9 @@ public:
 		OPUS_CODEC,
 		UTILS,
 		PUBLIC_KEY_OV,
-		PUBLIC_KEYU
+		PUBLIC_KEYU,
+		VOIP_VOICE,
+		VOIP_SOUND_EFFECTS
 	} TAG;
 
 	TYPE getType() const;

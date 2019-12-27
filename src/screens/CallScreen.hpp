@@ -11,17 +11,13 @@
 #include <string>
 #include <iostream>
 #include <sstream>
-#include <memory>
 #include <thread>
 #include <mutex>
 #include <atomic>
 
-#include <sodium.h>
 #include <gtk/gtk.h>
-#include <pulse/simple.h>
 #include <sys/time.h>
 
-#include "../codec/Opus.hpp"
 #include "../background/AsyncReceiver.hpp"
 #include "../background/OperatorCommand.hpp"
 #include "../background/CmdListener.hpp"
@@ -32,6 +28,8 @@
 #include "../vars.hpp"
 #include "../utils.hpp"
 #include "../settings.hpp"
+#include "../voip/SoundEffects.hpp"
+#include "../voip/Voice.hpp"
 
 class CallScreen: public virtual AsyncReceiver
 {
@@ -48,56 +46,29 @@ public:
 	void onclickMute();
 	void onclickAccept();
 
-	constexpr static double RINGTONE_SAMPLERATE = 8000.0;
-	constexpr static double TONE_TIME = 1.5;
-	constexpr static double SILENCE_TIME = 1.0;
-	constexpr static double RINGTONE_DIVISION = 10.0;
-	static std::unique_ptr<short[]> ringtone;
-
 private:
 	CallScreen();
 	virtual ~CallScreen();
 	static bool onScreen;
 	static CallScreen* instance;
 
-	const static int HEADERS = 52;
 	int min, sec;
-	std::mutex receivedTimestampMutex;
 	std::thread timeCounterThread;
 	void timeCounter();
-	struct timeval lastReceivedTimestamp;
 	void updateTime();
 	void updateStats();
 	std::stringstream timeBuilder;
 	std::stringstream statBuilder;
 	std::string missingLabel, txLabel, rxLabel, garbageLabel, rxSeqLabel, txSeqLabel, skippedLabel, oorangeLabel;
-	int garbage, rxtotal, txtotal, rxSeq, txSeq, skipped, oorange;
+	
 	double formatInternetMetric(int metric, std::string& units);
 	GtkTextBuffer* statsBuffer;
 	std::string currentStats, runningTime;
 	static int updateUi(void* context);
 
 	const static int INIT_TIMEOUT = 20;
-	pa_simple* ringtonePlayer = NULL;
-	std::atomic<bool> ringtoneDone;
-	void ring();
-	std::thread ringThread;
-	bool ringThreadAlive;
-	void stopRing();
-
+	
 	void changeToCallMode();
-	bool muted, muteStatusNew;
-	std::mutex deadUDPMutex;
-	bool reconnectionAttempted;
-	std::thread encodeThread;
-	void mediaEncode();
-	bool encodeThreadAlive;
-	std::thread decodeThread;
-	void mediaDecode();
-	bool decodeThreadAlive;
-	void reconnectUDP();
-	const static int OORANGE_LIMIT = 100;
-
 
 	R* r;
 	Logger* logger;
