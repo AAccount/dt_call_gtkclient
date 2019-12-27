@@ -44,6 +44,7 @@ CallScreen::CallScreen() :
 r(R::getInstance()),
 logger(Logger::getInstance())
 {
+	Vars::callEndIntentForCallScreen = true;
 	Settings* settings = Settings::getInstance();
 
 	GtkBuilder* builder = gtk_builder_new_from_resource("/gtkclient/call_screen.glade");
