@@ -22,12 +22,13 @@ SoundEffects* SoundEffects::getInstance()
 
 SoundEffects::SoundEffects() :
 logger(Logger::getInstance()),
-r(R::getInstance())
+r(R::getInstance()),
+ringtone(std::make_unique<short[]>(RINGTONE_SAMPLERATE/RINGTONE_DIVISION)),
+ringThreadAlive(false)
 {
 	//generate 1/10th of a second of the ~440hz tone used as the ringtone
 	const double TONE_FREQ = 440;
 	const double TOTAL_SAMPLES = RINGTONE_SAMPLERATE/RINGTONE_DIVISION;
-	ringtone = std::make_unique<short[]>(TOTAL_SAMPLES);
 
 	const double AMP = SHRT_MAX-1;
 	const double FACTOR = (2.0*M_PI*TONE_FREQ) / RINGTONE_SAMPLERATE;

@@ -84,7 +84,7 @@ int Settings::getInt(SettingName setting, int defaultValue) const
 	}
 }
 
-std::string Settings::getString(SettingName setting, std::string defaultValue) const
+std::string Settings::getString(SettingName setting, const std::string& defaultValue) const
 {
 	if(settingsNames.count(setting) == 0)
 	{
@@ -117,7 +117,7 @@ void Settings::setInt(SettingName setting, int newValue)
 	settingsTable[settingName] = std::to_string(newValue);
 }
 
-void Settings::setString(SettingName setting, std::string& newValue)
+void Settings::setString(SettingName setting, const std::string& newValue)
 {
 	if(settingsNames.count(setting) == 0)
 	{

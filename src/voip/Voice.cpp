@@ -18,6 +18,7 @@ stopRequested(false),
 encodeThreadAlive(false),
 decodeThreadAlive(false),
 receiveMonitorAlive(false),
+reconnectionAttempted(false),
 logger(Logger::getInstance()),
 r(R::getInstance())
 {

@@ -44,9 +44,9 @@ public:
 	} SettingName;
 
 	int getInt(SettingName setting, int default_value) const;
-	std::string getString(SettingName setting, std::string default_value) const;
+	std::string getString(SettingName setting, const std::string& default_value) const;
 	void setInt(SettingName setting, int newValue);
-	void setString(SettingName setting, std::string& newValue);
+	void setString(SettingName setting, const std::string& newValue);
 
 	std::vector<std::string> getAllContacts() const;
 	void modifyContact(const std::string& name, const std::string& nickName);
