@@ -255,7 +255,7 @@ void Voice::mediaDecode()
 		else
 		{
 			{
-				std::unique_lock<std::mutex>(receivedTimestampMutex);
+				std::unique_lock<std::mutex> receivedTimestampLock(receivedTimestampMutex);
 				gettimeofday(&lastReceivedTimestamp, NULL);
 			}
 			rxtotal = rxtotal + receivedLength + HEADERS;

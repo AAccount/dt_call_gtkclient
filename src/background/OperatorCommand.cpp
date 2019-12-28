@@ -56,6 +56,10 @@ void OperatorCommand::execute(OperatorCommand which)
 				case OperatorCommand::END:
 					Vars::callWith = "";
 					break;
+				case OperatorCommand::CALL:
+				default:
+					//call requires no special "after sending" procedures
+					break;
 			}
 		});
 		asyncThread.detach();
