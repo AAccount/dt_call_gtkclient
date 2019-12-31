@@ -14,11 +14,15 @@ ifeq ($(UNAME),Linux)
  GTKLIB = `pkg-config --cflags gtk+-3.0 --libs gtk+-3.0`
 endif
 
-ifeq ($(UNAME),FreeBSD)
+ifeq ($(UNAME), $(filter $(UNAME), FreeBSD OpenBSD))
 #free bsd doesn't like gtklib generating a bunch of unused linkages. Can't use Werror
  OPTCFLAGS = -O2 -march=native -fPIE
  CFLAGS = -g -fPIE
- LDFLAGS = -pie
+ ifeq ($(UNAME),OpenBSD)
+  LDFLAGS = -pie -L/usr/X11R6/lib
+ else ifeq ($(UNAME),FreeBSD)
+  LDFLAGS = -pie
+ endif
  INC = -I /usr/local/include
  LIB = -L /usr/local/lib
  CXX = clang++ -std=c++14
