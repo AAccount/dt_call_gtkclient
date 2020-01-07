@@ -114,10 +114,7 @@ void Voice::stop()
 		randombytes_buf(voiceKey, crypto_box_SECRETKEYBYTES);
 	}
 	
-	mute = false,
-	garbage = 0; rxtotal = 0; txtotal = 0; rxSeq = 0; txSeq = 0; skipped = 0; oorange = 0;
-	reconnectTries = 0;
-	stopRequested = false;
+	instance = NULL;
 }
 
 void Voice::mediaEncode()
