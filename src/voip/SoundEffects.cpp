@@ -69,6 +69,7 @@ void SoundEffects::ring()
 			memset(&divisionTime, 0, sizeof (struct timespec));
 			divisionTime.tv_sec = 0;
 			divisionTime.tv_nsec = (int) (1000000000.0 / RINGTONE_DIVISION);
+			ringtoneDone = false;
 			while(!ringtoneDone)
 			{
 				short* item = silenceArray.get();;
