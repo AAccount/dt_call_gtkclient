@@ -334,7 +334,8 @@ void Voice::receiveMonitor()
 			shutdown(Vars::mediaSocket, 2);
 			close(Vars::mediaSocket);
 			Vars::mediaSocket = -1;
-		}	
+		}
+		receivedTimestampLock.~unique_lock();
 		sleep(A_SECOND);
 	}
 }
