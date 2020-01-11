@@ -18,6 +18,7 @@
 #include <mutex>
 #include <memory>
 #include <string>
+#include <sstream>
 
 #include <pulse/simple.h>
 
@@ -37,13 +38,8 @@ public:
 	void stop();
 	void toggleMic();
 	
-	int getGarbage() const;
-	int getRxtotal() const;
-	int getTxtotal() const;
-	int getRxSeq() const;
-	int getTxSeq() const;
-	int getSkipped() const;
-	int getOorange() const;
+	std::string getStats();
+	
 private:
 	const static int HEADERS = 52;
 
@@ -79,6 +75,10 @@ private:
 	
 	Logger* logger;
 	R* r;
+	
+	std::string missingLabel, txLabel, rxLabel, garbageLabel, rxSeqLabel, txSeqLabel, skippedLabel, oorangeLabel;
+	std::stringstream statBuilder;
+	double formatInternetMetric(int metric, std::string& units);
 };
 
 #endif /* VOICE_HPP */

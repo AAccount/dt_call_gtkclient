@@ -56,12 +56,8 @@ private:
 	std::thread timeCounterThread;
 	void timeCounter();
 	void updateTime();
-	void updateStats();
 	std::stringstream timeBuilder;
-	std::stringstream statBuilder;
-	std::string missingLabel, txLabel, rxLabel, garbageLabel, rxSeqLabel, txSeqLabel, skippedLabel, oorangeLabel;
 	
-	double formatInternetMetric(int metric, std::string& units);
 	GtkTextBuffer* statsBuffer;
 	std::string currentStats, runningTime;
 	static int updateUi(void* context);

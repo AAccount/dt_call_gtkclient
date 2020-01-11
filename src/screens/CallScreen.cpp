@@ -74,15 +74,6 @@ logger(Logger::getInstance())
 	//setup the timer and stats display
 	min = sec = 0;
 	timeBuilder = std::stringstream();
-	statBuilder = std::stringstream();
-	missingLabel = r->getString(R::StringID::CALL_SCREEN_STAT_MISSING);
-	txLabel = r->getString(R::StringID::CALL_SCREEN_STAT_TX);
-	rxLabel = r->getString(R::StringID::CALL_SCREEN_STAT_RX);
-	garbageLabel = r->getString(R::StringID::CALL_SCREEN_STAT_GARBAGE);
-	rxSeqLabel = r->getString(R::StringID::CALL_SCREEN_STAT_RXSEQ);
-	txSeqLabel = r->getString(R::StringID::CALL_SCREEN_STAT_TXSEQ);
-	skippedLabel = r->getString(R::StringID::CALL_SCREEN_STAT_SKIP);
-	oorangeLabel = r->getString(R::StringID::CALL_SCREEN_STAT_RANGE);
 	statsBuffer = gtk_text_buffer_new(NULL);
 	try
 	{
@@ -204,7 +195,7 @@ void CallScreen::timeCounter()
 			onclickEnd();
 		}
 
-		updateStats();
+		currentStats = Voice::getInstance()->getStats();
 		if(onScreen)
 		{
 			Utils::runOnUiThread(&CallScreen::updateUi, this);
@@ -237,21 +228,6 @@ void CallScreen::updateTime()
 	runningTime = timeBuilder.str();
 }
 
-void CallScreen::updateStats()
-{
-	statBuilder.str(std::string());
-	statBuilder.precision(3); //match the android version
-	std::string rxUnits, txUnits;
-	
-	Voice* voice = Voice::getInstance();
-	const int missing = voice->getTxSeq() - voice->getRxSeq();
-	statBuilder << missingLabel << ": " << (missing > 0 ? missing : 0) << " " << garbageLabel << ": " << voice->getGarbage() << "\n"
-			<< rxLabel << ": " << formatInternetMetric(voice->getRxtotal(), rxUnits) << rxUnits << " " << txLabel << ": " << formatInternetMetric(voice->getTxtotal(), txUnits) << txUnits <<"\n"
-			<< rxSeqLabel << ": " << voice->getRxSeq() << " " << txSeqLabel << ": " << voice->getTxSeq() << "\n"
-			<< skippedLabel << ": " << voice->getSkipped() << " " << oorangeLabel << ":  " << voice->getOorange();
-	currentStats = statBuilder.str();
-}
-
 int CallScreen::updateUi(void* context)
 {
 	CallScreen* screen = static_cast<CallScreen*>(context);
@@ -259,28 +235,6 @@ int CallScreen::updateUi(void* context)
 	gtk_text_buffer_set_text(screen->statsBuffer, screen->currentStats.c_str(), -1);
 	gtk_text_view_set_buffer(screen->stats, screen->statsBuffer);
 	return 0;
-}
-
-double CallScreen::formatInternetMetric(int metric, std::string& units)
-{
-	const double MEGA = 1000000.0;
-	const double KILO = 1000.0;
-	double dmetric = (double)metric;
-	if(metric > MEGA)
-	{
-		units = r->getString(R::StringID::CALL_SCREEN_STAT_MB);
-		return dmetric / MEGA;
-	}
-	else if (metric > KILO)
-	{
-		units = r->getString(R::StringID::CALL_SCREEN_STAT_KB);
-		return dmetric / KILO;
-	}
-	else
-	{
-		units = r->getString(R::StringID::CALL_SCREEN_STAT_B);
-		return dmetric;
-	}
 }
 
 void CallScreen::changeToCallMode()

@@ -20,7 +20,16 @@ decodeThreadAlive(false),
 receiveMonitorAlive(false),
 reconnectionAttempted(false),
 logger(Logger::getInstance()),
-r(R::getInstance())
+r(R::getInstance()),
+statBuilder(std::stringstream()),
+missingLabel(r->getString(R::StringID::VOIP_STAT_MISSING)),
+txLabel(r->getString(R::StringID::VOIP_STAT_TX)),
+rxLabel(r->getString(R::StringID::VOIP_STAT_RX)),
+garbageLabel(r->getString(R::StringID::VOIP_STAT_GARBAGE)),
+rxSeqLabel(r->getString(R::StringID::VOIP_STAT_RXSEQ)),
+txSeqLabel(r->getString(R::StringID::VOIP_STAT_TXSEQ)),
+skippedLabel(r->getString(R::StringID::VOIP_STAT_SKIP)),
+oorangeLabel(r->getString(R::StringID::VOIP_STAT_RANGE))
 {
 	memset(&lastReceivedTimestamp, 0, sizeof(struct timeval));
 }
@@ -315,7 +324,7 @@ void Voice::mediaDecode()
 }
 
 void Voice::receiveMonitor()
-{//this function is run on the UI thread: started form the constructor (which was called by the ui thread).
+{
 	const int A_SECOND = 1;
 	while(Vars::ustate == Vars::UserState::INCALL)
 	{
@@ -389,37 +398,38 @@ void Voice::toggleMic()
 	}
 }
 
-int Voice::getGarbage() const
+std::string Voice::getStats()
 {
-	return garbage;
+	statBuilder.str(std::string());
+	statBuilder.precision(3); //match the android version
+	std::string rxUnits, txUnits;
+	
+	const int missing = txSeq - rxSeq;
+	statBuilder << missingLabel << ": " << (missing > 0 ? missing : 0) << " " << garbageLabel << ": " << garbage << "\n"
+			<< rxLabel << ": " << formatInternetMetric(txtotal, rxUnits) << rxUnits << " " << txLabel << ": " << formatInternetMetric(txtotal, txUnits) << txUnits <<"\n"
+			<< rxSeqLabel << ": " << txSeq << " " << txSeqLabel << ": " << txSeq << "\n"
+			<< skippedLabel << ": " << skipped << " " << oorangeLabel << ":  " << oorange;
+	return statBuilder.str();
 }
 
-int Voice::getRxtotal() const
+double Voice::formatInternetMetric(int metric, std::string& units)
 {
-	return rxtotal;
-}
-
-int Voice::getTxtotal() const
-{
-	return txtotal;
-}
-
-int Voice::getRxSeq() const
-{
-	return rxSeq;
-}
-
-int Voice::getTxSeq() const
-{
-	return txSeq;
-}
-
-int Voice::getSkipped() const
-{
-	return skipped;
-}
-
-int Voice::getOorange() const
-{
-	return oorange;
+	const double MEGA = 1000000.0;
+	const double KILO = 1000.0;
+	double dmetric = (double)metric;
+	if(metric > MEGA)
+	{
+		units = r->getString(R::StringID::VOIP_STAT_MB);
+		return dmetric / MEGA;
+	}
+	else if (metric > KILO)
+	{
+		units = r->getString(R::StringID::VOIP_STAT_KB);
+		return dmetric / KILO;
+	}
+	else
+	{
+		units = r->getString(R::StringID::VOIP_STAT_B);
+		return dmetric;
+	}
 }
