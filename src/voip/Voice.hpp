@@ -16,6 +16,7 @@
 
 #include <thread>
 #include <mutex>
+#include <atomic>
 #include <memory>
 #include <string>
 #include <sstream>
@@ -48,14 +49,20 @@ private:
 	virtual ~Voice();
 	static Voice* instance;
 	
-	int garbage, rxtotal, txtotal, rxSeq, txSeq, skipped, oorange;
+	std::atomic<int> garbage; 
+	std::atomic<int> rxtotal;
+	std::atomic<int> txtotal;
+	std::atomic<int> rxSeq;
+	std::atomic<int> txSeq;
+	std::atomic<int> skipped;
+	std::atomic<int> oorange;
+	
 	bool mute;
 	
 	std::thread receiveMonitorThread;
 	void receiveMonitor();
 	bool receiveMonitorAlive;
-	std::mutex receivedTimestampMutex;
-	struct timeval lastReceivedTimestamp;
+	std::atomic<long> lastReceivedTimestamp;
 	std::mutex deadUDPMutex;
 	bool reconnectionAttempted;
 	bool reconnectUDP();

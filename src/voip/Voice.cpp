@@ -29,9 +29,9 @@ garbageLabel(r->getString(R::StringID::VOIP_STAT_GARBAGE)),
 rxSeqLabel(r->getString(R::StringID::VOIP_STAT_RXSEQ)),
 txSeqLabel(r->getString(R::StringID::VOIP_STAT_TXSEQ)),
 skippedLabel(r->getString(R::StringID::VOIP_STAT_SKIP)),
-oorangeLabel(r->getString(R::StringID::VOIP_STAT_RANGE))
+oorangeLabel(r->getString(R::StringID::VOIP_STAT_RANGE)),
+lastReceivedTimestamp(0)
 {
-	memset(&lastReceivedTimestamp, 0, sizeof(struct timeval));
 }
 
 Voice::~Voice()
@@ -260,10 +260,10 @@ void Voice::mediaDecode()
 		}
 		else
 		{
-			{
-				std::unique_lock<std::mutex> receivedTimestampLock(receivedTimestampMutex);
-				gettimeofday(&lastReceivedTimestamp, NULL);
-			}
+			struct timeval now;
+			memset(&now, 0, sizeof(struct timeval));
+			gettimeofday(&now, NULL);
+			lastReceivedTimestamp = (long)now.tv_usec;
 			rxtotal = rxtotal + receivedLength + HEADERS;
 		}
 		std::unique_ptr<unsigned char[]> packetDecrypted;
@@ -328,20 +328,21 @@ void Voice::receiveMonitor()
 	const int A_SECOND = 1;
 	while(Vars::ustate == Vars::UserState::INCALL)
 	{
-		std::unique_lock<std::mutex> receivedTimestampLock(receivedTimestampMutex);
-		const int ASECOND_AS_US = 1000000;
-		struct timeval now;
-		memset(&now, 0, sizeof(struct timeval));
-		gettimeofday(&now, NULL);
-		const int btw = now.tv_usec - lastReceivedTimestamp.tv_usec;
-		if((lastReceivedTimestamp.tv_usec > 0) && (btw > ASECOND_AS_US && Vars::mediaSocket != -1))
+		if(lastReceivedTimestamp > 0)
 		{
-			logger->insertLog(Log(Log::TAG::VOIP_VOICE, r->getString(R::StringID::VOIP_LAST_UDP_FOREVER), Log::TYPE::ERROR).toString());
-			shutdown(Vars::mediaSocket, 2);
-			close(Vars::mediaSocket);
-			Vars::mediaSocket = -1;
+			const int ASECOND_AS_US = 1000000;
+			struct timeval now;
+			memset(&now, 0, sizeof(struct timeval));
+			gettimeofday(&now, NULL);
+			const int btw = now.tv_usec - lastReceivedTimestamp;
+			if(btw > ASECOND_AS_US && Vars::mediaSocket != -1)
+			{
+				logger->insertLog(Log(Log::TAG::VOIP_VOICE, r->getString(R::StringID::VOIP_LAST_UDP_FOREVER), Log::TYPE::ERROR).toString());
+				shutdown(Vars::mediaSocket, 2);
+				close(Vars::mediaSocket);
+				Vars::mediaSocket = -1;
+			}
 		}
-		receivedTimestampLock.~unique_lock();
 		sleep(A_SECOND);
 	}
 }
