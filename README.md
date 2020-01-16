@@ -30,4 +30,5 @@ As with AClient, GTK Client was written with function over form. It's fairly ugl
 ![User Home (with menu) + Settings](https://github.com/AAccount/dt_call_gtkclient/blob/master/user%20home%20menu%20%2B%20settings.png)
 
 ## Changelog
+**V 1.12:** breakup monolithic callscreen.cpp (AClient version sync)
 **V 1.9:** initial version. Sync with AClient version number.

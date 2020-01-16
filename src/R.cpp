@@ -53,7 +53,7 @@ R::R()
 
 {
 	en[StringID::SELF] = "DT Call GTK Client";
-	en[StringID::VERSION] = "1.11";
+	en[StringID::VERSION] = "1.12";
 	en[StringID::COMMIT] = "{git commit id here}";
 
 	en[StringID::GENERIC_SAVE] = "Save";
