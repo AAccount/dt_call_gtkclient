@@ -30,7 +30,7 @@ ifeq ($(UNAME), $(filter $(UNAME), FreeBSD OpenBSD))
 endif
 
 TARGET = gtkclient
-OBJS = main.o utils.o settings.o Log.o SodiumSocket.o vars.o SettingsUI.o R.o LoginManager.o UserHome.o CallScreen.o CmdListener.o OperatorCommand.o Heartbeat.o Opus.o EditContact.o PublicKeyOverview.o PublicKeyUser.o sodium_utils.o Logger.o stringify.o gresources.o ServerUtils.o AsyncCentral.o Voice.o SoundEffects.o
+OBJS = main.o utils.o settings.o Log.o SodiumSocket.o vars.o SettingsUI.o R.o LoginManager.o UserHome.o CallScreen.o CmdListener.o OperatorCommand.o Heartbeat.o Opus.o EditContact.o PublicKeyOverview.o PublicKeyUser.o sodium_utils.o Logger.o stringify.o gresources.o ServerUtils.o AsyncCentral.o Voice.o SoundEffects.o ByteBufferPool.o SodiumUDP.o
 RESOURCES = src/gresources.c src/gresources.h
 
 all: ${OBJS} ${RESOURCES}
@@ -104,6 +104,12 @@ Heartbeat.o : src/background/Heartbeat.cpp src/background/Heartbeat.hpp
 	
 Voice.o : src/voip/Voice.cpp src/voip/Voice.hpp
 	${CXX} ${CFLAGS} -c src/voip/Voice.cpp ${PTHREAD} ${GTKLIB} ${INC} 
+
+ByteBufferPool.o : src/voip/ByteBufferPool.cpp src/voip/ByteBufferPool.hpp
+	${CXX} ${CFLAGS} -c src/voip/ByteBufferPool.cpp ${PTHREAD} ${GTKLIB} ${INC}
+
+SodiumUDP.o : src/voip/SodiumUDP.cpp src/voip/SodiumUDP.hpp
+	${CXX} ${CFLAGS} -c src/voip/SodiumUDP.cpp ${PTHREAD} ${GTKLIB} ${INC}
 
 SoundEffects.o : src/voip/SoundEffects.cpp src/voip/SoundEffects.hpp
 	${CXX} ${CFLAGS} -c src/voip/SoundEffects.cpp ${PTHREAD} ${GTKLIB} ${INC}  

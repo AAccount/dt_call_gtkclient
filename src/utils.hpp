@@ -40,7 +40,7 @@ namespace Utils
 	std::vector<std::string> parse(unsigned char command[]);
 	bool validTS(const std::string& ts);
 	time_t now();
-	void quit(unsigned char privateKey[], unsigned char voiceKey[]);
+	void quit(unsigned char privateKey[]);
 	bool connectFD(int& fd, int type, const std::string& caddr, int cport, struct sockaddr_in* serv_addr);
 	void runOnUiThread(GSourceFunc func);
 	void runOnUiThread(GSourceFunc func, gpointer data);

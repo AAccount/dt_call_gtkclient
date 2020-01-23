@@ -38,22 +38,10 @@ const std::string R::getString(StringID id) const
 	return notFound;
 }
 
-const std::string R::getColor(ColorID id) const
-{
-	if(colors.count(id) > 0)
-	{
-		return colors.at(id);
-	}
-	return "";
-}
-
 R::R()
-: en(std::unordered_map<StringID, std::string>()),
-  colors(std::unordered_map<ColorID, std::string>())
-
 {
 	en[StringID::SELF] = "DT Call GTK Client";
-	en[StringID::VERSION] = "1.12";
+	en[StringID::VERSION] = "1.14";
 	en[StringID::COMMIT] = "{git commit id here}";
 
 	en[StringID::GENERIC_SAVE] = "Save";
@@ -78,6 +66,35 @@ R::R()
 	en[StringID::SODIUM_WRITE] = "sodium socket write using symmetric encryption failed";
 	en[StringID::SODIUM_NOTREADABLE] = "sodium socket isn't useable for reading";
 	en[StringID::SODIUM_NOTWRITEABLE] = "sodium socket isn't useable for writing";
+	en[StringID::SODIUM_UDP_TX_ERR] = "sending voice out the udp socket failed;";
+
+	en[StringID::SODIUM_UDP_STAT_MISSING] = "Missing";
+	en[StringID::SODIUM_UDP_STAT_TX] = "Out";
+	en[StringID::SODIUM_UDP_STAT_RX] = "In";
+	en[StringID::SODIUM_UDP_STAT_GARBAGE] = "Garbage";
+	en[StringID::SODIUM_UDP_STAT_RXSEQ] = "In#";
+	en[StringID::SODIUM_UDP_STAT_TXSEQ] = "Out#";
+	en[StringID::SODIUM_UDP_STAT_SKIP] = "Skipped";
+	en[StringID::SODIUM_UDP_STAT_RANGE] = "!!Range";
+	en[StringID::SODIUM_UDP_STAT_MB] = "mbytes";
+	en[StringID::SODIUM_UDP_STAT_KB] = "kbytes";
+	en[StringID::SODIUM_UDP_STAT_B] = "bytes";	
+	en[StringID::SODIUM_UDP_ENCRYPT_ERR] = "voice symmetric encryption failed";
+	en[StringID::SODIUM_UDP_LAST_RX_FOREVER] = "delay since last received more than 1s";
+	en[StringID::SODIUM_UDP_DECRYPT_ERR] = "voice symmetric decryption failed";
+	en[StringID::SODIUM_UDP_RX_ERROR] = "receiving voice on the udp socket failed";
+	en[StringID::SODIUM_UDP_REGISTERUDP_SEALFAIL] = "failed to create sealed box for udp registration";
+	en[StringID::SODIUM_UDP_TIMEOUT_REGISTER] = "failed to setup udp timeout when registering ";
+	en[StringID::SODIUM_UDP_TIMEOUT_REMOVE_TIMEOUT] = "failed to remove udp timeout after registering is done ";
+	en[StringID::SODIUM_UDP_TX_START] = ": tx thread start";
+	en[StringID::SODIUM_UDP_TX_STOP] = ": tx thread stop";
+	en[StringID::SODIUM_UDP_RX_START] = ": rx thread start";
+	en[StringID::SODIUM_UDP_RX_STOP] = ": rx thread stop";
+	en[StringID::SODIUM_UDP_WRITE_CANT] = ": socket isn't useable, won't write";
+	en[StringID::SODIUM_UDP_READ_CANT] = ": socket isn't useable, won't read";
+	en[StringID::SODIUM_UDP_RXMON_START] = ": rx monitor thread start";
+	en[StringID::SODIUM_UDP_RXMON_STOP] = ": rx monitor thread stop";
+	en[StringID::SODIUM_UDP_CLOSE] = ": closing sodium udp";
 
 	en[StringID::SETTINGS_UI_TITLE_INITIAL_SETUP] = "Initial Setup";
 	en[StringID::SETTINGS_UI_TITLE_EDIT] = "Edit Settings";
@@ -118,36 +135,21 @@ R::R()
 	en[StringID::CALL_SCREEN_BUTTON_MUTE] = "Mute";
 	en[StringID::CALL_SCREEN_BUTTON_MUTE_UNMUTE] = "Unmute";
 	en[StringID::CALL_SCREEN_BUTTON_ACCEPT] = "Accept";
-	en[StringID::VOIP_STAT_MISSING] = "Missing";
-	en[StringID::VOIP_STAT_TX] = "Out";
-	en[StringID::VOIP_STAT_RX] = "In";
-	en[StringID::VOIP_STAT_GARBAGE] = "Garbage";
-	en[StringID::VOIP_STAT_RXSEQ] = "In#";
-	en[StringID::VOIP_STAT_TXSEQ] = "Out#";
-	en[StringID::VOIP_STAT_SKIP] = "Skipped";
-	en[StringID::VOIP_STAT_RANGE] = "!!Range";
-	en[StringID::VOIP_STAT_MB] = "mbytes";
-	en[StringID::VOIP_STAT_KB] = "kbytes";
-	en[StringID::VOIP_STAT_B] = "bytes";
-	en[StringID::VOIP_LAST_UDP_FOREVER] = "delay since last received more than 1s";
+	en[StringID::CALL_SCREEN_MEDIA_RINGTONE_DESC] = "play ringtone";
 	en[StringID::CALL_SCREEN_POPUP_MUTE_WARNING] = "DOUBLE CHECK mute label. It can take up to 1 second to change mute/unmute";
+	
 	en[StringID::VOIP_MEDIA_ENC_START] = "Media encoding thread started";
 	en[StringID::VOIP_MEDIA_ENC_DESC] = "Voice call record";
 	en[StringID::VOIP_MEDIA_ENC_PA_ERR] = "Pulse audio read from mic failed with: ";
 	en[StringID::VOIP_MEDIA_ENC_OPUS_ERR] = "Opus encoder error: ";
 	en[StringID::VOIP_MEDIA_ENC_STOP] = "Media encoding thread stopped";
-	en[StringID::VOIP_MEDIA_ENC_SODIUM_ERR] = "voice symmetric encryption failed";
-	en[StringID::VOIP_MEDIA_ENC_NETWORK_ERR] = "sending voice out the udp socket failed;";
 	en[StringID::VOIP_MEDIA_ENC_LATENCY] = "pulse audio recording latency: ";
 	en[StringID::VOIP_MEDIA_DEC_START] = "Media decoding thread started";
 	en[StringID::VOIP_MEDIA_DEC_DESC] = "Voice call playback";
 	en[StringID::VOIP_MEDIA_DEC_PA_ERR] = "Pulse audio playback failed with: ";
 	en[StringID::VOIP_MEDIA_DEC_OPUS_ERR] = "Opus decoder error: ";
 	en[StringID::VOIP_MEDIA_DEC_STOP] = "Media decoding thread stopped";
-	en[StringID::VOIP_MEDIA_DEC_SODIUM_ERR] = "voice symmetric decryption failed";
-	en[StringID::VOIP_MEDIA_DEC_NETWORK_ERR] = "receiving voice on the udp socket failed";
 	en[StringID::VOIP_MEDIA_DEC_LATENCY] = "pulse audio playback latency: ";
-	en[StringID::CALL_SCREEN_MEDIA_RINGTONE_DESC] = "play ringtone";
 
 	en[StringID::LOGINASYNC_LOGIN1_FORMAT] = "login1 improperly formatted";
 	en[StringID::LOGINASYNC_LOGIN1_TS] = "login1 bad timestamp";
@@ -178,9 +180,6 @@ R::R()
 	en[StringID::CMDLISTENER_IOERROR] = "Command listener died";
 	en[StringID::CMDLISTENER_OORANGE] = "Out of range exception: ";
 	en[StringID::CMDLISTENER_PASSTHROUGH_FAIL] = "Couldn't decrypt passthrough of voice key";
-	en[StringID::CMDLISTENER_REGISTERUDP_SEALFAIL] = "failed to create sealed box for udp registration";
-	en[StringID::CMDLISTENER_UDP_TIMEOUT_REGISTER] = "failed to setup udp timeout when registering ";
-	en[StringID::CMDLISTENER_UDP_TIMEOUT_REMOVE_TIMEOUT] = "failed to remove udp timeout after registering is done ";
 
 	en[StringID::HEARTBEAT_FAIL] = "couldn't write heartbeat: ";
 
@@ -188,9 +187,6 @@ R::R()
 	en[StringID::OPUS_INIT_ENCERR] = "encoder create failed: ";
 	
 	en[StringID::OPERATOR_COMMAND_BAD] = "Bad operator command (does not exist): ";
-
-	colors[ColorID::GREEN] = "<span style=\"background-color: rgba(73,D2,16,1)\">%s</span>";
-	colors[ColorID::RED] = "<span style=\"background color: rgba(EF,29,29,1)\">%s</span>";
 }
 
 R::~R()

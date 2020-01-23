@@ -127,16 +127,11 @@ time_t Utils::now()
 	return nowvar;
 }
 
-void Utils::quit(unsigned char privateKey[], unsigned char voiceKey[])
+void Utils::quit(unsigned char privateKey[])
 {
 	if(privateKey != NULL)
 	{
 		randombytes_buf(privateKey, crypto_box_SECRETKEYBYTES);
-	}
-
-	if(voiceKey != NULL)
-	{
-		randombytes_buf(voiceKey, crypto_secretbox_KEYBYTES);
 	}
 	exit(0);
 }

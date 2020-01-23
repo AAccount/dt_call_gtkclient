@@ -215,7 +215,7 @@ void UserHome::onclickQuit()
 	g_signal_handler_disconnect(G_OBJECT(window), destroyHandleID); //onclick call end is actually ran again after the window is gone unless you tell it not to
 	Vars::isExiting = true;
 	Vars::commandSocket.get()->stop();
-	Utils::quit(Vars::privateKey.get(), Vars::voiceKey.get());
+	Utils::quit(Vars::privateKey.get());
 }
 
 void UserHome::onclickDial()

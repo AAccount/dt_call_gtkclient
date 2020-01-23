@@ -70,7 +70,7 @@ logger(Logger::getInstance())
 			throw std::string(error);
 		}
 
-		std::unique_ptr<unsigned char[]> symmetricDecrypted;
+		std::unique_ptr<unsigned char[]> symmetricDecrypted = std::make_unique<unsigned char[]>(1024);
 		int length = 0;
 		SodiumUtils::sodiumDecrypt(true, symmetricEncrypted, readAmount, tempPrivate, serverPublic, symmetricDecrypted, length);
 		if(length == 0)
@@ -118,7 +118,7 @@ std::string SodiumSocket::readString()
 		return "";
 	}
 
-	std::unique_ptr<unsigned char[]> binary;
+	std::unique_ptr<unsigned char[]> binary = std::make_unique<unsigned char[]>(READ_BUFFER_SIZE);
 	int binaryLength = readBinary(binary);
 	std::string result((char*)binary.get(), binaryLength);
 	return result;
@@ -176,7 +176,7 @@ void SodiumSocket::writeBinary(unsigned char uchars[], int amount)
 		return;
 	}
 
-	std::unique_ptr<unsigned char[]> encrypted;
+	std::unique_ptr<unsigned char[]> encrypted = std::make_unique<unsigned char[]>(READ_BUFFER_SIZE);
 	int encryptionLength = 0;
 	SodiumUtils::sodiumEncrypt(false, uchars, amount, tcpKey, NULL, encrypted, encryptionLength);
 	if(encryptionLength == 0)

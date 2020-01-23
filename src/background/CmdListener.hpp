@@ -28,12 +28,12 @@
 #include "../Logger.hpp"
 #include "../Log.hpp"
 #include "../R.hpp"
+#include "../voip/Voice.hpp"
 
 class CmdListener
 {
 public:
 	static void startService();
-	static bool registerUDP();
 	
 private:
 	static CmdListener* instance;

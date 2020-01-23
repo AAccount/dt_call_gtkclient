@@ -16,7 +16,7 @@ extern "C" void settings_ui_quit()
 	if(SettingsUI::initialSetup)
 	{
 		Vars::commandSocket.get()->stop();
-		Utils::quit(Vars::privateKey.get(), Vars::voiceKey.get());
+		Utils::quit(Vars::privateKey.get());
 	}
 }
 

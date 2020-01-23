@@ -80,6 +80,8 @@ std::string Log::tagString() const
 		return "voip voice";
 	case VOIP_SOUND_EFFECTS:
 		return "voip sound effects";
+	case SODIUM_UDP:
+		return "sodium udp";
 	default:
 		return "(unknown tag): " + std::to_string(tag);
 	}

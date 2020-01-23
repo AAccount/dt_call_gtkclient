@@ -30,7 +30,6 @@ public:
 	virtual ~Vars();
 
 	//setup information
-	static struct sockaddr_in mediaPortAddrIn;
 	static std::string serverAddress;
 	static int commandPort;
 	static int mediaPort;
@@ -42,10 +41,8 @@ public:
 
 	//sockets
 	static std::unique_ptr<SodiumSocket> commandSocket;
-	static int mediaSocket;
 	static std::string sessionKey;
 	static std::string callWith;
-	static std::unique_ptr<unsigned char[]> voiceKey;
 	
 	//for the services that r/w sockets: heartbeat, cmdlistener, don't do it when the program is exiting.
 	static std::atomic<bool> isExiting;

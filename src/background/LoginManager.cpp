@@ -111,7 +111,7 @@ bool LoginManager::loginFunction()
 		Stringify::destringify(loginChallengeContents[2], challengeUChars);
 
 		int decryptedLength = 0;
-		std::unique_ptr<unsigned char[] > decrypted;
+		std::unique_ptr<unsigned char[] > decrypted = std::make_unique<unsigned char[]>(2048);
 		SodiumUtils::sodiumDecrypt(true, challengeUChars, challengeLength, Vars::privateKey.get(), Vars::serverCert.get(), decrypted, decryptedLength);
 		if (decryptedLength == 0)
 		{

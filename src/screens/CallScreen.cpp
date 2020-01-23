@@ -195,7 +195,7 @@ void CallScreen::timeCounter()
 			onclickEnd();
 		}
 
-		currentStats = Voice::getInstance()->getStats();
+		currentStats = Voice::getInstance()->stats();
 		if(onScreen)
 		{
 			Utils::runOnUiThread(&CallScreen::updateUi, this);

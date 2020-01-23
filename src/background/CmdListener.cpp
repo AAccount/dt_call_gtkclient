@@ -134,13 +134,12 @@ void CmdListener::startInternal()
 
 						if (isCallInitiator)
 						{
-							Vars::voiceKey = std::make_unique<unsigned char[]>(crypto_secretbox_KEYBYTES);
-							randombytes_buf(Vars::voiceKey.get(), crypto_secretbox_KEYBYTES);
+							std::unique_ptr<unsigned char[]> voiceKey = std::make_unique<unsigned char[]>(crypto_secretbox_KEYBYTES);
 							std::unique_ptr<unsigned char[] > yourPublic;
 							Settings::getInstance()->getPublicKey(Vars::callWith, yourPublic);
-							std::unique_ptr<unsigned char[] > output;
+							std::unique_ptr<unsigned char[] > output = std::make_unique<unsigned char[]>(2048);
 							int outputLength;
-							SodiumUtils::sodiumEncrypt(true, Vars::voiceKey.get(), crypto_secretbox_KEYBYTES, Vars::privateKey.get(), yourPublic.get(), output, outputLength);
+							SodiumUtils::sodiumEncrypt(true, voiceKey.get(), crypto_secretbox_KEYBYTES, Vars::privateKey.get(), yourPublic.get(), output, outputLength);
 							const std::string outputStringified = Stringify::stringify(output.get(), outputLength);
 
 							const time_t now = Utils::now();
@@ -149,9 +148,10 @@ void CmdListener::startInternal()
 							Vars::commandSocket.get()->writeString(passthrough);
 							logger->insertLog(Log(Log::TAG::CMD_LISTENER, passthroughBase+"|...|...", Log::TYPE::OUTBOUND).toString());
 							haveVoiceKey = true;
+							Voice::getInstance()->setVoiceKey(std::move(voiceKey));
 						}
 
-						const bool registeredUDP = CmdListener::registerUDP();
+						const bool registeredUDP = Voice::getInstance()->connect();
 						if (registeredUDP)
 						{
 							preparationsComplete = true;
@@ -172,14 +172,15 @@ void CmdListener::startInternal()
 						Stringify::destringify(setupString, setup);
 						std::unique_ptr<unsigned char[] > callWithKey;
 						Settings::getInstance()->getPublicKey(Vars::callWith, callWithKey);
-						std::unique_ptr<unsigned char[] > voiceKeyDecrypted;
+						std::unique_ptr<unsigned char[] > voiceKeyDecrypted = std::make_unique<unsigned char[]>(crypto_secretbox_KEYBYTES);
 						int voiceKeyDecLength = 0;
-						SodiumUtils::sodiumDecrypt(true, setup, setupDesgringifiedLength, Vars::privateKey.get(), callWithKey.get(), Vars::voiceKey, voiceKeyDecLength);
+						SodiumUtils::sodiumDecrypt(true, setup, setupDesgringifiedLength, Vars::privateKey.get(), callWithKey.get(), voiceKeyDecrypted, voiceKeyDecLength);
 
-						if (voiceKeyDecLength != 0)
+						if (voiceKeyDecLength == crypto_secretbox_KEYBYTES)
 						{
 							haveVoiceKey = true;
-									sendReady();
+							Voice::getInstance()->setVoiceKey(std::move(voiceKeyDecrypted));
+							sendReady();
 						}
 						else
 						{
@@ -283,91 +284,4 @@ std::string CmdListener::censorIncomingCmd(const std::vector<std::string>& parse
 		logger->insertLog(Log(Log::TAG::CMD_LISTENER, r->getString(R::StringID::CMDLISTENER_OORANGE), Log::TYPE::ERROR).toString());
 		return "";
 	}
-}
-
-//static
-bool CmdListener::registerUDP()
-{
-	R* r = R::getInstance();
-	Logger* logger = Logger::getInstance();
-	
-	bool udpConnected = Utils::connectFD(Vars::mediaSocket, SOCK_DGRAM, Vars::serverAddress, Vars::mediaPort, &Vars::mediaPortAddrIn);
-	if(!udpConnected)
-	{
-		return false;
-	}
-
-	struct timeval registerTimeout;
-	registerTimeout.tv_sec = 0;
-	registerTimeout.tv_usec = 100000;
-
-	if(setsockopt(Vars::mediaSocket, SOL_SOCKET, SO_RCVTIMEO, (char*)&registerTimeout, sizeof(struct timeval)) < 0)
-	{
-		std::string error= r->getString(R::StringID::CMDLISTENER_UDP_TIMEOUT_REGISTER) + std::to_string(errno) + ") " + std::string(strerror(errno));
-		logger->insertLog(Log(Log::TAG::CMD_LISTENER, error, Log::TYPE::ERROR).toString());
-	}
-
-	const int UDP_RETRIES = 10;
-	int retries = UDP_RETRIES;
-	while(retries > 0)
-	{
-		const std::string registration = std::to_string(Utils::now()) + "|" + Vars::sessionKey;
-		const int registrationLength = crypto_box_SEALBYTES + registration.length();
-		std::unique_ptr<unsigned char[]> sealedRegistrationArray = std::make_unique<unsigned char[]>(registrationLength);
-		unsigned char* sodiumSealedRegistration = sealedRegistrationArray.get();
-		const int sealed = crypto_box_seal(sodiumSealedRegistration, (unsigned char*)registration.c_str(), registration.length(), Vars::serverCert.get());
-		if(sealed != 0)
-		{
-			logger->insertLog(Log(Log::TAG::CMD_LISTENER, r->getString(R::StringID::CMDLISTENER_REGISTERUDP_SEALFAIL), Log::TYPE::ERROR).toString());
-			retries--;
-			continue;
-		}
-
-		const int sent = sendto(Vars::mediaSocket, sodiumSealedRegistration, registrationLength, 0, (struct sockaddr*)&Vars::mediaPortAddrIn, sizeof(struct sockaddr_in));
-		if(sent < 0)
-		{
-			retries--;
-			continue;
-		}
-
-		std::unique_ptr<unsigned char[]> ackBufferArray = std::make_unique<unsigned char[]>(Vars::MAX_UDP);
-		unsigned char* ackBuffer = ackBufferArray.get();
-		struct sockaddr_in sender;
-		socklen_t senderLength = sizeof(struct sockaddr_in);
-		const int receivedLength = recvfrom(Vars::mediaSocket, ackBuffer, Vars::MAX_UDP, 0, (struct sockaddr*)&sender, &senderLength);
-		if(receivedLength < 0)
-		{
-			retries--;
-			continue;
-		}
-
-		std::unique_ptr<unsigned char[]> decAck;
-		std::unique_ptr<unsigned char[]> tcpKey;
-		Vars::commandSocket.get()->getTcpKeyCopy(tcpKey);
-		int decAckLength = 0;
-		SodiumUtils::sodiumDecrypt(false, ackBuffer, receivedLength, tcpKey.get(), NULL, decAck, decAckLength);
-		if(decAckLength == 0)
-		{
-			retries--;
-			continue;
-		}
-
-		const std::string ackString((char*)decAck.get(), decAckLength);
-		const bool ackOK = Utils::validTS(ackString);
-		if(ackOK)
-		{
-			struct timeval noTimeout;
-			noTimeout.tv_sec = 0;
-			noTimeout.tv_usec = 0;
-
-			if(setsockopt(Vars::mediaSocket, SOL_SOCKET, SO_RCVTIMEO, (char*)&noTimeout, sizeof(struct timeval)) < 0)
-			{
-				std::string error= r->getString(R::StringID::CMDLISTENER_UDP_TIMEOUT_REMOVE_TIMEOUT) + std::to_string(errno) + ") " + std::string(strerror(errno));
-				logger->insertLog(Log(Log::TAG::CMD_LISTENER, error, Log::TYPE::ERROR).toString());
-			}
-			return true;
-		}
-		retries--;
-	}
-	return false;
 }

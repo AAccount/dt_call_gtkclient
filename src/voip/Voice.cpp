@@ -12,25 +12,12 @@ Voice* Voice::instance = NULL;
 
 Voice::Voice():
 mute(false),
-garbage(0), rxtotal(0), txtotal(0), rxSeq(0), txSeq(0), skipped(0), oorange(0),
-reconnectTries(0),
+udp(Vars::serverAddress, Vars::mediaPort),
 stopRequested(false),
 encodeThreadAlive(false),
 decodeThreadAlive(false),
-receiveMonitorAlive(false),
-reconnectionAttempted(false),
 logger(Logger::getInstance()),
-r(R::getInstance()),
-statBuilder(std::stringstream()),
-missingLabel(r->getString(R::StringID::VOIP_STAT_MISSING)),
-txLabel(r->getString(R::StringID::VOIP_STAT_TX)),
-rxLabel(r->getString(R::StringID::VOIP_STAT_RX)),
-garbageLabel(r->getString(R::StringID::VOIP_STAT_GARBAGE)),
-rxSeqLabel(r->getString(R::StringID::VOIP_STAT_RXSEQ)),
-txSeqLabel(r->getString(R::StringID::VOIP_STAT_TXSEQ)),
-skippedLabel(r->getString(R::StringID::VOIP_STAT_SKIP)),
-oorangeLabel(r->getString(R::StringID::VOIP_STAT_RANGE)),
-lastReceivedTimestamp(0)
+r(R::getInstance())
 {
 }
 
@@ -48,21 +35,20 @@ Voice* Voice::getInstance()
 	return instance;
 }
 
+bool Voice::connect()
+{
+	return udp.connect();
+}
+
+void Voice::setVoiceKey(std::unique_ptr<unsigned char[]> key)
+{
+	udp.setVoiceSymmetricKey(std::move(key));
+}
+
 void Voice::start()
 {
-	try
-	{
-		receiveMonitorThread = std::thread(&Voice::receiveMonitor, this);
-		receiveMonitorAlive = true;
-	}
-	catch(std::system_error& e)
-	{
-		const std::string error = "receiveMonitorThread " + r->getString(R::StringID::ERR_THREAD_CREATE) + std::string(e.what()) + ")";
-		logger->insertLog(Log(Log::TAG::VOIP_VOICE, error, Log::TYPE::ERROR).toString());
-		stopOnError();
-		return;
-	}
-	
+	udp.start();
+
 	Opus::init();
 	try
 	{
@@ -94,18 +80,8 @@ void Voice::start()
 void Voice::stop()
 {
 	Vars::ustate = Vars::UserState::NONE;
-	if(Vars::mediaSocket != -1)
-	{
-		shutdown(Vars::mediaSocket, 2);
-		close(Vars::mediaSocket);
-	}
-	Vars::mediaSocket = -1;
-	
-	if(receiveMonitorAlive)
-	{
-		receiveMonitorThread.join();
-		receiveMonitorAlive = false;
-	}
+	udp.closeSocket();
+
 	if(encodeThreadAlive)
 	{
 		encodeThread.join();
@@ -115,12 +91,6 @@ void Voice::stop()
 	{
 		decodeThread.join();
 		decodeThreadAlive = false;
-	}
-	
-	unsigned char* voiceKey = Vars::voiceKey.get();
-	if(voiceKey != NULL)
-	{
-		randombytes_buf(voiceKey, crypto_box_SECRETKEYBYTES);
 	}
 	
 	instance = NULL;
@@ -147,18 +117,14 @@ void Voice::mediaEncode()
 	logger->insertLog(Log(Log::TAG::VOIP_VOICE, info, Log::TYPE::INFO).toString());
 
 	const int wavFrames = Opus::WAVFRAMESIZE;
-	std::unique_ptr<unsigned char[]> packetBufferArray = std::make_unique<unsigned char[]>(Vars::MAX_UDP);
-	unsigned char* packetBuffer = packetBufferArray.get();
-	std::unique_ptr<short[]> wavBufferArray = std::make_unique<short[]>(wavFrames);
-	short* wavBuffer = wavBufferArray.get();
-	std::unique_ptr<unsigned char[]> encodedBufferArray = std::make_unique<unsigned char[]>(wavFrames);
-	unsigned char* encodedBuffer = encodedBufferArray.get();
+	std::unique_ptr<short[]> wavBuffer = std::make_unique<short[]>(wavFrames);
+	std::unique_ptr<unsigned char[]> encBuffer = std::make_unique<unsigned char[]>(wavFrames);
 
 	while(Vars::ustate == Vars::UserState::INCALL)
 	{
-		memset(wavBuffer, 0, wavFrames*sizeof(short));
+		memset(wavBuffer.get(), 0, wavFrames*sizeof(short));
 		int paReadError = 0;
-		const int paread = pa_simple_read(wavRecorder, wavBuffer, wavFrames*sizeof(short), &paReadError);
+		const int paread = pa_simple_read(wavRecorder, wavBuffer.get(), wavFrames*sizeof(short), &paReadError);
 		if(paread != 0 )
 		{
 			const std::string error = r->getString(R::StringID::VOIP_MEDIA_ENC_PA_ERR) + std::to_string(paReadError);
@@ -169,49 +135,21 @@ void Voice::mediaEncode()
 		//even if muted, still need to record audio in real time
 		if(mute)
 		{
-			memset(wavBuffer, 0, wavFrames*sizeof(short));
+			memset(wavBuffer.get(), 0, wavFrames*sizeof(short));
 		}
 
-		memset(encodedBuffer, 0, wavFrames);
-		const int encodeLength = Opus::encode(wavBuffer, wavFrames, encodedBuffer, wavFrames);
+		memset(encBuffer.get(), 0, wavFrames);
+		const int encodeLength = Opus::encode(wavBuffer.get(), wavFrames, encBuffer.get(), wavFrames);
 		if(encodeLength < 1)
 		{
 			const std::string error = r->getString(R::StringID::VOIP_MEDIA_ENC_OPUS_ERR) + std::to_string(encodeLength);
 			logger->insertLog(Log(Log::TAG::VOIP_VOICE, error, Log::TYPE::ERROR).toString());
 			continue;
 		}
-
-		memset(packetBuffer, 0, Vars::MAX_UDP);
-		SodiumUtils::disassembleInt(txSeq, packetBuffer);
-		txSeq++;
-		memcpy(packetBuffer+sizeof(uint32_t), encodedBuffer, encodeLength);
-
-		std::unique_ptr<unsigned char[]> packetEncrypted;
-		int packetEncryptedLength = 0;
-		SodiumUtils::sodiumEncrypt(false, packetBuffer, sizeof(uint32_t)+encodeLength, Vars::voiceKey.get(), NULL, packetEncrypted, packetEncryptedLength);
-		if(packetEncryptedLength < 1)
-		{
-			const std::string error = r->getString(R::StringID::VOIP_MEDIA_ENC_SODIUM_ERR);
-			logger->insertLog(Log(Log::TAG::VOIP_VOICE, error, Log::TYPE::ERROR).toString());
-			continue;
-		}
-
-		const int sent = sendto(Vars::mediaSocket, packetEncrypted.get(), packetEncryptedLength, 0, (struct sockaddr*)&Vars::mediaPortAddrIn, sizeof(struct sockaddr_in));
-		if(sent < 0)
-		{
-			const std::string error = r->getString(R::StringID::VOIP_MEDIA_ENC_NETWORK_ERR);
-			logger->insertLog(Log(Log::TAG::VOIP_VOICE, error, Log::TYPE::ERROR).toString());
-			reconnectUDP();
-			continue;
-		}
-		else
-		{
-			txtotal = txtotal + packetEncryptedLength + HEADERS;
-		}
+		udp.write(encBuffer, encodeLength);
 	}
-	randombytes_buf(packetBuffer, Vars::MAX_UDP);
-	randombytes_buf(wavBuffer, wavFrames*sizeof(short));
-	randombytes_buf(encodedBuffer, wavFrames);
+	randombytes_buf(wavBuffer.get(), wavFrames*sizeof(short));
+	randombytes_buf(encBuffer.get(), wavFrames);
 	Opus::closeEncoder();
 	pa_simple_free(wavRecorder);
 	logger->insertLog(Log(Log::TAG::VOIP_VOICE, r->getString(R::StringID::VOIP_MEDIA_ENC_STOP), Log::TYPE::INFO).toString());
@@ -237,153 +175,39 @@ void Voice::mediaDecode()
 	logger->insertLog(Log(Log::TAG::VOIP_VOICE, info, Log::TYPE::INFO).toString());
 
 	const int wavFrames = Opus::WAVFRAMESIZE;
-	std::unique_ptr<unsigned char[]> encBufferArray = std::make_unique<unsigned char[]>(wavFrames);
-	unsigned char* encBuffer = encBufferArray.get();
-	std::unique_ptr<short[]> wavBufferArray = std::make_unique<short[]>(wavFrames);
-	short* wavBuffer = wavBufferArray.get();
-	std::unique_ptr<unsigned char[]> packetBufferArray = std::make_unique<unsigned char[]>(Vars::MAX_UDP);
-	unsigned char* packetBuffer = packetBufferArray.get();
+	std::unique_ptr<unsigned char[]> encBuffer= std::make_unique<unsigned char[]>(wavFrames);
+	std::unique_ptr<short[]> wavBuffer = std::make_unique<short[]>(wavFrames);
 
 	while(Vars::ustate == Vars::UserState::INCALL)
 	{
-		memset(packetBuffer, 0, Vars::MAX_UDP);
-
-		struct sockaddr_in sender;
-		socklen_t senderLength = sizeof(struct sockaddr_in);
-		const int receivedLength = recvfrom(Vars::mediaSocket, packetBuffer, Vars::MAX_UDP, 0, (struct sockaddr*)&sender, &senderLength);
-		if(receivedLength < 0)
+		memset(encBuffer.get(), 0, wavFrames);
+		const int opusLength = udp.read(encBuffer, wavFrames);
+		if(opusLength < 1)
 		{
-			const std::string error = r->getString(R::StringID::VOIP_MEDIA_DEC_NETWORK_ERR);
-			logger->insertLog(Log(Log::TAG::VOIP_VOICE, error, Log::TYPE::ERROR).toString());
-			reconnectUDP();
 			continue;
 		}
-		else
-		{
-			struct timeval now;
-			memset(&now, 0, sizeof(struct timeval));
-			gettimeofday(&now, NULL);
-			lastReceivedTimestamp = (long)now.tv_usec;
-			rxtotal = rxtotal + receivedLength + HEADERS;
-		}
-		std::unique_ptr<unsigned char[]> packetDecrypted;
-		int packetDecryptedLength = 0;
-		SodiumUtils::sodiumDecrypt(false, packetBuffer, receivedLength, Vars::voiceKey.get(), NULL, packetDecrypted, packetDecryptedLength);
-		if(packetDecryptedLength < sizeof(uint32_t)) //should have received at least the sequence number
-		{
-			const std::string error = r->getString(R::StringID::VOIP_MEDIA_DEC_SODIUM_ERR);
-			logger->insertLog(Log(Log::TAG::VOIP_VOICE, error, Log::TYPE::ERROR).toString());
-			continue;
-		}
-
-		const int sequence = SodiumUtils::reassembleInt(packetDecrypted.get());
-		if(sequence <= rxSeq)
-		{
-			skipped++;
-			continue;
-		}
-
-		if(std::abs(sequence - rxSeq) > OORANGE_LIMIT)
-		{
-			oorange++;
-		}
-		else
-		{
-			rxSeq = sequence;
-		}
-
-		const int opusLength = packetDecryptedLength-sizeof(uint32_t);
-		memset(encBuffer, 0, wavFrames);
-		memcpy(encBuffer, packetDecrypted.get()+sizeof(uint32_t), opusLength);
-
-		memset(wavBuffer, 0, wavFrames*sizeof(short));
-		const int frames = Opus::decode(encBuffer, opusLength, wavBuffer, wavFrames);
+		
+		memset(wavBuffer.get(), 0, wavFrames*sizeof(short));
+		const int frames = Opus::decode(encBuffer.get(), opusLength, wavBuffer.get(), wavFrames);
 		if(frames < 1)
 		{
 			const std::string error = r->getString(R::StringID::VOIP_MEDIA_DEC_OPUS_ERR) + std::to_string(frames);
 			logger->insertLog(Log(Log::TAG::VOIP_VOICE, error, Log::TYPE::ERROR).toString());
-			randombytes_buf(packetDecrypted.get(), packetDecryptedLength);
 			continue;
 		}
 		int paWriteError = 0;
-		const int paWrite = pa_simple_write(wavPlayer, wavBuffer, frames*sizeof(short), &paWriteError);
+		const int paWrite = pa_simple_write(wavPlayer, wavBuffer.get(), frames*sizeof(short), &paWriteError);
 		if(paWrite != 0 )
 		{
 			const std::string error = r->getString(R::StringID::VOIP_MEDIA_DEC_PA_ERR) + std::to_string(paWriteError);
 			logger->insertLog(Log(Log::TAG::VOIP_VOICE, error, Log::TYPE::ERROR).toString());
 		}
-		randombytes_buf(packetDecrypted.get(), packetDecryptedLength);
 	}
-
-	randombytes_buf(packetBuffer, Vars::MAX_UDP);
-	randombytes_buf(encBuffer, wavFrames);
-	randombytes_buf(wavBuffer, wavFrames*sizeof(short));
+	randombytes_buf(encBuffer.get(), wavFrames);
+	randombytes_buf(wavBuffer.get(), wavFrames*sizeof(short));
 	pa_simple_free(wavPlayer);
 	Opus::closeDecoder();
 	logger->insertLog(Log(Log::TAG::VOIP_VOICE, r->getString(R::StringID::VOIP_MEDIA_DEC_STOP), Log::TYPE::INFO).toString());
-}
-
-void Voice::receiveMonitor()
-{
-	const int A_SECOND = 1;
-	while(Vars::ustate == Vars::UserState::INCALL)
-	{
-		if(lastReceivedTimestamp > 0)
-		{
-			const int ASECOND_AS_US = 1000000;
-			struct timeval now;
-			memset(&now, 0, sizeof(struct timeval));
-			gettimeofday(&now, NULL);
-			const int btw = now.tv_usec - lastReceivedTimestamp;
-			if(btw > ASECOND_AS_US && Vars::mediaSocket != -1)
-			{
-				logger->insertLog(Log(Log::TAG::VOIP_VOICE, r->getString(R::StringID::VOIP_LAST_UDP_FOREVER), Log::TYPE::ERROR).toString());
-				shutdown(Vars::mediaSocket, 2);
-				close(Vars::mediaSocket);
-				Vars::mediaSocket = -1;
-			}
-		}
-		sleep(A_SECOND);
-	}
-}
-
-bool Voice::reconnectUDP()
-{
-	std::unique_lock<std::mutex> deadUDPLock(deadUDPMutex);
-	if(Vars::ustate == Vars::UserState::NONE)
-	{
-		return false;
-	}
-	
-	const int MAX_UDP_RECONNECTS = 10;
-	if(reconnectTries > MAX_UDP_RECONNECTS)
-	{
-		return false;
-	}
-
-	if(reconnectionAttempted)
-	{
-		reconnectionAttempted = false; //already attempted, reset it for the next connection failure
-		return true;
-	}
-	else
-	{
-		reconnectTries++;
-		const bool reconnected = CmdListener::registerUDP();
-		reconnectionAttempted = true;
-		return reconnected;
-	}
-}
-
-void Voice::stopOnError()
-{
-	std::unique_lock<std::mutex> stopLock(stopMutex);
-	if(!stopRequested)
-	{
-		stopRequested = true;
-		AsyncCentral::getInstance()->broadcast(Vars::Broadcast::CALL_END);
-	}
-	stop();
 }
 
 void Voice::toggleMic()
@@ -399,38 +223,18 @@ void Voice::toggleMic()
 	}
 }
 
-std::string Voice::getStats()
+void Voice::stopOnError()
 {
-	statBuilder.str(std::string());
-	statBuilder.precision(3); //match the android version
-	std::string rxUnits, txUnits;
-	
-	const int missing = txSeq - rxSeq;
-	statBuilder << missingLabel << ": " << (missing > 0 ? missing : 0) << " " << garbageLabel << ": " << garbage << "\n"
-			<< rxLabel << ": " << formatInternetMetric(txtotal, rxUnits) << rxUnits << " " << txLabel << ": " << formatInternetMetric(txtotal, txUnits) << txUnits <<"\n"
-			<< rxSeqLabel << ": " << txSeq << " " << txSeqLabel << ": " << txSeq << "\n"
-			<< skippedLabel << ": " << skipped << " " << oorangeLabel << ":  " << oorange;
-	return statBuilder.str();
+	std::unique_lock<std::mutex> stopLock(stopMutex);
+	if(!stopRequested)
+	{
+		stopRequested = true;
+		AsyncCentral::getInstance()->broadcast(Vars::Broadcast::CALL_END);
+	}
+	stop();
 }
 
-double Voice::formatInternetMetric(int metric, std::string& units)
+std::string Voice::stats()
 {
-	const double MEGA = 1000000.0;
-	const double KILO = 1000.0;
-	double dmetric = (double)metric;
-	if(metric > MEGA)
-	{
-		units = r->getString(R::StringID::VOIP_STAT_MB);
-		return dmetric / MEGA;
-	}
-	else if (metric > KILO)
-	{
-		units = r->getString(R::StringID::VOIP_STAT_KB);
-		return dmetric / KILO;
-	}
-	else
-	{
-		units = r->getString(R::StringID::VOIP_STAT_B);
-		return dmetric;
-	}
+	return udp.stats();
 }
