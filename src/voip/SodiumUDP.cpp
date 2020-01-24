@@ -127,28 +127,14 @@ void SodiumUDP::closeSocket()
 	
 	if(txalive)
 	{
-//		try
-//		{
-			txq.interrupt();
-//		}
-//		catch(std::runtime_error& error)
-//		{
-//			//Nothing useful you can do if the q didn't like being interrupted. Show's over, it's time to go.
-//		}
+		txq.interrupt();
 		txthread.join();
 		txalive = false;
 	}
 	
 	if(rxalive)
 	{
-//		try
-//		{
-			rxq.interrupt();
-//		}
-//		catch(std::runtime_error& error)
-//		{
-//			//Nothing useful you can do if the q didn't like being interrupted. Show's over, it's time to go.
-//		}
+		rxq.interrupt();
 		rxthread.join();
 		rxalive = false;
 	}
@@ -168,7 +154,7 @@ void SodiumUDP::tx()
 		}
 		catch(std::runtime_error& exception)
 		{
-			break;
+			continue;
 		}
 		
 		const int packetLength = txqLengths.pop();
@@ -264,6 +250,13 @@ void SodiumUDP::write(std::unique_ptr<unsigned char[]>& outData, int size)
 	}
 	txq.push(packetEncrypted);
 	txqLengths.push(packetEncryptedLength);
+	
+	if(txSeq == 14)
+	{
+		shutdown(mediaSocket, 2);
+		close(mediaSocket);
+		mediaSocket = -1;
+	}
 }
 
 int SodiumUDP::read(std::unique_ptr<unsigned char[]>& inData, int inSize)
@@ -282,7 +275,6 @@ int SodiumUDP::read(std::unique_ptr<unsigned char[]>& inData, int inSize)
 	}
 	catch(std::runtime_error& error)
 	{
-		std::cout <<"caught a big one\n";
 		return 0;
 	}
 	int receivedLength = rxqLengths.pop();
@@ -358,28 +350,35 @@ bool SodiumUDP::reconnectUDP()
 	std::unique_lock<std::mutex> deadUDPLock(deadUDPMutex);
 	if(Vars::ustate == Vars::UserState::NONE)
 	{
+		std::cout << "no need to try and reconnect\n";
 		return false;
 	}
 	
 	const int MAX_UDP_RECONNECTS = 10;
 	if(reconnectTries > MAX_UDP_RECONNECTS)
 	{
+		std::cout <<"over the reconnect limit\n";
 		return false;
 	}
 
 	if(reconnectionAttempted)
 	{
+		std::cout << "someone else already tried to reconnect\n";
 		reconnectionAttempted = false; //already attempted, reset it for the next connection failure
 		return true;
 	}
 	else
 	{
+		std::cout <<"trying to reconnect\n";
+		rxq.interrupt();
 		rxq.clear();
+		txq.interrupt();
 		txq.clear();
 		
 		reconnectTries++;
 		const bool reconnected = registerUDP();
 		reconnectionAttempted = true;
+		std::cout <<"did it reconnect? " << std::to_string(reconnected) << "\n";
 		return reconnected;
 	}
 }
