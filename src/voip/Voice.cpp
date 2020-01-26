@@ -11,13 +11,17 @@
 Voice* Voice::instance = NULL;
 
 Voice::Voice():
+logger(Logger::getInstance()),
+r(R::getInstance()),
 mute(false),
 udp(Vars::serverAddress, Vars::mediaPort),
 stopRequested(false),
 encodeThreadAlive(false),
+encodedb(-100L),
+encodedbLabel(r->getInstance()->getString(R::StringID::VOIP_MEDIA_ENC_DB)),	
 decodeThreadAlive(false),
-logger(Logger::getInstance()),
-r(R::getInstance())
+decodedb(-100L),
+decodedbLabel(r->getInstance()->getString(R::StringID::VOIP_MEDIA_DEC_DB))
 {
 }
 
@@ -132,8 +136,10 @@ void Voice::mediaEncode()
 			continue;
 		}
 
+		encodedb = db(wavBuffer, wavFrames);
+		
 		//even if muted, still need to record audio in real time
-		if(mute)
+		if(mute || encodedb < 0)
 		{
 			memset(wavBuffer.get(), 0, wavFrames*sizeof(short));
 		}
@@ -195,6 +201,8 @@ void Voice::mediaDecode()
 			logger->insertLog(Log(Log::TAG::VOIP_VOICE, error, Log::TYPE::ERROR).toString());
 			continue;
 		}
+		decodedb = db(wavBuffer, wavFrames);
+		
 		int paWriteError = 0;
 		const int paWrite = pa_simple_write(wavPlayer, wavBuffer.get(), frames*sizeof(short), &paWriteError);
 		if(paWrite != 0 )
@@ -236,5 +244,25 @@ void Voice::stopOnError()
 
 std::string Voice::stats()
 {
-	return udp.stats();
+	statBuilder.str(std::string());
+	statBuilder.precision(3);
+	statBuilder << udp.stats() << "\n" 
+			<< encodedbLabel << std::to_string(encodedb) << " "
+			<< decodedbLabel << std::to_string(decodedb);
+	return statBuilder.str();
+}
+
+double Voice::db(std::unique_ptr<short[]>& sound, int size)
+{
+	double sum = 0L;
+	const short* soundArray = sound.get();
+	for(int i=0; i<size; i++)
+	{
+		const short sample = soundArray[i];
+		const double percent = sample / (double)SHRT_MAX;
+		sum = sum + (percent * percent);
+	}
+	double rms = sqrt(sum);
+	double db = 20L * log10(rms);
+	return db;
 }

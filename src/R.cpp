@@ -144,12 +144,14 @@ R::R()
 	en[StringID::VOIP_MEDIA_ENC_OPUS_ERR] = "Opus encoder error: ";
 	en[StringID::VOIP_MEDIA_ENC_STOP] = "Media encoding thread stopped";
 	en[StringID::VOIP_MEDIA_ENC_LATENCY] = "pulse audio recording latency: ";
+	en[StringID::VOIP_MEDIA_ENC_DB] = "Rec DB: ";
 	en[StringID::VOIP_MEDIA_DEC_START] = "Media decoding thread started";
 	en[StringID::VOIP_MEDIA_DEC_DESC] = "Voice call playback";
 	en[StringID::VOIP_MEDIA_DEC_PA_ERR] = "Pulse audio playback failed with: ";
 	en[StringID::VOIP_MEDIA_DEC_OPUS_ERR] = "Opus decoder error: ";
 	en[StringID::VOIP_MEDIA_DEC_STOP] = "Media decoding thread stopped";
 	en[StringID::VOIP_MEDIA_DEC_LATENCY] = "pulse audio playback latency: ";
+	en[StringID::VOIP_MEDIA_DEC_DB] = "Receive DB: ";
 
 	en[StringID::LOGINASYNC_LOGIN1_FORMAT] = "login1 improperly formatted";
 	en[StringID::LOGINASYNC_LOGIN1_TS] = "login1 bad timestamp";

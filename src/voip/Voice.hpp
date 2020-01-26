@@ -17,8 +17,12 @@
 #include <thread>
 #include <memory>
 #include <string>
+#include <atomic>
+#include <sstream>
 
 #include <pulse/simple.h>
+#include <limits.h>
+#include <math.h>
 
 #include "../codec/Opus.hpp"
 #include "../R.hpp"
@@ -41,12 +45,14 @@ public:
 	std::string stats();
 	
 private:
-
 	Voice();
 	Voice(const Voice& orig) = delete;
 	virtual ~Voice();
 	static Voice* instance;
-
+	
+	Logger* logger;
+	R* r;
+	
 	SodiumUDP udp;
 	bool mute;
 	
@@ -57,12 +63,17 @@ private:
 	std::thread encodeThread;
 	void mediaEncode();
 	bool encodeThreadAlive;
+	std::atomic<double> encodedb;
+	std::string encodedbLabel;
+	
 	std::thread decodeThread;
 	void mediaDecode();
 	bool decodeThreadAlive;
+	std::atomic<double> decodedb;
+	std::string decodedbLabel;
 	
-	Logger* logger;
-	R* r;
+	double db(std::unique_ptr<short[]>& sound, int size);
+	std::stringstream statBuilder;
 };
 
 #endif /* VOICE_HPP */
