@@ -19,6 +19,7 @@ ByteBufferPool::~ByteBufferPool()
 
 std::unique_ptr<unsigned char[]> ByteBufferPool::getBuffer()
 {
+	std::unique_lock<std::mutex> qLock(btex);
 	if(buffers.size() == 0)
 	{
 		generateBuffers();
@@ -28,8 +29,9 @@ std::unique_ptr<unsigned char[]> ByteBufferPool::getBuffer()
 	return std::move(buffer);
 }
 
-void ByteBufferPool::returnBuffer(std::unique_ptr<unsigned char[]> buffer)
+void ByteBufferPool::returnBuffer(std::unique_ptr<unsigned char[]>& buffer)
 {
+	std::unique_lock<std::mutex> qLock(btex);
 	buffers.push_back(std::move(buffer));
 }
 

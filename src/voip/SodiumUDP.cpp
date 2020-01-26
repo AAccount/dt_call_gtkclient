@@ -57,6 +57,8 @@ void SodiumUDP::setVoiceSymmetricKey(std::unique_ptr<unsigned char[]> key)
 SodiumUDP::~SodiumUDP()
 {
 	randombytes_buf(voiceKey.get(), crypto_box_SECRETKEYBYTES);
+	randombytes_buf(txplaintext.get(), Vars::MAX_UDP);
+	randombytes_buf(rxplaintext.get(), Vars::MAX_UDP);
 }
 
 bool SodiumUDP::connect()
@@ -159,7 +161,7 @@ void SodiumUDP::tx()
 		
 		const int packetLength = txqLengths.pop();
 		const int sent = sendto(mediaSocket, txbuffer.get(), packetLength, 0, (struct sockaddr*)&mediaPortAddrIn, sizeof(struct sockaddr_in));
-		txpool.returnBuffer(std::move(txbuffer));
+		txpool.returnBuffer(txbuffer);
 		if(sent < 0)
 		{
 			const std::string error = creationTime + " " + r->getString(R::StringID::SODIUM_UDP_TX_ERR);
@@ -202,7 +204,7 @@ void SodiumUDP::rx()
 			if(!reconnected)
 			{
 				stopOnError();
-				rxpool.returnBuffer(std::move(packetBuffer));
+				rxpool.returnBuffer(packetBuffer);
 				break;
 			}
 			continue;
@@ -245,18 +247,11 @@ void SodiumUDP::write(std::unique_ptr<unsigned char[]>& outData, int size)
 	{
 		const std::string error = creationTime + " " + r->getString(R::StringID::SODIUM_UDP_ENCRYPT_ERR);
 		logger->insertLog(Log(Log::TAG::SODIUM_UDP, error, Log::TYPE::ERROR).toString());
-		txpool.returnBuffer(std::move(packetEncrypted));
+		txpool.returnBuffer(packetEncrypted);
 		return;
 	}
 	txq.push(packetEncrypted);
 	txqLengths.push(packetEncryptedLength);
-	
-	if(txSeq == 14)
-	{
-		shutdown(mediaSocket, 2);
-		close(mediaSocket);
-		mediaSocket = -1;
-	}
 }
 
 int SodiumUDP::read(std::unique_ptr<unsigned char[]>& inData, int inSize)
@@ -282,7 +277,7 @@ int SodiumUDP::read(std::unique_ptr<unsigned char[]>& inData, int inSize)
 	memset(rxplaintext.get(), 0, Vars::MAX_UDP);
 	int packetDecryptedLength = 0;
 	SodiumUtils::sodiumDecrypt(false, packetBuffer.get(), receivedLength, voiceKey.get(), NULL, rxplaintext, packetDecryptedLength);
-	rxpool.returnBuffer(std::move(packetBuffer));
+	rxpool.returnBuffer(packetBuffer);
 	if(packetDecryptedLength < sizeof (uint32_t)) //should have received at least the sequence number
 	{
 		const std::string error = creationTime + " " + r->getString(R::StringID::SODIUM_UDP_DECRYPT_ERR);
@@ -391,7 +386,6 @@ void SodiumUDP::stopOnError()
 		stopRequested = true;
 		AsyncCentral::getInstance()->broadcast(Vars::Broadcast::CALL_END);
 	}
-	closeSocket();
 }
 
 std::string SodiumUDP::stats()

@@ -16,21 +16,23 @@
 
 #include <memory>
 #include <vector>
+#include <mutex>
 
 #include "../vars.hpp"
 
 class ByteBufferPool
 {
 public:
-	ByteBufferPool(int bufferSize);
+	explicit ByteBufferPool(int bufferSize);
 	ByteBufferPool(const ByteBufferPool& orig) = delete; //you can't copy someone else's vector of unique pointers
 	virtual ~ByteBufferPool();
 	
 	std::unique_ptr<unsigned char[]> getBuffer();
-	void returnBuffer(std::unique_ptr<unsigned char[]> buffer);
+	void returnBuffer(std::unique_ptr<unsigned char[]>& buffer);
 	int getBufferSize() const;
 private:
 	std::vector<std::unique_ptr<unsigned char[]>> buffers;
+	std::mutex btex;
 	int size = 10;
 	int bufferSize;
 	void generateBuffers();
