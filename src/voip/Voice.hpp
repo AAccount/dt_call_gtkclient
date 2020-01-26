@@ -37,7 +37,7 @@ public:
 	void start();
 	void stop();
 	void toggleMic();
-	void setVoiceKey(std::unique_ptr<unsigned char[]> key);	
+	void setVoiceKey(std::unique_ptr<unsigned char[]>& key);	
 	std::string stats();
 	
 private:

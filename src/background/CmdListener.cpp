@@ -148,7 +148,7 @@ void CmdListener::startInternal()
 							Vars::commandSocket.get()->writeString(passthrough);
 							logger->insertLog(Log(Log::TAG::CMD_LISTENER, passthroughBase+"|...|...", Log::TYPE::OUTBOUND).toString());
 							haveVoiceKey = true;
-							Voice::getInstance()->setVoiceKey(std::move(voiceKey));
+							Voice::getInstance()->setVoiceKey(voiceKey);
 						}
 
 						const bool registeredUDP = Voice::getInstance()->connect();
@@ -179,7 +179,7 @@ void CmdListener::startInternal()
 						if (voiceKeyDecLength == crypto_secretbox_KEYBYTES)
 						{
 							haveVoiceKey = true;
-							Voice::getInstance()->setVoiceKey(std::move(voiceKeyDecrypted));
+							Voice::getInstance()->setVoiceKey(voiceKeyDecrypted);
 							sendReady();
 						}
 						else

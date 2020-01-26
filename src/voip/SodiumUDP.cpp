@@ -49,7 +49,7 @@ rxplaintext(std::make_unique<unsigned char[]>(Vars::MAX_UDP))
 	creationTime = std::to_string(creationUsec);
 }
 
-void SodiumUDP::setVoiceSymmetricKey(std::unique_ptr<unsigned char[]> key)
+void SodiumUDP::setVoiceSymmetricKey(std::unique_ptr<unsigned char[]>& key)
 {
 	voiceKey = std::move(key);
 }

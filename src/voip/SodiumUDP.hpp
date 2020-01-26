@@ -32,7 +32,7 @@ public:
 	SodiumUDP(const SodiumUDP& orig) = delete; //for now not sure why you'd need to duplicate sodium voice udps
 	virtual ~SodiumUDP();
 	
-	void setVoiceSymmetricKey(std::unique_ptr<unsigned char[]> key);
+	void setVoiceSymmetricKey(std::unique_ptr<unsigned char[]>& key);
 	bool connect();
 	void start();
 	void closeSocket();

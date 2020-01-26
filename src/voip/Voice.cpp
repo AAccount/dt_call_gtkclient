@@ -40,9 +40,9 @@ bool Voice::connect()
 	return udp.connect();
 }
 
-void Voice::setVoiceKey(std::unique_ptr<unsigned char[]> key)
+void Voice::setVoiceKey(std::unique_ptr<unsigned char[]>& key)
 {
-	udp.setVoiceSymmetricKey(std::move(key));
+	udp.setVoiceSymmetricKey(key);
 }
 
 void Voice::start()
