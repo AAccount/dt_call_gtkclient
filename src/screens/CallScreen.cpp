@@ -42,7 +42,8 @@ extern "C" void onclick_call_screen_accept()
 
 CallScreen::CallScreen() :
 r(R::getInstance()),
-logger(Logger::getInstance())
+logger(Logger::getInstance()),
+updatesDone(0)
 {
 	Vars::callEndIntentForCallScreen = true;
 	Settings* settings = Settings::getInstance();
@@ -185,10 +186,13 @@ void CallScreen::onclickAccept()
 
 void CallScreen::timeCounter()
 {//this function is run on the UI thread: started form the constructor (which was called by the ui thread).
-	const int A_SECOND = 1;
+	const int DELAY = 1000000 / UPDATE_FREQ;
 	while(Vars::ustate != Vars::UserState::NONE)
 	{
-		updateTime();
+		if(updatesDone % UPDATE_FREQ == 0)
+		{
+			updateTime();
+		}
 		if((Vars::ustate == Vars::UserState::INIT) && (sec == INIT_TIMEOUT))
 		{
 			OperatorCommand::execute(OperatorCommand::OperatorCommand::END);
@@ -200,7 +204,8 @@ void CallScreen::timeCounter()
 		{
 			Utils::runOnUiThread(&CallScreen::updateUi, this);
 		}
-		sleep(A_SECOND);
+		updatesDone++;
+		usleep(DELAY);
 	}
 }
 

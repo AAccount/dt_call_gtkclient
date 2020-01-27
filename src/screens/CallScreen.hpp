@@ -60,6 +60,8 @@ private:
 	
 	GtkTextBuffer* statsBuffer;
 	std::string currentStats, runningTime;
+	int updatesDone;
+	const int UPDATE_FREQ = 10;
 	static int updateUi(void* context);
 
 	const static int INIT_TIMEOUT = 20;
