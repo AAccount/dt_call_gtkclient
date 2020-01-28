@@ -139,7 +139,7 @@ void Voice::mediaEncode()
 		encodedb = db(wavBuffer, wavFrames);
 		
 		//even if muted, still need to record audio in real time
-		if(mute || encodedb < 0)
+		if(mute)
 		{
 			memset(wavBuffer.get(), 0, wavFrames*sizeof(short));
 		}
