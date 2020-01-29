@@ -7,6 +7,8 @@
 
 #include "SodiumUDP.hpp"
 
+int SodiumUDP::runningID = 1;
+
 SodiumUDP::SodiumUDP(const std::string& server, int port) :
 logger(Logger::getInstance()),
 r(R::getInstance()),
@@ -40,13 +42,8 @@ rxalive(false),
 rxpool(Vars::MAX_UDP),
 rxplaintext(std::make_unique<unsigned char[]>(Vars::MAX_UDP))
 {
-	memset(&mediaPortAddrIn, 0, sizeof(struct sockaddr_in));
-	
-	struct timeval now;
-	memset(&now, 0, sizeof(struct timeval));
-	gettimeofday(&now, NULL);
-	const long creationUsec = (long)(now.tv_usec);
-	creationTime = std::to_string(creationUsec);
+	id = std::to_string(runningID);
+	runningID++;
 }
 
 void SodiumUDP::setVoiceSymmetricKey(std::unique_ptr<unsigned char[]>& key)
@@ -75,7 +72,7 @@ void SodiumUDP::start()
 	}
 	catch(std::system_error& e)
 	{
-		const std::string error = creationTime + " receiveMonitorThread " + r->getString(R::StringID::ERR_THREAD_CREATE) + std::string(e.what()) + ")";
+		const std::string error = id + " receiveMonitorThread " + r->getString(R::StringID::ERR_THREAD_CREATE) + std::string(e.what()) + ")";
 		logger->insertLog(Log(Log::TAG::SODIUM_UDP, error, Log::TYPE::ERROR).toString());
 		stopOnError();
 		return;
@@ -88,7 +85,7 @@ void SodiumUDP::start()
 	}
 	catch(std::system_error& e)
 	{
-		const std::string error = creationTime + "txthread " + r->getString(R::StringID::ERR_THREAD_CREATE) + std::string(e.what()) + ")";
+		const std::string error = id + "txthread " + r->getString(R::StringID::ERR_THREAD_CREATE) + std::string(e.what()) + ")";
 		logger->insertLog(Log(Log::TAG::SODIUM_UDP, error, Log::TYPE::ERROR).toString());
 		stopOnError();
 		return;
@@ -101,7 +98,7 @@ void SodiumUDP::start()
 	}
 	catch(std::system_error& e)
 	{
-		const std::string error = creationTime + "rxthread " + r->getString(R::StringID::ERR_THREAD_CREATE) + std::string(e.what()) + ")";
+		const std::string error = id + "rxthread " + r->getString(R::StringID::ERR_THREAD_CREATE) + std::string(e.what()) + ")";
 		logger->insertLog(Log(Log::TAG::SODIUM_UDP, error, Log::TYPE::ERROR).toString());
 		stopOnError();
 		return;
@@ -110,7 +107,7 @@ void SodiumUDP::start()
 
 void SodiumUDP::closeSocket()
 {
-	const std::string message = creationTime + " " + r->getString(R::StringID::SODIUM_UDP_CLOSE);
+	const std::string message = id + " " + r->getString(R::StringID::SODIUM_UDP_CLOSE);
 	logger->insertLog(Log(Log::TAG::SODIUM_UDP, message, Log::TYPE::INFO).toString());
 	useable = false;
 	
@@ -144,7 +141,7 @@ void SodiumUDP::closeSocket()
 
 void SodiumUDP::tx()
 {
-	const std::string start = creationTime + " " + r->getString(R::StringID::SODIUM_UDP_TX_START);
+	const std::string start = id + " " + r->getString(R::StringID::SODIUM_UDP_TX_START);
 	logger->insertLog(Log(Log::TAG::SODIUM_UDP, start, Log::TYPE::INFO).toString());
 
 	while(Vars::ustate == Vars::UserState::INCALL)
@@ -164,7 +161,7 @@ void SodiumUDP::tx()
 		txpool.returnBuffer(txbuffer);
 		if(sent < 0)
 		{
-			const std::string error = creationTime + " " + r->getString(R::StringID::SODIUM_UDP_TX_ERR);
+			const std::string error = id + " " + r->getString(R::StringID::SODIUM_UDP_TX_ERR);
 			logger->insertLog(Log(Log::TAG::SODIUM_UDP, error, Log::TYPE::ERROR).toString());
 			const bool reconnected = reconnectUDP();
 			if(!reconnected)
@@ -179,13 +176,13 @@ void SodiumUDP::tx()
 		}
 	}
 	
-	const std::string stop = creationTime + " " + r->getString(R::StringID::SODIUM_UDP_TX_STOP);
+	const std::string stop = id + " " + r->getString(R::StringID::SODIUM_UDP_TX_STOP);
 	logger->insertLog(Log(Log::TAG::SODIUM_UDP, stop, Log::TYPE::INFO).toString());
 }
 
 void SodiumUDP::rx()
 {
-	const std::string start = creationTime + " " + r->getString(R::StringID::SODIUM_UDP_RX_START);
+	const std::string start = id + " " + r->getString(R::StringID::SODIUM_UDP_RX_START);
 	logger->insertLog(Log(Log::TAG::SODIUM_UDP, start, Log::TYPE::INFO).toString());
 	
 	while(Vars::ustate == Vars::UserState::INCALL)
@@ -198,7 +195,7 @@ void SodiumUDP::rx()
 		const int receivedLength = recvfrom(mediaSocket, packetBuffer.get(), Vars::MAX_UDP, 0, (struct sockaddr*)&sender, &senderLength);
 		if(receivedLength < 0)
 		{
-			const std::string error = creationTime + " " + r->getString(R::StringID::SODIUM_UDP_RX_ERROR);
+			const std::string error = id + " " + r->getString(R::StringID::SODIUM_UDP_RX_ERROR);
 			logger->insertLog(Log(Log::TAG::SODIUM_UDP, error, Log::TYPE::ERROR).toString());
 			const bool reconnected = reconnectUDP(); 
 			if(!reconnected)
@@ -222,7 +219,7 @@ void SodiumUDP::rx()
 		}
 	}
 	
-	const std::string stop = creationTime + " " + r->getString(R::StringID::SODIUM_UDP_RX_STOP);
+	const std::string stop = id + " " + r->getString(R::StringID::SODIUM_UDP_RX_STOP);
 	logger->insertLog(Log(Log::TAG::SODIUM_UDP, stop, Log::TYPE::INFO).toString());
 }
 
@@ -230,7 +227,7 @@ void SodiumUDP::write(std::unique_ptr<unsigned char[]>& outData, int size)
 {
 	if(!useable)
 	{
-		const std::string error = creationTime + " " + r->getString(R::StringID::SODIUM_UDP_WRITE_CANT);
+		const std::string error = id + " " + r->getString(R::StringID::SODIUM_UDP_WRITE_CANT);
 		logger->insertLog(Log(Log::TAG::SODIUM_UDP, error, Log::TYPE::ERROR).toString());
 		return;
 	}
@@ -245,7 +242,7 @@ void SodiumUDP::write(std::unique_ptr<unsigned char[]>& outData, int size)
 	SodiumUtils::sodiumEncrypt(false, txplaintext.get(), sizeof(uint32_t)+size, voiceKey.get(), NULL, packetEncrypted, packetEncryptedLength);
 	if(packetEncryptedLength < 1)
 	{
-		const std::string error = creationTime + " " + r->getString(R::StringID::SODIUM_UDP_ENCRYPT_ERR);
+		const std::string error = id + " " + r->getString(R::StringID::SODIUM_UDP_ENCRYPT_ERR);
 		logger->insertLog(Log(Log::TAG::SODIUM_UDP, error, Log::TYPE::ERROR).toString());
 		txpool.returnBuffer(packetEncrypted);
 		return;
@@ -258,7 +255,7 @@ int SodiumUDP::read(std::unique_ptr<unsigned char[]>& inData, int inSize)
 {
 	if(!useable)
 	{
-		const std::string error = creationTime + " " + r->getString(R::StringID::SODIUM_UDP_READ_CANT);
+		const std::string error = id + " " + r->getString(R::StringID::SODIUM_UDP_READ_CANT);
 		logger->insertLog(Log(Log::TAG::SODIUM_UDP, error, Log::TYPE::ERROR).toString());
 		return 0;
 	}
@@ -280,7 +277,7 @@ int SodiumUDP::read(std::unique_ptr<unsigned char[]>& inData, int inSize)
 	rxpool.returnBuffer(packetBuffer);
 	if(packetDecryptedLength < sizeof (uint32_t)) //should have received at least the sequence number
 	{
-		const std::string error = creationTime + " " + r->getString(R::StringID::SODIUM_UDP_DECRYPT_ERR);
+		const std::string error = id + " " + r->getString(R::StringID::SODIUM_UDP_DECRYPT_ERR);
 		logger->insertLog(Log(Log::TAG::SODIUM_UDP, error, Log::TYPE::ERROR).toString());
 		garbage++;
 		return 0;
@@ -311,7 +308,7 @@ int SodiumUDP::read(std::unique_ptr<unsigned char[]>& inData, int inSize)
 
 void SodiumUDP::receiveMonitor()
 {
-	const std::string start = creationTime + " " + r->getString(R::StringID::SODIUM_UDP_RXMON_START);
+	const std::string start = id + " " + r->getString(R::StringID::SODIUM_UDP_RXMON_START);
 	logger->insertLog(Log(Log::TAG::SODIUM_UDP, start, Log::TYPE::INFO).toString());
 	
 	const int A_SECOND = 1;
@@ -326,7 +323,7 @@ void SodiumUDP::receiveMonitor()
 			const int btw = now.tv_usec - lastReceivedTimestamp;
 			if(btw > ASECOND_AS_US && mediaSocket != -1)
 			{
-				const std::string error = creationTime + " " + r->getString(R::StringID::SODIUM_UDP_LAST_RX_FOREVER);
+				const std::string error = id + " " + r->getString(R::StringID::SODIUM_UDP_LAST_RX_FOREVER);
 				logger->insertLog(Log(Log::TAG::SODIUM_UDP, error, Log::TYPE::ERROR).toString());
 				shutdown(mediaSocket, 2);
 				close(mediaSocket);
@@ -336,7 +333,7 @@ void SodiumUDP::receiveMonitor()
 		sleep(A_SECOND);
 	}
 	
-	const std::string stop = creationTime + " " + r->getString(R::StringID::SODIUM_UDP_RXMON_STOP);
+	const std::string stop = id + " " + r->getString(R::StringID::SODIUM_UDP_RXMON_STOP);
 	logger->insertLog(Log(Log::TAG::SODIUM_UDP, stop, Log::TYPE::INFO).toString());
 }
 
@@ -441,7 +438,7 @@ bool SodiumUDP::registerUDP()
 
 	if(setsockopt(mediaSocket, SOL_SOCKET, SO_RCVTIMEO, (char*)&registerTimeout, sizeof(struct timeval)) < 0)
 	{
-		std::string error= creationTime + " " +  r->getString(R::StringID::SODIUM_UDP_TIMEOUT_REGISTER) + std::to_string(errno) + ") " + std::string(strerror(errno));
+		std::string error= id + " " +  r->getString(R::StringID::SODIUM_UDP_TIMEOUT_REGISTER) + std::to_string(errno) + ") " + std::string(strerror(errno));
 		logger->insertLog(Log(Log::TAG::SODIUM_UDP, error, Log::TYPE::ERROR).toString());
 	}
 
@@ -456,7 +453,7 @@ bool SodiumUDP::registerUDP()
 		const int sealed = crypto_box_seal(sodiumSealedRegistration, (unsigned char*)registration.c_str(), registration.length(), Vars::serverCert.get());
 		if(sealed != 0)
 		{
-			const std::string error = creationTime + " " + r->getString(R::StringID::SODIUM_UDP_REGISTERUDP_SEALFAIL);
+			const std::string error = id + " " + r->getString(R::StringID::SODIUM_UDP_REGISTERUDP_SEALFAIL);
 			logger->insertLog(Log(Log::TAG::SODIUM_UDP, error, Log::TYPE::ERROR).toString());
 			retries--;
 			continue;
@@ -502,7 +499,7 @@ bool SodiumUDP::registerUDP()
 
 			if(setsockopt(mediaSocket, SOL_SOCKET, SO_RCVTIMEO, (char*)&noTimeout, sizeof(struct timeval)) < 0)
 			{
-				std::string error= creationTime + " " + r->getString(R::StringID::SODIUM_UDP_TIMEOUT_REMOVE_TIMEOUT) + std::to_string(errno) + ") " + std::string(strerror(errno));
+				std::string error= id + " " + r->getString(R::StringID::SODIUM_UDP_TIMEOUT_REMOVE_TIMEOUT) + std::to_string(errno) + ") " + std::string(strerror(errno));
 				logger->insertLog(Log(Log::TAG::SODIUM_UDP, error, Log::TYPE::ERROR).toString());
 			}
 			return true;

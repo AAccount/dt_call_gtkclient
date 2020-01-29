@@ -42,6 +42,7 @@ public:
 	std::string stats();
 	
 private:
+	static int runningID;
 	Logger* logger;
 	R* r;
 	
@@ -96,7 +97,7 @@ private:
 	struct sockaddr_in mediaPortAddrIn;
 	int port;
 	
-	std::string creationTime;
+	std::string id;
 };
 
 #endif /* SODIUMUDP_HPP */
