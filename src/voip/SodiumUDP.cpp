@@ -40,9 +40,9 @@ txpool(Vars::MAX_UDP),
 txplaintext(std::make_unique<unsigned char[]>(Vars::MAX_UDP)),
 rxalive(false),
 rxpool(Vars::MAX_UDP),
-rxplaintext(std::make_unique<unsigned char[]>(Vars::MAX_UDP))
+rxplaintext(std::make_unique<unsigned char[]>(Vars::MAX_UDP)),
+id(std::to_string(runningID))
 {
-	id = std::to_string(runningID);
 	runningID++;
 }
 
