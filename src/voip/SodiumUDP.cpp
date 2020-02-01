@@ -7,7 +7,7 @@
 
 #include "SodiumUDP.hpp"
 
-int SodiumUDP::runningID = 1;
+std::atomic<int> SodiumUDP::runningID(0);
 
 SodiumUDP::SodiumUDP(const std::string& server, int port) :
 logger(Logger::getInstance()),
@@ -41,9 +41,8 @@ txplaintext(std::make_unique<unsigned char[]>(Vars::MAX_UDP)),
 rxalive(false),
 rxpool(Vars::MAX_UDP),
 rxplaintext(std::make_unique<unsigned char[]>(Vars::MAX_UDP)),
-id(std::to_string(runningID))
+id(std::to_string(runningID++))
 {
-	runningID++;
 }
 
 void SodiumUDP::setVoiceSymmetricKey(std::unique_ptr<unsigned char[]>& key)

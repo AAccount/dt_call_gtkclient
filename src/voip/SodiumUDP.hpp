@@ -42,7 +42,7 @@ public:
 	std::string stats();
 	
 private:
-	static int runningID;
+	static std::atomic<int> runningID;
 	Logger* logger;
 	R* r;
 	
